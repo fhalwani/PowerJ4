@@ -1,0 +1,50 @@
+0	0	0	0.000000	0.000000	0.000000	REJECT	Unknown specimen or order
+1	1	0	0.000000	0.000000	0.000000	IGNORE	No value for this specimen or order
+2	602	1	1.000000	0.000000	0.000000	W897	Synoptic Reports
+3	204	2	1.590000	0.790000	0.790000	W822	Frozen Sections
+4	204	2	0.000000	0.950000	0.950000	FBLK	Frozen Sections Addl Blocks
+5	1	0	0.000000	0.000000	0.000000	CORR	Case Correlation
+6	100	1	18.000000	0.000000	0.000000	W901	Autopsy adult gross without CNS
+7	100	1	20.000000	0.000000	0.000000	W902	Autopsy adult gross with brain
+8	100	1	22.000000	0.000000	0.000000	W903	Autopsy adult gross with brain and spinal cord
+9	100	1	18.000000	0.000000	0.000000	W904	Autopsy infant gross with brain
+10	100	1	18.000000	0.000000	0.000000	W905	Autopsy stillborn or newborn gross with brain
+11	100	1	16.000000	0.000000	0.000000	W906	Autopsy macerated stillborn
+12	100	1	23.000000	0.000000	0.000000	W907	Autopsy adult micro without CNS
+13	100	1	25.000000	0.000000	0.000000	W908	Autopsy adult micro with brain
+14	100	1	27.000000	0.000000	0.000000	W909	Autopsy adult micro with brain and spinal cord
+15	100	1	22.000000	0.000000	0.000000	W910	Autopsy infant with brain
+16	100	1	22.000000	0.000000	0.000000	W911	Autopsy stillborn or newborn micro with brain
+17	100	1	18.750000	0.000000	0.000000	W912	Autopsy any age regional gross or micro
+18	100	1	12.500000	0.000000	0.000000	W913	Autopsy any age single organ gross or micro
+19	100	1	10.000000	0.000000	0.000000	W914	Autopsy any age external examination only
+20	201	1	0.560000	0.000000	0.000000	W812	Cervical-vaginal Pap test
+21	201	1	0.750000	0.000000	0.000000	W815	Sputum
+22	201	1	0.750000	0.000000	0.000000	W810	Fluids
+23	201	1	1.850000	0.000000	0.000000	W805	FNA
+24	201	1	0.750000	0.000000	0.000000	W806	Brushing and Washing
+25	202	1	0.110000	0.170000	0.000000	W861	Level 1 Gross or Micro (Level 2)
+26	201	1	0.170000	0.000000	0.000000	W862	Level 2 Histological confirmation of normal
+27	201	1	0.290000	0.000000	0.000000	W863	Level 3 Superficial biopsy
+28	201	1	1.000000	0.000000	0.000000	W864	Level 4 Internal Biopsy
+29	201	1	2.120000	0.000000	0.000000	W865	Level 5 Medical Biopsy
+30	201	1	3.730000	0.000000	0.000000	W866	Level 6 Radical malignant resection
+31	201	1	0.600000	0.000000	0.000000	W800	Blood Film Interpretation
+32	201	1	1.250000	0.000000	0.000000	W802	Bone marrow interpretation
+33	200	1	1.000000	0.000000	0.000000	C864	Cell Block (use W864)
+34	200	1	0.750000	0.000000	0.000000	W808	Imprint, touch prep, direct smear
+35	602	1	0.720000	0.000000	0.000000	W868	Bug Stains
+36	602	1	0.320000	0.000000	0.000000	W869	Special Stains
+37	602	1	0.320000	0.000000	0.000000	W841	Enzyme histochemistry
+38	602	1	0.320000	0.000000	0.000000	W837	Immunohistochemisty
+39	602	1	0.410000	0.000000	0.000000	W838	Leukocyte Phenotyping
+40	602	1	1.150000	0.000000	0.000000	W870	Immunofluorecence stains
+41	602	1	1.470000	0.000000	0.000000	W876	Quantitative IHC
+42	602	1	1.600000	0.000000	0.000000	W880	FISH Slide
+43	100	1	2.010000	0.000000	0.000000	W816	Electron microscopy
+44	100	1	2.890000	0.000000	0.000000	W833	Nerve Teasing
+45	900	1	1.000000	0.000000	0.000000	W895	Case Review Internal
+46	900	1	0.490000	0.000000	0.000000	W879	Case Review Select Block for special studies
+47	900	1	0.500000	0.000000	0.000000	W898	Case Review Multiheaded
+48	900	1	1.000000	0.000000	0.000000	W894	Case Review Previous
+49	900	1	0.640000	0.000000	0.000000	W916	Case Review for Multidisciplinary rounds

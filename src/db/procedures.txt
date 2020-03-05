@@ -1,0 +1,14 @@
+1	IGNORE	Ignore procedure.
+2	GROSS	Gross description only (no slides).
+3	PAP	Papanicolou slide from cervix smear for Cytology.
+4	FLUID	Body Fluids (urine, ascitis, effusions) for cytology.
+5	BRUSH	Brushing of a luminal surface (GI tract, respiratory tract) for Cytology.
+6	WASH	Luminal washings for cytology (abdomen, pelvis, bladder, bronchial).
+7	FNA	Fine needle aspiration for cytology.
+8	BX	Biopsy of mucosa, tissue, mass or lesion; includes core biopsy.
+9	EXC	Excision of a lesion, mass or polyp without removing the whole organ. Also includes endoscopic mucosal resection (EMR), leiomyomectomy, TURP and fibroadenomas.
+10	SMALL	Small organ (appendix, gallbladder, parathyroid, adrenal).
+11	LARGE	Large organ resection (mastectomy, colectomy, pneumonectomy).
+12	RADICAL	Radical (multi-organ) resection like Whipple procedure, total mastectomy with attached axillary tail (radical mastectomy) or pelvic exenteration.
+13	REGIONAL	Regional autopsy restricted to chest only or abdomen only (but not brain only).
+14	FULL	Full body autopsy (no restrictions).

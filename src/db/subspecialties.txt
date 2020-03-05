@@ -1,0 +1,22 @@
+0	0	Ignore	Ignore
+1	3	GNR	General Pathology
+2	3	MSK	Musculoskeletal Pathology
+3	3	DER	Dermatopathology
+4	3	LYM	Lymphoma
+5	3	CAR	Cardiac Pathology
+6	3	ENT	Ear, Nose, Throat, Endocrine
+7	3	BRS	Breast Pathology
+8	3	THO	Thoracic Pathology
+9	3	GU	Genitourinary Pathology
+10	3	GYN	Gynecologic Pathology
+11	3	GI	Gastrointestinal
+12	3	EYE	Ophthalmic Pathology
+13	3	REN	Renal Pathology
+14	3	NEU	Neuropathology
+30	2	CYG	Gynecologic Cytology
+31	2	CYN	Non-gynecologic Cytology
+50	1	AUF	Forensic Autopsy
+51	1	AUA	Adults Autopsy
+52	1	AUP	Pediatric Autopsy
+53	1	AUC	Cardiac Autopsy
+54	1	AUN	Neuro Autopsy

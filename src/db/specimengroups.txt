@@ -1,0 +1,262 @@
+0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	N	Reject (for automated addition of new codes)
+1	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	N	Ignore (molecular, consult, research or technical specimens)
+2	1	2	30	1	1	28	1	1	8	1	1	33	1	1	217	N	GI stent, tube, medical device
+3	1	2	14	1	1	25	1	1	16	1	1	30	1	1	149	N	Referral to outside institute (kidney, BM, muscle, nerve)
+4	1	8	27	1	1	28	1	1	8	1	1	33	1	1	1908	N	Biopsy or core NOS
+5	1	8	30	1	1	28	1	1	8	1	1	33	1	1	851	N	Lymph node NOS
+6	1	9	29	1	1	29	1	1	9	1	1	35	1	1	1081	N	Sentinel node NOS
+7	1	10	30	1	1	29	1	1	9	1	1	35	1	1	1519	N	Lymph node dissection NOS
+8	2	2	14	1	1	26	1	1	16	1	1	31	1	1	224	N	Abdominoplasty, pannus
+9	2	2	14	1	1	25	1	1	16	1	1	30	1	1	191	N	Bone, Cartilage, Fat (Gross only)
+10	2	2	14	1	1	27	1	1	6	1	1	32	1	1	251	N	Joint loose body
+11	2	2	14	1	1	25	1	1	16	1	1	30	1	1	165	N	Orthopedic hardware
+12	2	8	30	1	1	28	1	1	8	1	1	33	1	1	851	N	Lymph node MSK
+13	2	8	27	1	1	28	1	1	8	1	1	33	1	1	1908	N	Soft tissue or bone biopsy
+14	2	9	15	1	1	27	1	1	6	1	1	32	1	1	266	N	Bursa
+15	2	9	30	1	1	26	1	1	6	1	1	31	1	1	271	N	Debridment tissue
+16	2	9	14	1	1	25	1	1	16	1	1	30	1	1	225	N	Disc orthopedic
+17	2	9	30	1	1	27	1	1	6	1	1	32	1	1	266	N	Fascia
+18	2	9	30	1	1	27	1	1	6	1	1	32	1	1	267	N	Ganglion
+19	2	9	14	1	1	25	1	1	16	1	1	30	1	1	238	N	Hernia sac
+20	2	9	14	1	1	27	1	1	7	1	1	32	1	1	341	N	Meniscus
+21	2	9	30	1	1	27	1	1	6	1	1	32	1	1	265	N	Pilonidal sinus
+22	2	9	29	1	1	29	1	1	9	1	1	35	1	1	1081	N	Sentinel node soft tissue
+23	2	9	30	1	1	28	1	1	6	1	1	33	1	1	560	N	Soft tissue or bone excision
+24	2	9	30	1	1	27	1	1	7	1	1	32	1	1	839	N	Soft tissue or bone resection margin
+25	2	9	14	1	1	27	1	1	7	1	1	32	1	1	266	N	Synovium
+26	2	9	15	1	1	27	1	1	6	1	1	32	1	1	266	N	Tendon
+27	2	10	29	1	1	29	1	1	8	1	1	35	1	1	1230	N	Femoral head pathologic fracture
+28	2	10	14	1	1	25	1	1	16	1	1	31	1	1	545	N	Fingers or toes ortho
+29	2	10	14	1	1	25	1	1	16	1	1	30	1	1	189	N	Joint arthroplasty
+30	2	10	30	1	1	29	1	1	9	1	1	35	1	1	1519	N	Lymph node dissection MSK
+31	2	11	21	1	1	29	1	1	8	1	1	35	1	1	1691	N	Limb amputation benign
+32	2	11	30	31	31	29	29	1	8	10	1	35	36	1	2139	N	Mandible resection
+33	2	11	30	31	31	30	30	1	10	10	1	36	36	1	3681	N	Sarcoma resection, amputation
+34	3	2	15	1	1	26	1	1	6	1	1	31	1	1	217	N	Foreign Body
+35	3	2	1	1	1	1	1	1	16	1	1	1	1	1	2156	N	Skin biopsy for IF
+36	3	8	30	1	1	28	1	1	8	1	1	33	1	1	851	N	Lymph node Skin
+37	3	8	18	1	1	28	1	1	10	1	1	33	1	1	1574	N	Skin biopsy alopecia
+38	3	8	23	1	1	28	1	1	8	1	1	33	1	1	861	N	Skin biopsy or punch
+39	3	9	16	1	1	27	1	1	6	1	1	32	1	1	369	N	Fingernail or toenail
+40	3	9	29	1	1	29	1	1	9	1	1	35	1	1	1840	N	Sentinel node skin
+41	3	9	16	1	1	27	1	1	6	1	1	32	1	1	304	N	Skin cyst
+42	3	9	16	31	1	28	28	1	8	8	1	33	33	1	734	N	Skin ellipse excision
+43	3	9	30	1	1	27	1	1	7	1	1	32	1	1	839	N	Skin resection margin
+44	3	9	15	1	1	27	1	1	6	1	1	32	1	1	274	N	Skin scar
+45	3	9	16	1	1	28	1	1	6	1	1	33	1	1	514	N	Skin shave
+46	3	9	16	1	1	27	1	1	6	1	1	32	1	1	300	N	Skin tag
+47	3	10	30	1	1	29	1	1	9	1	1	35	1	1	1519	N	Lymph node dissection Skin
+48	3	10	30	31	31	28	28	1	8	9	1	33	33	1	995	N	Skin wide excision
+49	4	4	20	1	1	32	1	1	10	1	1	6	1	1	642	N	Peripheral blood
+50	4	8	20	1	1	32	1	1	1	1	1	6	1	1	1088	N	Bone marrow aspirate
+51	4	8	20	1	1	32	1	1	10	1	1	33	1	1	1088	N	Bone marrow biopsy
+52	4	8	20	1	1	32	1	1	10	1	1	6	1	1	1088	N	Bone marrow clot
+53	4	8	21	1	1	28	1	1	10	1	1	35	1	1	3846	N	Lymph node lymphoma protocol
+54	4	10	19	31	1	28	1	1	8	10	1	33	1	1	1139	N	Spleen for hematology
+55	4	10	30	31	1	28	1	1	8	10	1	33	1	1	1353	N	Spleen non-hematologic
+56	5	2	14	1	1	25	1	1	16	1	1	30	1	1	464	N	Heart prosthetic valve, medical device
+57	5	8	23	1	1	28	1	1	7	1	1	33	1	1	753	N	Artery biopsy
+58	5	8	21	1	1	29	1	1	10	1	1	35	1	1	3041	N	Heart diagnostic biopsy
+59	5	8	21	1	1	29	1	1	9	1	1	35	1	1	1414	N	Heart transplant biopsy
+60	5	8	30	1	1	28	1	1	8	1	1	33	1	1	851	N	Lymph node Cardiac
+61	5	9	30	1	1	27	1	1	7	1	1	32	1	1	472	N	Aneurysm, hemangioma, arterovenous malformation
+62	5	9	30	1	1	28	1	1	7	1	1	32	1	1	854	N	Aorta, aortic dissection
+63	5	9	14	1	1	27	1	1	7	1	1	32	1	1	569	N	Artery graft
+64	5	9	30	1	1	27	1	1	7	1	1	32	1	1	359	N	Artery plaque
+65	5	9	30	1	1	27	1	1	7	1	1	32	1	1	424	N	Artery Thrombus, embolus
+66	5	9	30	1	1	27	1	1	7	1	1	32	1	1	816	N	Blood clot, hematoma
+67	5	9	30	1	1	28	1	1	7	1	1	33	1	1	840	N	Heart valve
+68	5	9	23	1	1	28	1	1	8	1	1	33	1	1	1008	N	Pericardium
+69	5	9	30	1	1	27	1	1	7	1	1	32	1	1	344	N	Varicose vein
+70	5	10	17	1	1	28	1	1	8	1	1	33	1	1	545	N	Fingers or toes vascular
+71	5	10	30	1	1	29	1	1	8	1	1	35	1	1	2362	N	Heart apex, atrium, appendage, myxoma
+72	5	11	22	31	31	30	30	1	10	1	1	36	36	1	4543	N	Heart explant
+73	6	2	14	1	1	25	1	1	16	1	1	30	1	1	265	N	Teeth
+74	6	8	24	1	1	28	1	1	13	1	1	33	1	1	1670	N	Adrenal gland biopsy
+75	6	8	23	1	1	28	1	1	7	1	1	33	1	1	956	N	ENT biopsy
+76	6	8	30	1	1	28	1	1	8	1	1	33	1	1	851	N	Lymph node ENT
+77	6	9	30	1	1	27	1	1	6	1	1	32	1	1	267	N	Cholesteatoma
+78	6	9	30	1	1	27	1	1	7	1	1	32	1	1	839	N	ENT resection margin
+79	6	9	30	31	1	27	1	1	6	1	1	32	1	1	614	N	Mucocele, salivary, lip
+80	6	9	30	1	1	27	1	1	6	1	1	32	1	1	316	N	Nasal polyp
+81	6	9	14	1	1	26	1	1	6	1	1	31	1	1	217	N	Nasal septum
+82	6	9	29	1	1	27	1	1	6	1	1	32	1	1	512	N	Nasal sinus, ethmoid, maxillary
+83	6	9	30	1	1	28	1	1	6	6	1	33	1	1	522	N	Parathyroid
+84	6	9	29	1	1	29	1	1	9	1	1	35	1	1	1081	N	Sentinel node ENT
+85	6	9	30	31	1	28	28	1	6	9	1	32	36	1	414	N	Tonsils, adenoids
+86	6	10	30	31	31	29	29	1	8	9	1	35	35	1	2189	N	Adrenal gland benign or malignant
+87	6	10	30	1	1	29	1	1	9	1	1	35	1	1	1555	N	Lymph node dissection ENT
+88	6	10	30	31	31	29	29	1	8	10	1	35	35	1	1679	N	Salivary gland resection, parotid
+89	6	11	30	31	31	29	29	1	8	9	1	35	35	1	2057	N	Thyroid single lobe or total
+90	6	11	30	31	31	28	30	1	10	1	1	33	36	1	2546	N	Tongue glossectomy
+91	6	12	30	31	31	29	29	1	10	1	1	35	35	1	2636	N	Laryngectomy
+92	7	2	14	1	1	25	1	1	16	1	1	30	1	1	165	N	Breast implant no capsule
+93	7	8	28	1	1	28	1	1	8	1	1	33	1	1	1532	N	Breast biopsy
+94	7	8	23	1	1	28	1	1	8	1	1	33	1	1	1245	N	Breast, nipple skin biopsy
+95	7	8	30	1	1	28	1	1	8	1	1	33	1	1	1304	N	Lymph node Breast
+96	7	9	30	1	1	27	1	1	7	1	1	32	1	1	381	N	Breast implant with capsule
+97	7	11	30	31	31	28	29	1	8	10	1	33	35	1	2193	N	Breast lumpectomy
+98	7	10	30	31	1	28	1	1	7	1	1	33	1	1	731	N	Breast reduction
+99	7	9	30	1	1	27	1	1	7	1	1	32	1	1	839	N	Breast resection margin
+100	7	9	29	1	1	29	1	1	9	1	1	35	1	1	1727	N	Sentinel node breast
+101	7	10	30	31	1	28	1	1	8	1	1	33	1	1	751	N	Breast gynecomastia
+102	7	10	15	1	1	26	1	1	7	1	1	31	1	1	571	N	Breast mastopexy
+103	7	10	30	1	1	29	1	1	9	1	1	35	1	1	2294	N	Lymph node dissection Breast
+104	7	11	30	31	31	30	30	1	10	10	1	36	36	1	4513	N	Breast modified radical mastectomy
+105	7	11	30	31	1	28	1	1	9	1	1	33	1	1	1715	N	Breast prophylactic mastectomy
+106	7	11	30	31	31	28	29	1	10	10	1	33	35	1	2904	N	Breast simple mastectomy
+107	8	8	23	1	1	28	1	1	8	1	1	33	1	1	1263	N	Bronchial Biopsy
+108	8	8	23	1	1	28	1	1	8	1	1	33	1	1	1263	N	Lung mass biopsy
+109	8	8	23	1	1	28	1	1	8	1	1	33	1	1	1134	N	Lung medical biopsy
+110	8	8	21	1	1	28	1	1	11	1	1	33	1	1	1134	N	Lung transplant biopsy
+111	8	8	30	1	1	28	1	1	8	1	1	33	1	1	851	N	Lymph node Thoracic
+112	8	8	23	1	1	28	1	1	8	1	1	33	1	1	1908	N	Pleura Biopsy
+113	8	9	30	1	1	27	1	1	7	1	1	32	1	1	839	N	Bronchial resection margin
+114	8	9	30	1	1	29	1	1	9	1	1	35	1	1	1341	N	Lung wedge for bullae/blebs
+115	8	9	30	31	31	29	29	1	9	10	1	35	35	1	1898	N	Lung wedge resection
+116	8	9	23	1	1	28	1	1	8	1	1	33	1	1	1170	N	Pleura
+117	8	9	29	1	1	29	1	1	9	1	1	35	1	1	1106	N	Sentinel node thoracic
+118	8	10	30	31	31	30	30	1	9	10	1	36	36	1	2939	N	Lung lobectomy
+119	8	10	30	1	1	29	1	1	9	1	1	35	1	1	1519	N	Lymph node dissection Thoracic
+120	8	10	30	31	31	29	29	1	9	1	1	35	35	1	1987	N	Thymus
+121	8	11	30	31	31	30	30	1	9	10	1	36	36	1	2939	N	Lung pneumonectomy
+122	8	12	30	31	31	30	30	1	9	10	1	36	36	1	2939	N	Trachea, radical resection
+123	9	2	14	1	1	25	1	1	16	1	1	30	1	1	161	N	Kidney stone
+124	9	8	23	1	1	28	1	1	7	1	1	33	1	1	786	N	Bladder biopsy
+125	9	8	27	1	1	28	1	1	8	1	1	33	1	1	1908	N	Kidney mass biopsy
+126	9	8	30	1	1	28	1	1	8	1	1	33	1	1	851	N	Lymph node GU
+127	9	8	28	28	1	28	1	1	14	1	1	33	1	1	539	N	Prostate biopsy
+128	9	8	21	1	1	29	1	1	8	1	1	35	1	1	1863	N	Testis biopsy for infertility
+129	9	9	29	29	1	28	1	1	8	1	1	35	1	1	1131	N	Bladder curetting
+130	9	9	30	1	1	27	1	1	6	1	1	32	1	1	296	N	Foreskin adult
+131	9	9	30	1	1	27	1	1	6	1	1	32	1	1	296	N	Foreskin child
+132	9	9	30	1	1	27	1	1	7	1	1	32	1	1	839	N	GU resection margin (prostate, ureter, urethra)
+133	9	9	14	1	1	25	1	1	16	1	1	30	1	1	255	N	Hydrocele
+134	9	9	29	29	1	28	1	1	8	1	1	33	1	1	1131	N	Prostate curetting TURP
+135	9	9	29	1	1	29	1	1	9	1	1	35	1	1	1081	N	Sentinel node GU
+136	9	9	30	1	1	27	1	1	6	1	1	32	1	1	268	N	Spermatocele
+137	9	9	15	1	1	27	1	1	6	1	1	32	1	1	238	N	Varicocele
+138	9	9	15	1	1	26	1	1	6	1	1	31	1	1	206	N	Vas deferens, sterilization
+139	9	10	30	1	1	29	1	1	9	1	1	35	1	1	1519	N	Lymph node dissection GU
+140	9	10	30	31	31	28	30	1	7	10	1	33	36	1	1066	N	Testis castration
+141	9	10	30	31	1	29	29	1	7	9	1	35	35	1	2114	N	Ureter resection
+142	9	10	30	31	1	28	1	1	6	1	1	33	1	1	638	N	Urethra resection
+143	9	11	30	31	31	29	30	1	8	10	1	36	36	1	2211	N	Bladder cystectomy partial or radical
+144	9	11	30	31	31	29	29	1	8	10	1	35	35	1	2592	N	Kidney partial or complete nephrectomy
+145	9	11	30	31	31	30	30	1	9	1	1	36	36	1	2682	N	Penis resection
+146	9	11	30	31	31	28	30	1	7	10	1	33	36	1	3548	N	Testis orchiectomy
+147	9	12	30	31	31	30	30	1	10	1	1	36	36	1	2773	N	Pelvic exenteration GU primary
+148	9	12	30	31	31	29	30	1	8	10	1	35	36	1	3605	N	Prostate simple or radical
+149	10	2	14	1	1	25	1	1	16	1	1	30	1	1	174	N	IUD
+150	10	8	23	1	1	28	1	1	7	1	1	33	1	1	804	N	Cervix-vagina biopsy
+151	10	8	29	1	1	28	1	1	7	1	1	33	1	1	716	N	Endometrium biopsy
+152	10	8	30	1	1	28	1	1	8	1	1	33	1	1	851	N	Lymph node GYN
+153	10	8	23	1	1	28	1	1	7	1	1	33	1	1	806	N	Peritoneal or pelvic mass biopsy
+154	10	8	23	1	1	28	1	1	7	1	1	33	1	1	919	N	Vulva biopsy
+155	10	9	30	1	1	29	1	1	8	1	1	35	1	1	1974	N	Cervix cone
+156	10	9	30	1	1	28	1	1	8	1	1	33	1	1	1065	N	Cervix leep
+157	10	9	30	1	1	28	1	1	7	1	1	33	1	1	806	N	Ectopic pregnancy
+158	10	9	29	1	1	28	1	1	7	1	1	33	1	1	691	N	Endocervix curetting
+159	10	9	29	1	1	28	1	1	6	1	1	33	1	1	580	N	Endocervix polyp
+160	10	9	29	1	1	28	1	1	7	1	1	33	1	1	688	N	Endometrium curetting
+161	10	9	29	1	1	28	1	1	6	1	1	33	1	1	580	N	Endometrium polyp
+162	10	9	30	31	1	28	1	1	7	1	1	32	1	1	612	N	Fallopian tube (other than ligation)
+163	10	9	15	1	1	26	1	1	6	1	1	31	1	1	215	N	Fallopian tube ligation sterilization
+164	10	9	30	1	1	28	1	1	7	1	1	33	1	1	786	N	Fibroid
+165	10	9	30	1	1	27	1	1	7	1	1	32	1	1	839	N	GYN resection margin (vagina, vulva)
+166	10	9	30	1	1	28	1	1	7	1	1	33	1	1	1184	N	Omentum
+167	10	9	30	1	1	28	1	1	8	1	1	33	1	1	1085	N	Products of conception, molar/hydatiform mole
+168	10	9	30	1	1	28	1	1	7	1	1	33	1	1	619	N	Products of conception, retained
+169	10	9	15	1	1	27	1	1	7	1	1	32	1	1	373	N	Products of conception, therapeutic
+170	10	9	29	1	1	29	1	1	9	1	1	35	1	1	1081	N	Sentinel node GYN
+171	10	9	15	1	1	26	1	1	6	1	1	31	1	1	227	N	Vaginal mucosa (recto/cystocele)
+172	10	10	30	1	1	29	1	1	9	1	1	35	1	1	1519	N	Lymph node dissection GYN
+173	10	11	30	31	31	28	29	1	8	10	1	33	35	1	1236	N	Ovary cyst, benign, cancer
+174	10	11	17	1	1	29	1	1	8	1	1	35	1	1	1181	N	Placenta
+175	10	11	18	1	1	29	1	1	8	1	1	35	1	1	1181	N	Placenta triplet
+176	10	11	19	1	1	29	1	1	8	1	1	35	1	1	1181	N	Placenta twin
+177	10	11	30	31	31	29	30	1	8	9	1	35	36	1	1787	N	Uterus benign
+178	10	11	30	31	31	30	30	1	9	10	1	36	36	1	2448	N	Vulva resection
+179	10	12	30	31	31	30	30	1	10	10	1	36	36	1	2990	N	Pelvic exenteration GYN primary
+180	10	12	30	31	31	29	30	1	8	9	1	35	36	1	1787	N	Uterus benign with bilateral ovaries and tubes
+181	10	12	30	31	31	29	30	1	9	10	1	35	36	1	3302	N	Uterus cancer
+182	11	8	24	1	1	28	1	1	13	1	1	33	1	1	413	N	Anal biopsy
+183	11	8	27	1	1	28	1	1	8	1	1	33	1	1	576	N	GI Biopsy NOS
+184	11	8	14	1	1	25	1	1	16	1	1	30	1	1	772	N	Liver iron, copper biopsy
+185	11	8	27	1	1	28	1	1	8	1	1	33	1	1	1908	N	Liver mass biopsy
+186	11	8	21	1	1	29	1	1	10	1	1	35	1	1	2892	N	Liver medical biopsy
+187	11	8	21	1	1	28	1	1	11	1	1	33	1	1	2892	N	Liver transplant biopsy
+188	11	8	30	1	1	28	1	1	8	1	1	33	1	1	851	N	Lymph node GI
+189	11	9	16	1	1	27	1	1	6	1	1	32	1	1	413	N	Anal skin
+190	11	10	30	31	1	27	27	1	6	6	1	32	32	1	324	N	Appendectomy
+191	11	9	14	1	1	26	1	1	6	1	1	31	1	1	209	N	Falciform ligament
+192	11	9	30	31	1	27	27	1	6	6	1	32	32	1	280	N	Gallbladder
+193	11	9	30	1	1	29	1	1	8	1	1	35	1	1	1238	N	GI diverticulum
+194	11	9	30	1	1	29	1	1	8	1	1	36	1	1	1433	N	GI Endoscopic mucosal resection
+195	11	9	25	1	1	28	1	1	6	1	1	33	1	1	519	N	GI polyp
+196	11	9	30	1	1	27	1	1	7	1	1	32	1	1	648	N	GI resection margin (donuts, liver, pancreas)
+197	11	9	30	1	1	27	1	1	6	1	1	32	1	1	427	N	GI stoma
+198	11	9	30	1	1	27	1	1	6	1	1	32	1	1	252	N	Hemorrhoids
+199	11	9	29	1	1	29	1	1	9	1	1	35	1	1	1081	N	Sentinel node GI
+200	11	9	30	1	1	26	1	1	6	1	1	31	1	1	316	N	Small bowel bariatric resection
+201	11	9	30	1	1	26	1	1	6	1	1	31	1	1	316	N	Stomach bariatric sleeve gastrectomy
+202	11	10	30	1	1	29	1	1	9	1	1	35	1	1	1519	N	Lymph node dissection GI
+203	11	10	30	31	31	29	30	1	8	10	1	35	36	1	1626	N	Small bowel resection benign or malignant
+204	11	11	30	31	31	29	30	1	8	10	1	35	36	1	2322	Y	Colon, rectum, anus resection (including TME)
+205	11	11	30	31	31	30	30	1	10	1	1	36	36	1	3102	Y	Esophagectomy with or without GEJ or stomach
+206	11	11	30	31	1	29	29	1	9	9	1	35	35	1	2096	N	Liver resection for metastases
+207	11	11	30	31	31	29	29	1	10	10	1	35	35	1	2096	N	Liver resection other than metastases
+208	11	11	30	31	31	29	30	1	8	10	1	35	36	1	2631	Y	Stomach partial or total
+209	11	12	30	31	31	30	30	1	9	1	1	36	36	1	3384	Y	Pancreas, Whipple, distal pancreatectomy
+210	11	12	30	31	31	30	30	1	10	1	1	36	36	1	3418	Y	Pelvic exenteration GI primary
+211	12	1	14	1	1	25	1	1	16	1	1	30	1	1	165	N	Eye implant
+212	12	8	23	1	1	28	1	1	9	1	1	33	1	1	1088	N	Eye biopsy
+213	12	9	23	1	1	27	1	1	6	1	1	32	1	1	580	N	Conjunctiva
+214	12	9	23	1	1	27	1	1	7	1	1	32	1	1	570	N	Cornea
+215	12	9	23	1	1	27	1	1	7	1	1	32	1	1	485	N	Descemet's membrane
+216	12	9	14	1	1	25	1	1	16	1	1	30	1	1	1088	N	Eye Methacrylate
+217	12	9	30	1	1	27	1	1	7	1	1	32	1	1	839	N	Eye resection margin
+218	12	9	16	31	1	28	28	1	8	8	1	33	33	1	825	N	Eyelid skin excision
+219	12	9	23	1	1	28	1	1	7	1	1	33	1	1	737	N	Lens ocular
+220	12	9	23	1	1	27	1	1	6	1	1	32	1	1	281	N	Pterygium
+221	12	9	23	1	1	27	1	1	7	1	1	32	1	1	498	N	Sclera
+222	12	10	30	31	1	29	29	1	9	1	1	35	35	1	1831	N	Eye evisceration
+223	12	10	30	31	1	29	29	1	10	1	1	35	35	1	3266	N	Eye exenteration
+224	12	10	30	31	31	29	29	1	9	1	1	35	35	1	2509	N	Eye globe removal, no skin
+225	13	8	21	1	1	28	1	1	11	1	1	33	1	1	8438	N	Kidney medical biopsy
+226	13	8	21	1	1	28	1	1	11	1	1	33	1	1	8237	N	Kidney transplant biopsy
+227	14	8	23	1	1	29	1	1	9	1	1	33	1	1	1226	N	Brain biopsy
+228	14	8	21	1	1	28	1	1	11	1	1	33	1	1	4968	N	Muscle biopsy
+229	14	8	21	1	1	28	1	1	11	1	1	33	1	1	3723	N	Nerve biopsy
+230	14	8	21	1	1	28	1	1	11	1	1	33	1	1	2258	N	Skin biopsy for small fiber sensory neuropathy
+231	2	9	14	1	1	25	1	1	16	1	1	30	1	1	283	N	Bone curetting
+232	14	9	30	1	1	27	1	1	7	1	1	32	1	1	839	N	Brain resection margin
+233	14	9	14	1	1	27	1	1	6	1	1	32	1	1	263	N	Disc neuropath
+234	14	9	15	1	1	26	1	1	7	1	1	31	1	1	391	N	Dura
+235	14	9	30	1	1	27	1	1	7	1	1	32	1	1	406	N	Dural, subdural hematoma
+236	14	9	14	1	1	25	1	1	16	1	1	30	1	1	202	N	Lamina
+237	14	9	15	31	1	26	1	1	7	1	1	31	1	1	650	N	Meninges other than tumor resection
+238	14	10	30	31	31	29	29	1	8	10	1	35	35	1	2241	N	Brain resection
+239	30	3	12	1	1	20	1	1	7	1	1	24	1	1	518	N	Cervix-vagina PAP
+240	31	3	12	1	1	34	1	1	7	1	1	20	1	1	745	N	Smear
+241	31	4	12	1	1	22	1	1	8	1	1	23	1	1	642	N	Fluids
+242	31	5	12	1	1	24	1	1	8	1	1	23	1	1	745	N	Brushing or scraping
+243	31	6	12	1	1	24	1	1	8	1	1	23	1	1	884	N	Washing
+244	31	7	13	1	1	23	1	1	8	1	1	28	1	1	1521	N	FNA
+245	51	2	7	1	1	7	1	1	9	1	1	8	1	1	0	N	Autopsy adult gross with brain
+246	51	2	7	1	1	8	1	1	9	1	1	9	1	1	0	N	Autopsy adult gross with brain and spinal cord
+247	51	2	7	1	1	6	1	1	9	1	1	7	1	1	0	N	Autopsy adult gross without cns
+248	51	2	7	1	1	19	1	1	10	1	1	19	1	1	0	N	Autopsy any age external examination only
+249	51	2	6	1	1	19	1	1	9	1	1	19	1	1	0	N	Autopsy harvest brain or spinal cord
+250	51	11	8	1	1	18	1	1	10	1	1	19	1	1	7600	N	Autopsy any age single organ gross or micro
+251	51	13	9	1	1	17	1	1	12	1	1	18	1	1	12619	N	Autopsy any age regional gross or micro
+252	51	14	10	1	1	13	1	1	12	1	1	14	1	1	16150	N	Autopsy adult micro with brain
+253	51	14	11	1	1	14	1	1	10	1	1	15	1	1	0	N	Autopsy adult micro with brain and spinal cord
+254	51	14	10	1	1	12	1	1	11	1	1	13	1	1	0	N	Autopsy adult micro without cns
+255	52	2	9	1	1	9	1	1	10	1	1	10	1	1	0	N	Autopsy infant gross with brain
+256	52	2	9	1	1	10	1	1	10	1	1	11	1	1	0	N	Autopsy stillborn or newborn gross with brain
+257	52	14	9	1	1	15	1	1	10	1	1	16	1	1	0	N	Autopsy infant micro with brain
+258	52	14	9	1	1	11	1	1	10	1	1	12	1	1	570	N	Autopsy stillborn or newborn macerated
+259	52	14	9	1	1	16	1	1	10	1	1	17	1	1	0	N	Autopsy stillborn or newborn micro with brain
+260	53	11	8	1	1	18	1	1	10	1	1	19	1	1	0	N	Autopsy heart gross or micro
+261	54	11	8	1	1	18	1	1	10	1	1	19	1	1	0	N	Autopsy brain gross or micro

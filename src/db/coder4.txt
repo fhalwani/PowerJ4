@@ -1,0 +1,56 @@
+0	0	0	0.000000	0.000000	0.000000	REJECT	Unknown specimen or order
+1	1	0	0.000000	0.000000	0.000000	IGNORE	No value for this specimen or order
+2	1	0	0.000000	0.000000	0.000000	SYN	Synoptic Reports
+3	201	1	1.800000	0.000000	0.000000	88331	Frozen Sections
+4	204	2	0.000000	0.590000	0.590000	88332	Frozen Sections Addl Blocks
+5	1	0	0.000000	0.000000	0.000000	CORR	Case Correlation
+6	201	1	0.940000	0.000000	0.000000	85097	Bone marrow aspirate
+7	100	1	13.500000	0.000000	0.000000	88000	Autopsy adult gross without CNS
+8	100	1	15.000000	0.000000	0.000000	88005	Autopsy adult gross with brain
+9	100	1	16.500000	0.000000	0.000000	88007	Autopsy adult gross with brain and spinal cord
+10	100	1	13.500000	0.000000	0.000000	88012	Autopsy infant gross with brain
+11	100	1	13.500000	0.000000	0.000000	88014	Autopsy stillborn or newborn gross with brain
+12	100	1	12.000000	0.000000	0.000000	88016	Autopsy macerated stillborn
+13	100	1	17.250000	0.000000	0.000000	88020	Autopsy adult micro without CNS
+14	100	1	18.750000	0.000000	0.000000	88025	Autopsy adult micro with brain
+15	100	1	20.250000	0.000000	0.000000	88027	Autopsy adult micro with brain and spinal cord
+16	100	1	16.500000	0.000000	0.000000	88028	Autopsy infant with brain
+17	100	1	16.500000	0.000000	0.000000	88029	Autopsy stillborn or newborn micro with brain
+18	100	1	14.060000	0.000000	0.000000	88036	Autopsy any age regional gross or micro
+19	100	1	9.380000	0.000000	0.000000	88037	Autopsy any age single organ gross or micro
+20	201	1	0.560000	0.000000	0.000000	88104	Cytopath fluids, washings, brushings, smears
+21	201	1	0.370000	0.000000	0.000000	88106	Cytopath Non-G filter (fluids, washings, brushings, smears)
+22	201	1	0.440000	0.000000	0.000000	88108	Cytopath Non-G concentrate (Saccomanno, cytospin)
+23	201	1	0.560000	0.000000	0.000000	88112	Cytopath Non-G cell enhance (liquid-based, thin-prep)
+24	201	1	0.420000	0.000000	0.000000	88141	Cytopath cervical or vaginal
+25	201	1	0.500000	0.000000	0.000000	88160	Cytopath smear other source (sputum, nipple discharge)
+26	201	1	0.500000	0.000000	0.000000	88161	Cytopath smear other source
+27	201	1	0.760000	0.000000	0.000000	88162	Cytopath smear other source
+28	201	1	1.390000	0.000000	0.000000	88173	Cytopath eval fna report
+29	702	1	0.770000	0.000000	0.000000	88182	Cell Ploidy (FCM)
+30	202	1	0.080000	0.130000	0.000000	88300	Tissue exam Gross (L1) or Micro (L2)
+31	201	1	0.130000	0.000000	0.000000	88302	Tissue exam by pathologist L2
+32	201	1	0.220000	0.000000	0.000000	88304	Tissue exam by pathologist L3
+33	201	1	0.750000	0.000000	0.000000	88305	Tissue exam by pathologist L4
+34	702	1	0.750000	0.000000	0.000000	88305c	Cytopath cell block
+35	201	1	1.590000	0.000000	0.000000	88307	Tissue exam by pathologist L5
+36	201	1	2.800000	0.000000	0.000000	88309	Tissue exam by pathologist L6
+37	702	1	0.540000	0.000000	0.000000	88312	Special stains group 1
+38	702	1	0.240000	0.000000	0.000000	88313	Special stains group 2
+39	702	1	0.450000	0.000000	0.000000	88314	Histochemical stains on frozen tissue
+40	702	1	0.530000	0.000000	0.000000	88319	Enzyme histochemistry
+41	100	1	1.830000	0.000000	0.000000	88323	Microslide consultation
+42	703	2	0.700000	0.560000	0.560000	88342	Immunohisto single antibody stain (88341, 88342)
+43	702	1	0.770000	0.000000	0.000000	88344	Immunohisto multiplex antibody stain
+44	703	2	0.740000	0.590000	0.590000	88346	Immunofluorescence per specimen (88346, 88350)
+45	100	1	1.510000	0.000000	0.000000	88348	Electron microscopy
+46	702	1	1.850000	0.000000	0.000000	88355	Analysis skeletal muscle
+47	702	1	2.800000	0.000000	0.000000	88356	Analysis nerve
+48	702	1	0.950000	0.000000	0.000000	88358	Analysis tumor
+49	702	1	1.100000	0.000000	0.000000	88360	Quantitative immunohistochem manual
+50	702	1	1.180000	0.000000	0.000000	88361	Quantitative immunohistochem computer
+51	702	1	2.170000	0.000000	0.000000	88362	Nerve teasing preparations
+52	703	2	0.880000	0.700000	0.700000	88365	Insitu hybridization, single probe (88365, 88364)
+53	702	1	1.240000	0.000000	0.000000	88366	Insitu hybridization, multiplex probe
+54	702	1	0.730000	0.000000	0.000000	88367	Insitu hybridization computer assisted
+55	702	1	0.880000	0.000000	0.000000	88368	In situ hybridization manual

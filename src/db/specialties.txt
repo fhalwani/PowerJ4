@@ -1,0 +1,6 @@
+0	N	N	N	Ignore
+1	N	Y	Y	Autopsy
+2	N	Y	Y	Cytology
+3	Y	Y	Y	Surgical
+4	N	N	N	Molecular
+5	N	N	N	Consults
