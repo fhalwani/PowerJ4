@@ -1,2 +1,2 @@
 # PowerJ4
-Anatomical Pathology Workflow, Workload and Scheduling
+Anatomical Pathology Workflow, Workload and Scheduling Automation
