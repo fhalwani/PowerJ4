@@ -1,0 +1,29 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<title>PowerJ Setup - Specimens Groups</title>
+	<meta name="GENERATOR" content="PowerJ">
+	<meta name="KEYWORDS" content="Help">
+	<link href="screen.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<p class="h1">PowerJ Setup - Specimens Groups</p>
+<p>This table defines all possible specimens encountered in Pathology and how they will be treated in calculating the workload. They are compiled from the workload management systems that PowerJ supports (CAP, W2Q, CPT, RCP) with instructions on how to code each specimen by these workload systems.  It is also used by PowerJ to classify the cases by subspecialty and procedure. Your institution-specific specimens reside in another table called <a href="specimenmaster.html">Specimens Master</a> that you can use to link your specimens to the ones here.  This makes for more efficient maintenance and memory management.</p>
+<BR>
+<p>Each entry has the following fields that you use to control how the workload is measured:</p>
+<ul>
+<li><p>Description: the name given to the specimen.</p></li>
+<li><p>Procedure: a link to the <a href="procedures.html">Procedures</a> table (biopsy, excision, etc).</p></li>
+<li><p>Subspecialty: a link to the <a href="subspecialty.html">Subspecialty</a> table (GI, GU, GYN).</p></li>
+<li><p>Has LN: does the specimen have lymph nodes embeded within it (colectomy, gastrectomy). It is required by CAP system to promote a malignant specimen from R5 to R9.</p></li>
+<li><p>Code5: The workload value of the specimen based on the <a href="code5.html">average of the 4 systems</a>.</p></li>
+<li><p>Table: Defines what workload codes to use for this specimen if benign, malignant or radical. For example, The CAP rule for a breast simple mastectomy is defined as R4 if benign, but R5 if malignant.</a>.</p></li>
+</ul>
+<BR>
+<p class="ft">
+<a href="rules.html">Previous</a> | 
+<a href="index.html">TOC</a> | 
+<a href="specialties.html">Next</a> 
+</p>
+</body>
+</html>

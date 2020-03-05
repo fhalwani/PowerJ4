@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<title>PowerJ Setup - PoweJ Rules</title>
+	<meta name="GENERATOR" content="PowerJ">
+	<meta name="KEYWORDS" content="Help">
+	<link href="screen.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<h1>PowerJ Setup - PoweJ Rules</h1>
+<p>PowerJ is programmed to process the specimens and orders according to preset rules. These rules cannot be modified or expanded without editing and recompiling the program from source code. If none of these rules works for your situation, please contact the <A HREF="mailto:fhalwani@gmail.com">programmer</a>. However, you can edit the names and description to add clarity to their use.  There are 37 choices to process the specimens:</p>
+<BR>
+<ul>
+<li><p>0 - Unknown: the program will reject the case and generate an error. This code is used internally during table synchronization. When you encounter it in a template table, it means this item was added recently for you to review and revise.</p></li>
+<li><p>1 - Ignore: No workload value. Use it for technical or research specimens and orders that do not have any workload value. An example is a specimen for 'Iron quantitation only' or an order for a 'Negative Control IHC slide'</p></li>
+<li><p>100 - SP_CA_INCL: Code for the entire case as one single specimen, and with no additional orders or tests. An example is a neonatal autopsy case where the fetus and the placenta have been split into 2 separate specimens, but you wish to code the case as a whole.</p></li>
+<li><p>101 - SP_CA_FIXED: Same as SP_CA_INCL above, but also code any orders or codes in the case. An example is a consultation report.</p></li>
+<li><p>102 - SP_CA_GRO_MIC: Same as SP_CA_INCL above, but use value1 if the case does not have any stained slided, else use value2. An example is gross-only case, that occasionally may have an H&E slide performed.</p></li>
+<li><p>103 - SP_CA_BL_EV_X: Code a case by the total number of blocks, every 1 to X blocks (CAP-L4E rule 9). For example, if count = 5 and value1 = 2, then the case with 23 blocks will get 10 units. Optionally, you can also set value2 to a minumum value, and/or value3 to a maximum value. For example if count = 5, value1 = 2, value2 = 7 and value 3 = 20, then a case with 3 blocks will earn 7, while a case with 58 blocks will earn 20 units.</p></li>
+<li><p>104 - SP_CA_BL_123: Code a case by the total number of blocks, but with different values for block 1, block 2 and blocks higher than X. For example if count = 2, value1 = 3, value2 = 2 and value 3 = 1, then a case with 1 block will earn 3 units, a case with 2 blocks will earn 5 units, and a case with 5 blocks will earn 8 units.</p></li>
+<li><p>105 - SP_CA_BL_12X: Code a case by the total number of blocks, but with different values for block 1, block 2 and all blocks higher than X, regardless of quantity. For example if count = 5, value1 = 3, value2 = 2 and value 3 = 1, then a case with 1 block will earn 3 units, a case with 2-5 blocks will earn 5 units, and a case with more than 5 blocks will earn 6 units. Additionally, you can set value 2 = 0, then any case with 1-5 blocks will earn 3 units, and any case with more than 5 blocks will earn 4 units.</p></li>
+<li><p>106 - SP_CA_FR_EV_X: Code a case the same as SP_CA_BL_EV_X, but use the total number of fragments, instead of blocks. Used in CAP-L4E for breast and prostate specimens (although SP_LNK_EV_X may be a better choice in some cases).</p></li>
+<li><p>107 - SP_CA_FR_123: Code a case the same as SP_CA_BL_123 but use the total number of fragments, instead of blocks.</p></li>
+<li><p>108 - SP_CA_FR_12X: Code a case the same as SP_CA_BL_12X but use the total number of fragments, instead of blocks.</p></li>
+<li><p>109 - SP_CA_FR_BL: Code a case by the total number of fragments or total number of blocks, whichever gives a higher value.</p></li>
+<li><p>200 - SP_SP_INCL: Code each specimen separately, and with no additional orders or tests (RCP).</p></li>
+<li><p>201 - SP_SP_FIXED: Code each specimen separately, but also code any orders or codes in the specimen (W2Q).</p></li>
+<li><p>202 - SP_SP_GRO_MIC: Code each specimen separately, but use value1 if the specimen does not have any stained slided, else use value2. An example is gross-only specimen, that occasionally may have an H&E slide performed.</p></li>
+<li><p>203 - SP_SP_EV_X: Code a case by the total number of specimens, every 1 to X (Bone marrow biopsy +/- aspirate +/- smear).</p></li>
+<li><p>204 - SP_SP_123: Code a case by the total number of specimens, but with different values for specimen 1, specimen 2 and specimen higher than X (RCP-GI).</p></li>
+<li><p>205 - SP_SP_12X: Code a case by the total number of specimens, but with different values for specimen 1, specimen 2 and all specimens higher than X, regardless of quantity (RCP-Prostate).</<li><p>206 - SP_BL_EV_X: Code each specimen by its number of blocks, every 1 to X blocks. For example, if count = 5 and value1 = 2, then the specimen with 23 blocks will get 10 units. Optionally, you can also set value2 to a minumum value, and/or value3 to a maximum value. For example if count = 5, value1 = 2, value2 = 7 and value 3 = 20, then a specimen with 3 blocks will earn 7, while a specimen with 58 blocks will earn 20 units.</p></li>
+<li><p>207 - SP_BL_123: Code each specimen by its number of blocks, but with different values for block 1, block 2 and blocks higher than X. For example if count = 2, value1 = 3, value2 = 2 and value 3 = 1, then a specimen with 1 block will earn 3 units, a specimen with 2 blocks will earn 5 units, and a specimen with 5 blocks will earn 8 units.</p></li>
+<li><p>208 - SP_BL_12X: Code each specimen by its number of blocks, but with different values for block 1, block 2 and all blocks higher than X, regardless of quantity. For example if count = 5, value1 = 3, value2 = 2 and value 3 = 1, then a specimen with 1 block will earn 3 units, a specimen with 2-5 blocks will earn 5 units, and a specimen with more than 5 blocks will earn 6 units. Additionally, you can set value 2 = 0, then any specimen with 1-5 blocks will earn 3 units, and any specimen with more than 5 blocks will earn 4 units.</p></li>
+<li><p>209 - SP_FR_EV_X: Code each specimen the same as SP_BL_EV_X, but use the number of fragments, instead of blocks (CAP-L4E GI biopsies).</p></li>
+<li><p>210 - SP_FR_123: Code each specimen the same as SP_BL_123 but use the number of fragments, instead of blocks.</p></li>
+<li><p>211 - SP_FR_12X: Code each specimen the same as SP_BL_12X but use the total number of fragments, instead of blocks.</p></li>
+<li><p>212 - SP_FR_BL: Code each specimen by the total number of fragments or total number of blocks, whichever gives a higher value (CAP-L4E polyps).</p></li>
+<li><p>300 - SP_LNK_INCL: Code all specimens of the same genre together as one specimen, and with no additional orders or tests (RCP).</p></li>
+<li><p>301 - SP_LNK_FIXED: Code all specimens of the same genre together as one specimen, but also code any orders or codes in the specimen.</p></li>
+<li><p>302 - SP_LNK_EV_X: Code a case by the total number of specimens, every 1 to X (Bone marrow biopsy +/- aspirate +/- smear).</p></li>
+<li><p>303 - SP_LNK_123: Code a case by the total number of specimens, but with different values for specimen 1, specimen 2 and specimen higher than X (RCP-GI).</p></li>
+<li><p>304 - SP_LNK_12X: Code a case by the total number of specimens, but with different values for specimen 1, specimen 2 and all specimens higher than X, regardless of quantity (RCP-Prostate).</<li><p>305 - SP_LNK_BL_EV_X: Code all specimens of the same genre together as one specimen by their number of blocks, every 1 to X blocks.</p></li>
+<li><p>306 - SP_LNK_BL_123: Code all specimens of the same genre together as one specimen, but with different values for block 1, block 2 and blocks higher than X.</p></li>
+<li><p>307 - SP_LNK_BL_12X: Code all specimens of the same genre together as one specimen, but with different values for block 1, block 2 and all blocks higher than X, regardless of quantity.</p></li>
+<li><p>308 - SP_LNK_FR_EV_X: Code all specimens of the same genre together as one specimen, the same as SP_LNK_BL_EV_X, but use the number of fragments, instead of blocks.</p></li>
+<li><p>309 - SP_LNK_FR_123: Code all specimens of the same genre together as one specimen, the same as SP_LNK_BL_123 but use the number of fragments, instead of blocks.</p></li>
+<li><p>310 - SP_LNK_FR_12X: Code all specimens of the same genre together as one specimen, the same as SP_LNK_BL_12X but use the total number of fragments, instead of blocks.</p></li>
+<li><p>311 - SP_LNK_FR_BL: Code all specimens of the same genre together as one specimen, by their total number of fragments or total number of blocks, whichever gives a higher value.</p></li>
+</ul>
+<BR>
+<p>Orders (IHC, EM, etc) and codes (reviews, correlations) are processed according to the following 20 choices:</p>
+<BR>
+<ul>
+<li><p>600 - OR_GR_CA_INCL: Code orders by group, once per group per case.</p></li>
+<li><p>601 - OR_GR_SP_INCL: Code orders by group, once per group per specimen.</p></li>
+<li><p>602 - OR_GR_SP_EV_X: Code orders by group, every 1 to X per group per specimen.</p></li>
+<li><p>603 - OR_GR_SP_123: Code orders by group, different values for 1, 2 or anything more.</p></li>
+<li><p>604 - OR_GR_SP_12X: Code orders by group, different values for 1, 2 or each more.</p></li>
+<li><p>700 - OR_UNQ_CA_INCL: Code orders once per case.</p></li>
+<li><p>701 - OR_UNQ_SP_INCL: Code orders once per specimen.</p></li>
+<li><p>702 - OR_UNQ_EV_X: Code orders once per specimen, by group, every 1 to X.</p></li>
+<li><p>703 - OR_UNQ_123: Code once per specimen, different values for 1, 2 or anything more.</p></li>
+<li><p>704 - OR_UNQ_12X: Code once per specimen, different values for 1, 2 and all orders each more.</p></li>
+<li><p>800 - OR_AFT_CA_INCL: Code orders by group if not routine, once per case.</p></li>
+<li><p>801 - OR_AFT_SP_INCL: Code orders by group if not routine, once per specimen.</p></li>
+<li><p>802 - OR_AFT_EV_X: Code orders by group if not routine, every 1 to X.</p></li>
+<li><p>803 - OR_AFT_123: Code orders by group if not routine, different values for 1, 2 or anything more.</p></li>
+<li><p>804 - OR_AFT_12X: Code orders by group if not routine, different values for 1, 2 or each more.</p></li>
+<li><p>900 - OR_ADD_CA_INCL: Code orders/codes once per case per pathologist.</p></li>
+<li><p>901 - OR_ADD_SP_INCL: Code orders/code once per specimen per pathologist.</p></li>
+<li><p>902 - OR_ADD_EV_X: Code orders/codes by pathologist, every 1 to X.</p></li>
+<li><p>903 - OR_ADD_123: Code orders/codes by pathologist, different values for 1, 2 or anything more.</p></li>
+<li><p>904 - OR_ADD_12X: Code orders/codes by pathologist, different values for 1, 2 or each more.</p></li>
+</ul>
+<BR>
+<p class="ft">
+<a href="procedures.html">Procedures</a> | <a href="index.html">TOC</a> | <a href="specimengroup.html">Specimens Groups</a> 
+</p>
+</body>
+</html>

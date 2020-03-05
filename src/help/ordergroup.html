@@ -1,0 +1,34 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<title>PowerJ Setup - Orders Groups</title>
+	<meta name="GENERATOR" content="PowerJ">
+	<meta name="KEYWORDS" content="Help">
+</head>
+<body>
+<h1>PowerJ Setup - Orders Groups</h1>
+<p>This table breaks down the pathology orders (blocks, H&E slides, special stains, IHC, EM, etc) into a smaller set of groups that differ in their workload values.  So considering that the average pathology system has more than 1,000 different stains, this table groups them into 20-30 items.  This makes for more efficient maintenance and memory management. For example, all the IHC stains are divided into 4 groups:</p>
+<BR>
+<ul>
+<li><p>IHCQNT: stains that require quantitative interpretation (ER, PR, Ki-67).</p></li>
+<li><p>IHCMLT: multi-color IHC stains that use 2 or more antibodies with different colors that require independant interpretation (coded differently by CPT). Note that Pan-cytokeratin uses multiple antibodies but 1 color only and therefore does not qualify into this category</p></li>
+<li><p>IHCCD: Cluster differentiation antibodies used in hematopoeitic and lymphoproliferative disorders (coded differently by W2Q).</p></li>
+<li><p>IHC: the rest of IHC stains that do not belong to the above 3 categories.</p></li>
+</ul>
+<h4>Note: the name of of coder system can be modified <a href="setuppj.html">here</a>.</h4>
+<BR>
+<p>You can review and edit the parameters of each group here whenever a workload system revision is available.  You do so by editing the following fields:</p>
+<BR>
+<ul>
+<li><p>Name: up to 8 characters.</p></li>
+<li><p>Description: up to 64 characters</p></li>
+<li><p>Type: select one of the 12 more basic order types (block, H&E, SS, IHC).</p></li>
+<li><p>Code 1 (CAP): Select how to process the workload units of this order from its respective <a href="coder.html">coder</a> table.</p></li>
+<li><p>Code 2 (W2Q): Select how to process the workload units of this order from its respective <a href="coder.html">coder</a> table.</p></li>
+<li><p>Code 3 (RCP): Select how to process the workload units of this order from its respective <a href="coder.html">coder</a> table.</p></li>
+<li><p>Code 4 (CPT): Select how to process the workload units of this order from its respective <a href="coder.html">coder</a> table.</p></li>
+</ul>
+<BR>
+<p><a href="coder.html">Workload Codres</a> | <a href="index.html">TOC</a> | <a href="procedures.html">Procedures</a></p>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<title>Backlog</title>
+	<meta name="GENERATOR" content="PowerJ">
+	<meta name="KEYWORDS" content="Help">
+</head>
+<body>
+<h1>Backlog</h1>
+<p>The backlog screen shows cases in various stages of processing with color codes that indicate whether the pace of progression meets the standards set by the administration. You can define what cases to be included in this report using the <a href="facility.html">facility</a>, <a href="accession.html">accession</a> and <a href="specialties.html">specialty</a> templates in the setup menu.</p>
+<BR>
+<BR>
+<p>A case can have one of these status points:</p>
+<ul>
+<li><p>Accession: awaiting gross description.</p></li>
+<li><p>Gross: awaiting embedding of blocks (if any) in the histology lab.</p></li>
+<li><p>Embeded: awaiting microtomy of blocks (if any) in the histology lab.</p></li>
+<li><p>Microtomy: Blocks have been cut into unstained slides. awaiting staining and routing to the responsible pathologist. There is no event recorded at our hospital for the slides staining therefore it cannot be assessed and the case is assumed to be ready for routing.</p></li>
+<li><p>Routed: Histology is completed and the case has been routed to the responsible pathologist.</p></li>
+<li><p>Diagnosis: awaiting release of the case by the pathologist (electronic signature).</p></li>
+<li><p>Final: the case is completed and awaiting workload measurement and archiving.</p></li>
+</ul>
+<BR>
+<h2>Pie Chart:</h2>
+<p>The pie chart shows the breakdown of cases status into delayed (red), within (green) and close (amber) to the alloted time. You can modify the alloted time in the <a href="specimenmaster.html">specimens</a> or the <a href="turnmaster.html">turnaround time</a> setup tables.</p>
+<BR>
+<h2>Line Chart:</h2>
+<p>The line chart shows the number of cases received (orange triangle), completed (green square) and in the backlog (red circle) over the past week.</p>
+<BR>
+<h2>Data Table:</h2>
+<p>The table shows the case number, date received, facility, specialty, subspecialty, procedure, status, main (or largest) specimen description, number of specimens, number of blocks, number of slides, (<a href="code5.html">workload value</a>), the time alloted to reach the current status, time spent so far calculated in (<a href="businesshours.html">business hours</a>), and the percent of time (%) that has passed.  The table is initially sorted by the % column, but you can chanmge the sort order by clicking on the column header of your choice.</p>
+<p>A case is tagged by a red background if the time passed since accession has exceeded the time alloted in the <a href="turnmaster.html">turnaround time</a> setup table. Amber background indicates the case has reached 70-99% of its alloted time, and a green background indicates 0-69% of the alloted time has passed.  The elapsed time is calculated in <a href="businesshours.html">business hours</a>.</p>
+<BR>
+<h2>Filter toolbar:</h2>
+<p>The second toolbar on top of the screen below the quick access toolbar and above the charts, allows you to filter the data by facility, specialty, subspecialty, procedure or status.</p>
+<BR>
+<p><a href="main.html">Main Screen</a> | <a href="index.html">TOC</a> | <a href="daily.html">Daily Report</a></p>
+</body>
+</html>
