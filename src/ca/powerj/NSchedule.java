@@ -89,7 +89,6 @@ class NSchedule extends NBase {
 		tblSchedule = new ITable(pj, modelSchedule) {
 			@Override
 			public String getToolTipText(MouseEvent e) {
-				if (pj.isBusy()) return null;
 				try {
 					JTable t = (JTable) e.getSource();
 					Point p = e.getPoint();
@@ -183,7 +182,6 @@ class NSchedule extends NBase {
 		Calendar calMonday = Calendar.getInstance();
 		ResultSet rst = null;
 		try {
-			pj.setBusy(true);
 			scheduleServices.clear();
 			scheduleStaff.clear();
 			OScheduleService schedule = new OScheduleService();
@@ -243,7 +241,6 @@ class NSchedule extends NBase {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
 			pj.dbPowerJ.closeRst(rst);
-			pj.setBusy(false);
 		}
 	}
 
@@ -256,7 +253,6 @@ class NSchedule extends NBase {
 		OScheduleStaff staff = new OScheduleStaff();
 		ResultSet      rst   = null;
 		try {
-			pj.setBusy(true);
 			scheduleServices.clear();
 			scheduleStaff.clear();
 			calMonday.setTimeInMillis(dates.get(rowIndex).getTime());
@@ -317,7 +313,6 @@ class NSchedule extends NBase {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
 			pj.dbPowerJ.closeRst(rst);
-			pj.setBusy(false);
 		}
 	}
 
@@ -412,7 +407,6 @@ class NSchedule extends NBase {
 	}
 
 	private void setRow(int index) {
-		if (pj.isBusy()) return;
 		if (altered) {
 			save();
 			if (altered)
@@ -423,7 +417,6 @@ class NSchedule extends NBase {
 				// Selection got filtered away.
 				return;
 			}
-			pj.setBusy(true);
 			rowIndex = index;
 			getDays();
 			if (byService) {
@@ -433,7 +426,6 @@ class NSchedule extends NBase {
 			}
 			modelSchedule.fireTableStructureChanged();
 			pj.statusBar.setMessage(pj.dates.formatter(dates.get(rowIndex).getTime(), LDates.FORMAT_DATELONG));
-			pj.setBusy(false);
 		}
 	}
 

@@ -134,9 +134,6 @@ class NDaily extends NBase {
 
 	@Override
 	void refresh() {
-		if (pj.isBusy())
-			return;
-		pj.setBusy(true);
 		// Must initialize a new instance each time
 		WorkerList worker = new WorkerList();
 		worker.execute();
@@ -263,7 +260,6 @@ class NDaily extends NBase {
 			HashMap<Short, OWorkflow> mapPersons = new HashMap<Short, OWorkflow>();
 			ResultSet rst = null;
 			try {
-				pj.setBusy(true);
 				list.clear();
 				mapPersons.clear();
 				// Cases routed from yesterday till today at cutoff time
@@ -325,9 +321,6 @@ class NDaily extends NBase {
 							}
 						}
 						person.noPending += rst.getInt("PNV5");
-						if (person.noPending < 0) {
-							System.out.println(person.name + " Pending = " + person.noPending);
-						}
 					} else if (statusID == OCaseStatus.ID_FINAL) {
 						if (startFinal.getTimeInMillis() < rst.getTimestamp("FNED").getTime()) {
 							if (person.prsID != finalID) {
@@ -342,9 +335,6 @@ class NDaily extends NBase {
 								}
 							}
 							person.noOut += rst.getInt("PNV5");
-							if (person.noOut < 0) {
-								System.out.println(person.name + " Out = " + person.noOut);
-							}
 						}
 					}
 					if (startRoute.getTimeInMillis() < rst.getTimestamp("ROED").getTime()) {
@@ -361,9 +351,6 @@ class NDaily extends NBase {
 								}
 							}
 							person.noIn += rst.getInt("PNV5");
-							if (person.noIn < 0) {
-								System.out.println(person.name + " In = " + person.noIn);
-							}
 						}
 					}
 				}
@@ -373,15 +360,6 @@ class NDaily extends NBase {
 					if (person.name.length() == 0) {
 						person.name = "P" + i;
 						i++;
-					}
-					if (person.noIn < 0) {
-						System.out.println(person.name + " In = " + person.noIn);
-					}
-					if (person.noOut < 0) {
-						System.out.println(person.name + " Out = " + person.noOut);
-					}
-					if (person.noPending < 0) {
-						System.out.println(person.name + " Pending = " + person.noPending);
 					}
 					lstPersons.add(person);
 				}
@@ -427,7 +405,6 @@ class NDaily extends NBase {
 				chartBar.setChart(xData, legend, yData, "Today's Workflow");
 				lstPersons.clear();
 			}
-			pj.setBusy(false);
 		}
 	}
 }

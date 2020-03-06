@@ -22,9 +22,9 @@ class LPending {
 		this.pj = pj;
 		dbAP = pj.dbAP;
 		dbPowerJ = pj.dbPowerJ;
-		long startTime = System.currentTimeMillis();
 		pj.log(LConstants.ERROR_NONE, className,
 				pj.dates.formatter(LDates.FORMAT_DATETIME) + " - Workflow Manager Started...");
+		long startTime = System.currentTimeMillis();
 		try {
 			dbAP.prepareWorkflow();
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
@@ -424,6 +424,7 @@ class LPending {
 
 	/** Update grossing status of accessioned cases. */
 	private void getGrossed() {
+		String descr = "";
 		ResultSet rst = null;
 		try {
 			noUpdates = 0;
@@ -437,7 +438,9 @@ class LPending {
 						while (rst.next()) {
 							if (rst.getString("description") != null) {
 								if (rst.getTimestamp("completed_date") != null) {
-									if (rst.getString("description").equals("Gross Dictation")) {
+									descr = rst.getString("description").trim().toLowerCase();
+									if (descr.contains("gross") || descr.contains("screening")
+											|| descr.contains("provisional")) {
 										thisCase.statusID = OCaseStatus.ID_GROSS;
 										thisCase.grossed.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
 										thisCase.grossID = rst.getShort("assigned_to_id");
@@ -590,13 +593,11 @@ class LPending {
 					dbAP.setLong(DPowerpath.STM_CASE_ROUTING, 1, thisCase.caseID);
 					rst = dbAP.getResultSet(DPowerpath.STM_CASE_ROUTING);
 					while (rst.next()) {
-						thisCase.noSlides++;
-						if (thisCase.statusID < OCaseStatus.ID_ROUTE) {
-							thisCase.statusID = OCaseStatus.ID_ROUTE;
-							thisCase.routed.setTimeInMillis(rst.getTimestamp("event_date").getTime());
-							thisCase.routeID = rst.getShort("personnel_id");
-							thisCase.update = true;
-						}
+						thisCase.statusID = OCaseStatus.ID_ROUTE;
+						thisCase.routed.setTimeInMillis(rst.getTimestamp("event_date").getTime());
+						thisCase.routeID = rst.getShort("personnel_id");
+						thisCase.update = true;
+						break;
 					}
 					rst.close();
 					if (thisCase.update) {

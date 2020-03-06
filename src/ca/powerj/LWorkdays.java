@@ -1,15 +1,19 @@
 package ca.powerj;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
 
 class LWorkdays {
+	private final String className = "Workdays";
 	private LBase pj;
 	private DPowerJ dbPowerJ;
 
 	LWorkdays(LBase pj) {
 		this.pj = pj;
 		dbPowerJ = pj.dbPowerJ;
+		pj.log(LConstants.ERROR_NONE, className,
+				pj.dates.formatter(LDates.FORMAT_DATETIME) + " - Workdays Manager Started...");
 		setWorkdays();
 		LBase.busy.set(false);
 	}
@@ -36,7 +40,7 @@ class LWorkdays {
 			dayNo++;
 			dayID++;
 		} catch (SQLException ex) {
-			pj.log(LConstants.ERROR_SQL, "Dates", ex);
+			pj.log(LConstants.ERROR_SQL, className, ex);
 		} finally {
 			dbPowerJ.closeRst(rst);
 			if (calDate.getTimeInMillis() < maxDate.getTimeInMillis()) {
@@ -61,10 +65,10 @@ class LWorkdays {
 		final byte DATE_WEEKEND = 0;
 		final byte DATE_HOLIDAY = 1;
 		final byte DATE_WEEKDAY = 2;
-		final String[] dayTypes = {"E", "H", "D"};
-		boolean saturdayOff  = pj.setup.getBoolean(LSetup.VAR_SAT_OFF);
-		boolean sundayOff    = pj.setup.getBoolean(LSetup.VAR_SUN_OFF);
-		boolean[] blnMatched = {false, false, false, false, false, false, false, false, false, false, false, false};
+		final String[] dayTypes = { "E", "H", "D" };
+		boolean saturdayOff = pj.setup.getBoolean(LSetup.VAR_SAT_OFF);
+		boolean sundayOff = pj.setup.getBoolean(LSetup.VAR_SUN_OFF);
+		boolean[] blnMatched = { false, false, false, false, false, false, false, false, false, false, false, false };
 		byte dayType = DATE_WEEKDAY;
 		int month = 0;
 		int year = 0;
@@ -100,7 +104,7 @@ class LWorkdays {
 				k = c % 4;
 				l = (32 + 2 * e + 2 * i - h - k) % 7;
 				m = (a + 11 * h + 22 * l) / 451;
-				month = ((h + l - 7 * m + 114) / 31) -1;
+				month = ((h + l - 7 * m + 114) / 31) - 1;
 				day = ((h + l - 7 * m + 114) % 31) + 1;
 				easterMonday.set(Calendar.YEAR, year);
 				easterMonday.set(Calendar.MONTH, month);
@@ -168,8 +172,7 @@ class LWorkdays {
 				case Calendar.MAY:
 					if (!blnMatched[DATE_VICTORIA]) {
 						if (calDate.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY) {
-							if (calDate.get(Calendar.DAY_OF_MONTH) > 17
-									&& calDate.get(Calendar.DAY_OF_MONTH) < 25) {
+							if (calDate.get(Calendar.DAY_OF_MONTH) > 17 && calDate.get(Calendar.DAY_OF_MONTH) < 25) {
 								// Victoria Day is Monday before May 25th
 								dayType = DATE_HOLIDAY;
 								blnMatched[DATE_VICTORIA] = true;
@@ -242,7 +245,7 @@ class LWorkdays {
 							blnMatched[DATE_XMAS] = true;
 						} else if (calDate.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY
 								&& (calDate.get(Calendar.DAY_OF_MONTH) == 26
-								|| calDate.get(Calendar.DAY_OF_MONTH) == 27)) {
+										|| calDate.get(Calendar.DAY_OF_MONTH) == 27)) {
 							// Christmas was last Saturday or Sunday
 							dayType = DATE_HOLIDAY;
 							blnMatched[DATE_XMAS] = true;
@@ -259,7 +262,7 @@ class LWorkdays {
 							blnMatched[DATE_BOXING] = true;
 						} else if (calDate.get(Calendar.DAY_OF_WEEK) == Calendar.TUESDAY
 								&& (calDate.get(Calendar.DAY_OF_MONTH) == 27
-								|| calDate.get(Calendar.DAY_OF_MONTH) == 28)) {
+										|| calDate.get(Calendar.DAY_OF_MONTH) == 28)) {
 							// Boxing Day was last Sunday or Monday
 							dayType = DATE_HOLIDAY;
 							blnMatched[DATE_BOXING] = true;
@@ -270,10 +273,10 @@ class LWorkdays {
 					dayType = DATE_WEEKDAY;
 				}
 			}
-			dbPowerJ.setDate(DPowerJ.STM_WDY_INSERT,   1, calDate.getTimeInMillis());
+			dbPowerJ.setDate(DPowerJ.STM_WDY_INSERT, 1, calDate.getTimeInMillis());
 			dbPowerJ.setString(DPowerJ.STM_WDY_INSERT, 2, dayTypes[dayType]);
-			dbPowerJ.setInt(DPowerJ.STM_WDY_INSERT,    3, dayNo);
-			dbPowerJ.setInt(DPowerJ.STM_WDY_INSERT,    4, dayID);
+			dbPowerJ.setInt(DPowerJ.STM_WDY_INSERT, 3, dayNo);
+			dbPowerJ.setInt(DPowerJ.STM_WDY_INSERT, 4, dayID);
 			if (dbPowerJ.execute(DPowerJ.STM_WDY_INSERT) > 0) {
 				dayID++;
 				if (dayType == DATE_WEEKDAY) {

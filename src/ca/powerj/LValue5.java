@@ -1,4 +1,5 @@
 package ca.powerj;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -12,6 +13,8 @@ class LValue5 {
 	LValue5(LBase pj) {
 		this.pj = pj;
 		dbPowerJ = pj.dbPowerJ;
+		pj.log(LConstants.ERROR_NONE, className,
+				pj.dates.formatter(LDates.FORMAT_DATETIME) + " - Value5 Manager Started...");
 		dbPowerJ.prepareValue5();
 		update();
 		close();
@@ -24,27 +27,25 @@ class LValue5 {
 
 	private void update() {
 		final byte V5_ROWID = 0;
-		final byte V5_QTY   = 1;
-		final byte V5_VAL1  = 2;
-		final byte V5_VAL2  = 3;
-		final byte V5_VAL3  = 4;
-		final byte V5_VAL4  = 5;
+		final byte V5_QTY = 1;
+		final byte V5_VAL1 = 2;
+		final byte V5_VAL2 = 3;
+		final byte V5_VAL3 = 4;
+		final byte V5_VAL4 = 5;
 		byte interval = pj.setup.getByte(LSetup.VAR_V5_INTERVAL);
-		byte noYears  = pj.setup.getByte(LSetup.VAR_V5_UPDATE);
-		boolean[] isActive = {false, false,
-				pj.setup.getBoolean(LSetup.VAR_CODER1_ACTIVE),
-				pj.setup.getBoolean(LSetup.VAR_CODER2_ACTIVE),
-				pj.setup.getBoolean(LSetup.VAR_CODER3_ACTIVE),
-				pj.setup.getBoolean(LSetup.VAR_CODER4_ACTIVE)};
-		int  avg      = 0;
-		int  count    = 0;
-		int  value5   = 0;
-		int  fte5     = pj.setup.getInt(LSetup.VAR_V5_FTE); // 4644000
-		Integer[] frozn    = {0, 0, 0, 0, 0, 0};
-		Integer[] total    = {0, 0, 0, 0, 0, 0};
-		Calendar  calLast  = pj.dates.setMidnight(pj.setup.getLong(LSetup.VAR_V5_LAST));
-		Calendar  calNext  = pj.dates.setMidnight(0);
-		int       noMonths = pj.dates.getNoMonths(calLast, calNext);
+		byte noYears = pj.setup.getByte(LSetup.VAR_V5_UPDATE);
+		boolean[] isActive = { false, false, pj.setup.getBoolean(LSetup.VAR_CODER1_ACTIVE),
+				pj.setup.getBoolean(LSetup.VAR_CODER2_ACTIVE), pj.setup.getBoolean(LSetup.VAR_CODER3_ACTIVE),
+				pj.setup.getBoolean(LSetup.VAR_CODER4_ACTIVE) };
+		int avg = 0;
+		int count = 0;
+		int value5 = 0;
+		int fte5 = pj.setup.getInt(LSetup.VAR_V5_FTE); // 4644000
+		Integer[] frozn = { 0, 0, 0, 0, 0, 0 };
+		Integer[] total = { 0, 0, 0, 0, 0, 0 };
+		Calendar calLast = pj.dates.setMidnight(pj.setup.getLong(LSetup.VAR_V5_LAST));
+		Calendar calNext = pj.dates.setMidnight(0);
+		int noMonths = pj.dates.getNoMonths(calLast, calNext);
 		if (noMonths < interval) {
 			return;
 		}
@@ -64,11 +65,11 @@ class LValue5 {
 			rst = dbPowerJ.getResultSet(DPowerJ.STM_SPG_SL_SU5);
 			while (rst.next()) {
 				if (rst.getInt("QTY") > 0) {
-					Integer[] specimen = {rst.getInt("SGID"), rst.getInt("QTY"), 
+					Integer[] specimen = { rst.getInt("SGID"), rst.getInt("QTY"),
 							pj.numbers.doubleToInt(2, rst.getDouble("SPV1") * 100),
 							pj.numbers.doubleToInt(2, rst.getDouble("SPV2") * 100),
 							pj.numbers.doubleToInt(2, rst.getDouble("SPV3") * 100),
-							pj.numbers.doubleToInt(2, rst.getDouble("SPV4") * 100)};
+							pj.numbers.doubleToInt(2, rst.getDouble("SPV4") * 100) };
 					specimens.add(specimen);
 					total[V5_VAL1] += specimen[V5_VAL1];
 					total[V5_VAL2] += specimen[V5_VAL2];
@@ -96,7 +97,7 @@ class LValue5 {
 			dbPowerJ.closeRst(rst);
 			for (int i = 0; i < specimens.size(); i++) {
 				Integer[] specimen = specimens.get(i);
-				avg   = 0;
+				avg = 0;
 				count = 0;
 				for (byte j = V5_VAL1; j <= V5_VAL4; j++) {
 					if (total[j] > 0 && isActive[j]) {
@@ -115,7 +116,7 @@ class LValue5 {
 				}
 			}
 			if (frozn[V5_QTY] > 0) {
-				avg   = 0;
+				avg = 0;
 				count = 0;
 				for (byte j = V5_VAL1; j <= V5_VAL4; j++) {
 					if (total[j] > 0 && isActive[j]) {

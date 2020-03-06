@@ -236,22 +236,22 @@ class NHelp extends JDialog implements WindowListener {
 		}
 	}
 
-	private void setText(HyperlinkEvent e) {
+	private void setText(HyperlinkEvent hle) {
 		try {
-			String fileName = "help/" + e.getDescription();
+			String fileName = "help/" + hle.getDescription();
 			URL url = ClassLoader.getSystemClassLoader().getResource(fileName);
 			if (url == null) {
 				// Outside link
 				if (Desktop.isDesktopSupported()) {
-					Desktop.getDesktop().browse(new URI(e.getDescription()));
+					Desktop.getDesktop().browse(new URI(hle.getDescription()));
 				}
 			} else {
-				setText(e.getDescription());
+				setText(hle.getDescription());
 			}
-		} catch (IOException ignore) {
-			System.err.println(ignore.getMessage());
-		} catch (URISyntaxException ignore) {
-			System.err.println(ignore.getMessage());
+		} catch (IOException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (URISyntaxException e) {
+			pj.log(LConstants.ERROR_UNEXPECTED, getName(), e);
 		}
 	}
 

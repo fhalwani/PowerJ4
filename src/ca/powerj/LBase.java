@@ -143,8 +143,6 @@ class LBase implements Runnable {
 				autoLogin = true;
 			} else if (s.toLowerCase().equals("--offline")) {
 				offLine = true;
-			} else {
-				System.err.println("Unknown parameter " + s);
 			}
 		}
 		if (errorID == LConstants.ERROR_NONE) {
@@ -251,6 +249,7 @@ class LBase implements Runnable {
 						}
 						break;
 					case JOB_MONTHLY:
+						busy.set(true);
 						if (PowerJ.IS_SERVER) {
 							if (isNewMonth()) {
 								new LWorkdays(this);
@@ -261,7 +260,6 @@ class LBase implements Runnable {
 						}
 						if (PowerJ.IS_DESKTOP) {
 							if (isNewMonth()) {
-								System.out.println("Lworkdays starting");
 								new LWorkdays(this);
 //								if (errorID == LConstants.ERROR_NONE) {
 //									new LValue5(this);
@@ -269,16 +267,18 @@ class LBase implements Runnable {
 							}
 						}
 						jobID = JOB_DAILY;
+						busy.set(false);
 						break;
 					case JOB_DAILY:
+						busy.set(true);
 						if (PowerJ.IS_SERVER) {
 							new LSync(this);
 						}
 						if (PowerJ.IS_DESKTOP) {
-							System.out.println("LSync starting");
 							new LSync(this);
 						}
 						jobID = JOB_REFRESH;
+						busy.set(false);
 						break;
 					case JOB_REFRESH:
 						busy.set(true);
@@ -292,13 +292,11 @@ class LBase implements Runnable {
 								isUpToDate = worker.isUpToDate();
 								worker.close();
 							} else if (nextUpdate - System.currentTimeMillis() > (updateInterval * 5)) {
-								busy.set(false);
 								jobID = JOB_SLEEP;
 							}
 						}
 						if (PowerJ.IS_DESKTOP) {
 							if (nextUpdate - System.currentTimeMillis() < timerInterval) {
-								System.out.println("LPending starting");
 								new LPending(isStarting, this);
 								isStarting = false;
 								if (pnlID > 0 && pnlCore != null) {
@@ -306,12 +304,10 @@ class LBase implements Runnable {
 								}
 								setNextUpdate();
 							} else if (!isUpToDate) {
-								System.out.println("LFinals starting");
 								LFinals worker = new LFinals(this);
 								isUpToDate = worker.isUpToDate();
 								worker.close();
 							} else if (nextUpdate - System.currentTimeMillis() > (updateInterval * 5)) {
-								busy.set(false);
 								jobID = JOB_SLEEP;
 							}
 						}
@@ -322,15 +318,16 @@ class LBase implements Runnable {
 								}
 								setNextUpdate();
 							} else if (nextUpdate - System.currentTimeMillis() > (updateInterval * 5)) {
-								busy.set(false);
 								jobID = JOB_SLEEP;
 							}
 						}
+						busy.set(false);
 						break;
 					case JOB_SLEEP:
 						if (!busy.get()) {
 							jobID = JOB_SLEEPING;
-							System.out.println("Sleeping");
+							log(LConstants.ERROR_NONE, LConstants.APP_NAME,
+									dates.formatter(LDates.FORMAT_DATETIME) + " - Going to sleep...");
 							if (dbAP != null) {
 								dbAP.close();
 							}
@@ -340,8 +337,9 @@ class LBase implements Runnable {
 						}
 						break;
 					case JOB_SLEEPING:
-						if (nextUpdate - System.currentTimeMillis() < (updateInterval * 2)) {
-							System.out.println("Waking up");
+						if (nextUpdate - System.currentTimeMillis() < (timerInterval * 2)) {
+							log(LConstants.ERROR_NONE, LConstants.APP_NAME,
+									dates.formatter(LDates.FORMAT_DATETIME) + " - Waking up...");
 							jobID = JOB_STARTUP;
 							isUpToDate = false;
 						}
@@ -380,7 +378,6 @@ class LBase implements Runnable {
 					appDir = jarPath;
 				} else {
 					errorID = LConstants.ERROR_APP_PATH;
-					System.err.println("Cannot find path to database, aborting.");
 				}
 			} catch (URISyntaxException e) {
 				errorID = LConstants.ERROR_UNEXPECTED;

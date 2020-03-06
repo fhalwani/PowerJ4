@@ -587,6 +587,8 @@ class NRouting extends NBase {
 			// Display results
 			if (modelSummary != null) {
 				modelSummary.fireTableDataChanged();
+			}
+			if (summary.size() > 0) {
 				// Chart Data Set
 				String[] x = new String[summary.size()];
 				double[] y = new double[summary.size()];

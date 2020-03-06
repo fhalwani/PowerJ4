@@ -411,12 +411,14 @@ class NBacklog extends NBase {
 										|| (filters[FILTER_STA] == OCaseStatus.ID_HISTO
 												&& pending.statusID > OCaseStatus.ID_ACCES
 												&& pending.statusID < OCaseStatus.ID_ROUTE)) {
-									if (pending.delay > 100) {
-										yPie[0]++;
-									} else if (pending.delay > 70) {
-										yPie[1]++;
-									} else {
-										yPie[2]++;
+									if (pending.statusID < OCaseStatus.ID_FINAL) {
+										if (pending.delay > 100) {
+											yPie[0]++;
+										} else if (pending.delay > 70) {
+											yPie[1]++;
+										} else {
+											yPie[2]++;
+										}
 									}
 								}
 								switch (filters[FILTER_STA]) {
@@ -496,6 +498,10 @@ class NBacklog extends NBase {
 				for (int y = 0; y < 3; y++) {
 					yDates[y][x] = workflow.get(y).get(x + 1);
 				}
+			}
+			try {
+				Thread.sleep(LConstants.SLEEP_TIME);
+			} catch (InterruptedException e) {
 			}
 			return null;
 		}

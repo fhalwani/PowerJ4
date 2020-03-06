@@ -686,14 +686,18 @@ class LFinals {
 
 	/** Update embedding status of grossed cases. */
 	private void getEmbeded() {
+		short noBlocks = 0;
 		ResultSet rst = null;
 		try {
 			dbAP.setLong(DPowerpath.STM_CASE_EMBEDED, 1, thisCase.caseID);
 			rst = dbAP.getResultSet(DPowerpath.STM_CASE_EMBEDED);
 			while (rst.next()) {
-				thisCase.embeded.setTimeInMillis(rst.getTimestamp("event_date").getTime());
-				thisCase.embedID = rst.getShort("personnel_id");
-				break;
+				noBlocks++;
+				if (noBlocks >= thisCase.noBlocks) {
+					thisCase.embeded.setTimeInMillis(rst.getTimestamp("event_date").getTime());
+					thisCase.embedID = rst.getShort("personnel_id");
+					break;
+				}
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
@@ -711,14 +715,11 @@ class LFinals {
 			while (rst.next()) {
 				if (rst.getString("description") != null) {
 					if (rst.getTimestamp("completed_date") != null) {
-						if (rst.getString("description").equals("Gross Dictation")) {
-							descr = rst.getString("description").trim().toLowerCase();
-							if (descr.contains("gross") || descr.contains("screening")
-									|| descr.contains("provisional")) {
-								thisCase.grossed.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
-								thisCase.grossID = rst.getShort("assigned_to_id");
-								break;
-							}
+						descr = rst.getString("description").trim().toLowerCase();
+						if (descr.contains("gross") || descr.contains("screening") || descr.contains("provisional")) {
+							thisCase.grossed.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
+							thisCase.grossID = rst.getShort("assigned_to_id");
+							break;
 						}
 					}
 				}
@@ -731,43 +732,42 @@ class LFinals {
 	}
 
 	private void getLastUpdate() {
+		// Earliest date is 1/1/2011 (1293858000001)
+		long minWorkloadDate = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
 		// Add 0.01 second to avoid duplicated 1st case
 		lastUpdate = dbPowerJ.getTime(DPowerJ.STM_CSE_SL_LST) + 1;
-		// Earliest date is 1/1/2011 (1293858000001)
-		// TODO long minWorkloadDate = pj.setup.getLong(UtilSetup.VAR_MIN_WL_DATE);
-		long minWorkloadDate = 1293858000001L;
 		if (lastUpdate < minWorkloadDate) {
 			lastUpdate = minWorkloadDate;
 		}
 	}
 
 	private void getMaxDate() {
-		// Maximum range is 15 days interval per run
-		Calendar calMaxDate = pj.dates.setMidnight(lastUpdate);
-		Calendar calNow = pj.dates.setMidnight(0);
-		// TODO delete
-		calNow.set(Calendar.YEAR, 2019);
-		calNow.set(Calendar.MONTH, Calendar.MAY);
-		calNow.set(Calendar.DAY_OF_MONTH, 1);
-		int noDays = pj.dates.getNoDays(calMaxDate, calNow);
-		if (noDays > 15) {
-			noDays = 15;
+		// Maximum range is 7 days interval per run
+		Calendar calLastDate = pj.dates.setMidnight(lastUpdate);
+		Calendar calNow = Calendar.getInstance();
+		int noDays = pj.dates.getNoDays(calLastDate, calNow);
+		if (noDays > 7) {
+			noDays = 7;
 		} else if (noDays < 0) {
 			noDays = 0;
 		}
-		calMaxDate.add(Calendar.DAY_OF_YEAR, noDays);
-		maxDate = calMaxDate.getTimeInMillis();
+		calLastDate.add(Calendar.DAY_OF_YEAR, noDays);
+		maxDate = calLastDate.getTimeInMillis();
 	}
 
 	private void getMicrotomed() {
+		short noBlocks = 0;
 		ResultSet rst = null;
 		try {
 			dbAP.setLong(DPowerpath.STM_CASE_MICROTO, 1, thisCase.caseID);
 			rst = dbAP.getResultSet(DPowerpath.STM_CASE_MICROTO);
 			while (rst.next()) {
-				thisCase.microed.setTimeInMillis(rst.getTimestamp("event_date").getTime());
-				thisCase.microID = rst.getShort("personnel_id");
-				break;
+				noBlocks++;
+				if (noBlocks >= thisCase.noBlocks) {
+					thisCase.microed.setTimeInMillis(rst.getTimestamp("event_date").getTime());
+					thisCase.microID = rst.getShort("personnel_id");
+					break;
+				}
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
@@ -1155,7 +1155,7 @@ class LFinals {
 		} else {
 			if (thisCase.scanned.getTimeInMillis() > thisCase.finaled.getTimeInMillis()) {
 				thisCase.scanned.setTimeInMillis(thisCase.finaled.getTimeInMillis());
-			} else if (thisCase.scanned.getTimeInMillis() < thisCase.accessed.getTimeInMillis()) {
+			} else if (thisCase.scanned.getTimeInMillis() < thisCase.routed.getTimeInMillis()) {
 				thisCase.scanned.setTimeInMillis(thisCase.finaled.getTimeInMillis());
 			}
 			if (thisCase.routed.getTimeInMillis() > thisCase.scanned.getTimeInMillis()) {
@@ -1164,20 +1164,20 @@ class LFinals {
 			} else if (thisCase.routed.getTimeInMillis() < thisCase.microed.getTimeInMillis()) {
 				thisCase.routed.setTimeInMillis(thisCase.scanned.getTimeInMillis());
 			}
-			if (thisCase.grossed.getTimeInMillis() > thisCase.routed.getTimeInMillis()) {
-				thisCase.grossed.setTimeInMillis(thisCase.routed.getTimeInMillis());
-			} else if (thisCase.grossed.getTimeInMillis() < thisCase.accessed.getTimeInMillis()) {
-				thisCase.grossed.setTimeInMillis(thisCase.accessed.getTimeInMillis());
-			}
-			if (thisCase.embeded.getTimeInMillis() > thisCase.routed.getTimeInMillis()) {
-				thisCase.embeded.setTimeInMillis(thisCase.routed.getTimeInMillis());
-			} else if (thisCase.embeded.getTimeInMillis() < thisCase.grossed.getTimeInMillis()) {
-				thisCase.embeded.setTimeInMillis(thisCase.grossed.getTimeInMillis());
-			}
 			if (thisCase.microed.getTimeInMillis() > thisCase.routed.getTimeInMillis()) {
 				thisCase.microed.setTimeInMillis(thisCase.routed.getTimeInMillis());
 			} else if (thisCase.microed.getTimeInMillis() < thisCase.embeded.getTimeInMillis()) {
-				thisCase.microed.setTimeInMillis(thisCase.embeded.getTimeInMillis());
+				thisCase.microed.setTimeInMillis(thisCase.routed.getTimeInMillis());
+			}
+			if (thisCase.embeded.getTimeInMillis() > thisCase.microed.getTimeInMillis()) {
+				thisCase.embeded.setTimeInMillis(thisCase.microed.getTimeInMillis());
+			} else if (thisCase.embeded.getTimeInMillis() < thisCase.grossed.getTimeInMillis()) {
+				thisCase.embeded.setTimeInMillis(thisCase.microed.getTimeInMillis());
+			}
+			if (thisCase.grossed.getTimeInMillis() > thisCase.embeded.getTimeInMillis()) {
+				thisCase.grossed.setTimeInMillis(thisCase.embeded.getTimeInMillis());
+			} else if (thisCase.grossed.getTimeInMillis() < thisCase.accessed.getTimeInMillis()) {
+				thisCase.grossed.setTimeInMillis(thisCase.embeded.getTimeInMillis());
 			}
 			thisCase.grossTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.grossed);
 			thisCase.embedTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.embeded);

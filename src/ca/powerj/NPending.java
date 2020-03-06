@@ -104,8 +104,6 @@ class NPending extends NBase {
 		};
 		tbl.addAncestorListener(new IFocusListener());
 		tbl.addFocusListener(this);
-		// Define color column renderer
-		tbl.getColumnModel().getColumn(CASE_DELAY).setCellRenderer(new IRenderColor(pj));
 		// Set Row Counter Size
 		tbl.getColumnModel().getColumn(CASE_ROW).setMinWidth(50);
 		tbl.getColumnModel().getColumn(CASE_ROW).setMaxWidth(50);
@@ -470,10 +468,12 @@ class NPending extends NBase {
 						pending.cutoff += turnaround.diagn;
 					}
 					if (pending.statusID > OCaseStatus.ID_ROUTE) {
+						pending.finaled.setTimeInMillis(rst.getTimestamp("FNED").getTime());
 						pending.finalName = rst.getString("FNNM");
 						pending.finalFull = rst.getString("FNFR").trim() + " " + rst.getString("FNLS").trim();
 					}
 					if (pending.statusID == OCaseStatus.ID_FINAL) {
+						pending.finalTAT = rst.getShort("FNTA");
 						pending.passed = pending.finalTAT;
 					}
 					if (pending.cutoff > 0) {
