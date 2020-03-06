@@ -1,8 +1,8 @@
-1	CLPATHDB01
+1	PATHDB
 2	1433
 3	PowerPath
-4	pathdash
-5	wTCr_8290^
+4	pjinterface
+5	password
 6	Y
 7	Y
 8	6
