@@ -1,4 +1,5 @@
 package ca.powerj;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,8 +9,10 @@ import java.io.InputStreamReader;
 import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Properties;
@@ -50,19 +53,22 @@ class ASetup {
 				if (!stm.isClosed())
 					stm.close();
 			}
-		} catch (SQLException ignore) {}
+		} catch (SQLException ignore) {
+		}
 		try {
 			if (connection != null) {
 				if (!connection.isClosed()) {
 					connection.close();
 				}
 			}
-		} catch (Exception ignore) {}
+		} catch (Exception ignore) {
+		}
 		try {
 			if (dbID == DB_DERBY) {
 				DriverManager.getConnection("jdbc:derby:;shutdown=true");
 			}
-		} catch (Exception ignore) {}
+		} catch (Exception ignore) {
+		}
 	}
 
 	private void createDB(int dbID) {
@@ -756,8 +762,7 @@ class ASetup {
 						+ "OGC2 SMALLINT NOT NULL REFERENCES Coder2 (COID),\n"
 						+ "OGC3 SMALLINT NOT NULL REFERENCES Coder3 (COID),\n"
 						+ "OGC4 SMALLINT NOT NULL REFERENCES Coder4 (COID),\n"
-						+ "OGC5 INT NOT NULL, OGNM VARCHAR(8) UNIQUE NOT NULL,\n"
-						+ "OGDC VARCHAR(64) NOT NULL)";
+						+ "OGC5 INT NOT NULL, OGNM VARCHAR(8) UNIQUE NOT NULL,\n" + "OGDC VARCHAR(64) NOT NULL)";
 				break;
 			case 17:
 				sql = "CREATE TABLE " + dbSchema + ".OrderMaster (" + "OMID SMALLINT PRIMARY KEY,\n"
@@ -780,8 +785,7 @@ class ASetup {
 						+ "SG4B SMALLINT NOT NULL REFERENCES Coder4 (COID),\n"
 						+ "SG4M SMALLINT NOT NULL REFERENCES Coder4 (COID),\n"
 						+ "SG4R SMALLINT NOT NULL REFERENCES Coder4 (COID),\n"
-						+ "SGV5 INT NOT NULL, SGLN CHAR(1) NOT NULL,\n"
-						+ "SGDC VARCHAR(64) UNIQUE NOT NULL)";
+						+ "SGV5 INT NOT NULL, SGLN CHAR(1) NOT NULL,\n" + "SGDC VARCHAR(64) UNIQUE NOT NULL)";
 				break;
 			case 19:
 				sql = "CREATE TABLE " + dbSchema + ".SpeciMaster (" + "SMID SMALLINT PRIMARY KEY,\n"
@@ -834,8 +838,7 @@ class ASetup {
 				sql = "CREATE TABLE " + dbSchema + ".Orders (" + "SPID INT NOT NULL REFERENCES Specimens (SPID),\n"
 						+ "OGID SMALLINT NOT NULL REFERENCES OrderGroups (OGID), ORQY SMALLINT NOT NULL,\n"
 						+ "ORV1 DECIMAL(5, 3) NOT NULL, ORV2 DECIMAL(5, 3) NOT NULL,\n"
-						+ "ORV3 DECIMAL(5, 3) NOT NULL, ORV4 DECIMAL(5, 3) NOT NULL,\n"
-						+ "PRIMARY KEY (SPID, OGID))";
+						+ "ORV3 DECIMAL(5, 3) NOT NULL, ORV4 DECIMAL(5, 3) NOT NULL,\n" + "PRIMARY KEY (SPID, OGID))";
 				break;
 			case 25:
 				sql = "CREATE TABLE " + dbSchema + ".Frozens (" + "SPID INT PRIMARY KEY REFERENCES Specimens (SPID),\n"
@@ -1079,8 +1082,7 @@ class ASetup {
 							+ "WHERE DAYOFWEEK(w.wddt) = 2";
 					break;
 				default:
-					sql = "CREATE VIEW " + dbSchema + ".udvSchedWeeks AS\n" + "SELECT wdid, wddt\n"
-							+ "FROM Workdays\n"
+					sql = "CREATE VIEW " + dbSchema + ".udvSchedWeeks AS\n" + "SELECT wdid, wddt\n" + "FROM Workdays\n"
 							+ "ORDER BY wddt DESC FETCH FIRST 370 ROWS ONLY";
 				}
 				break;
@@ -1446,35 +1448,89 @@ class ASetup {
 		}
 	}
 
-	private void loadTables() {
-		noRows = 0;
+	private void loadCoders() {
+		final String[] tables = { "Coder1", "Coder2", "Coder3", "Coder4" };
 		try {
-			InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("db/data.sql");
+			for (int i = 0; i < 4; i++) {
+				InputStream is = ClassLoader.getSystemClassLoader()
+						.getResourceAsStream("db/" + tables[i].toLowerCase() + ".txt");
+				if (is != null) {
+					InputStreamReader ir = new InputStreamReader(is);
+					BufferedReader br = new BufferedReader(ir);
+					PreparedStatement pstm = connection.prepareStatement("INSERT INTO " + tables[i]
+							+ " (COID, RUID, COQY, COV1, COV2, COV3, CONM, CODC) " + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+					String line;
+					String[] columns = null;
+					noRows = 0;
+					while ((line = br.readLine()) != null) {
+						line = line.trim();
+						if (line.length() > 1) {
+							if (!line.startsWith("-")) {
+								columns = line.split("\t");
+								pstm.setShort(1, Short.valueOf(columns[0]));
+								pstm.setShort(2, Short.valueOf(columns[1]));
+								pstm.setShort(3, Short.valueOf(columns[2]));
+								pstm.setDouble(4, Double.valueOf(columns[3]));
+								pstm.setDouble(5, Double.valueOf(columns[4]));
+								pstm.setDouble(6, Double.valueOf(columns[5]));
+								pstm.setString(7, columns[6]);
+								pstm.setString(8, columns[7]);
+								pstm.executeUpdate();
+								noRows++;
+							}
+						}
+					}
+					log(LConstants.ERROR_NONE, String.format("Loaded %d rows to %s Table.", noRows, tables[i]));
+					pstm.close();
+					br.close();
+					ir.close();
+					is.close();
+				}
+			}
+		} catch (FileNotFoundException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (NullPointerException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (IOException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		}
+	}
+
+	private void loadOrderGroups() {
+		try {
+			InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("db/ordergroups.txt");
 			if (is != null) {
 				InputStreamReader ir = new InputStreamReader(is);
 				BufferedReader br = new BufferedReader(ir);
+				PreparedStatement pstm = connection
+						.prepareStatement("INSERT INTO OrderGroups (OGID, OTID, OGC1, OGC2, OGC3, "
+								+ "OGC4, OGC5, OGNM, OGDC) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 				String line;
+				String[] columns = null;
+				noRows = 0;
 				while ((line = br.readLine()) != null) {
 					line = line.trim();
 					if (line.length() > 1) {
 						if (!line.startsWith("-")) {
-							if (line.endsWith(";")) {
-								line = line.substring(0, line.length() -1);
-							}
-							execute(line);
-							if (errorID != LConstants.ERROR_NONE) {
-								break;
-							}
+							columns = line.split("\t");
+							pstm.setShort(1, Short.valueOf(columns[0]));
+							pstm.setShort(2, Short.valueOf(columns[1]));
+							pstm.setShort(3, Short.valueOf(columns[2]));
+							pstm.setShort(4, Short.valueOf(columns[3]));
+							pstm.setShort(5, Short.valueOf(columns[4]));
+							pstm.setShort(6, Short.valueOf(columns[5]));
+							pstm.setInt(7, Integer.valueOf(columns[6]));
+							pstm.setString(8, columns[7]);
+							pstm.setString(9, columns[8]);
+							pstm.executeUpdate();
 							noRows++;
-							if (noRows % 1000 == 0) {
-								try {
-									log(LConstants.ERROR_NONE, "Inserted " + noRows + " rows.");
-									Thread.sleep(LConstants.SLEEP_TIME);
-								} catch (InterruptedException e) {}
-							}
 						}
 					}
 				}
+				log(LConstants.ERROR_NONE, String.format("Loaded %d rows to Order Groups Table.", noRows));
+				pstm.close();
 				br.close();
 				ir.close();
 				is.close();
@@ -1484,6 +1540,439 @@ class ASetup {
 		} catch (NullPointerException e) {
 			log(LConstants.ERROR_SQL, dbName, e);
 		} catch (IOException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		}
+	}
+
+	private void loadOrderTypes() {
+		try {
+			InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("db/ordertypes.txt");
+			if (is != null) {
+				InputStreamReader ir = new InputStreamReader(is);
+				BufferedReader br = new BufferedReader(ir);
+				PreparedStatement pstm = connection
+						.prepareStatement("INSERT INTO OrderTypes (OTID, OTNM) VALUES (?, ?)");
+				String line;
+				String[] columns = null;
+				noRows = 0;
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
+					if (line.length() > 1) {
+						if (!line.startsWith("-")) {
+							columns = line.split("\t");
+							pstm.setShort(1, Short.valueOf(columns[0]));
+							pstm.setString(2, columns[1]);
+							pstm.executeUpdate();
+							noRows++;
+						}
+					}
+				}
+				log(LConstants.ERROR_NONE, String.format("Loaded %d rows to Order Types Table.", noRows));
+				pstm.close();
+				br.close();
+				ir.close();
+				is.close();
+			}
+		} catch (FileNotFoundException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (NullPointerException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (IOException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		}
+	}
+
+	private void loadProcedures() {
+		try {
+			InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("db/procedures.txt");
+			if (is != null) {
+				InputStreamReader ir = new InputStreamReader(is);
+				BufferedReader br = new BufferedReader(ir);
+				PreparedStatement pstm = connection
+						.prepareStatement("INSERT INTO Procedures (POID, PONM, PODC) VALUES (?, ?, ?)");
+				String line;
+				String[] columns = null;
+				noRows = 0;
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
+					if (line.length() > 1) {
+						if (!line.startsWith("-")) {
+							columns = line.split("\t");
+							pstm.setShort(1, Short.valueOf(columns[0]));
+							pstm.setString(2, columns[1]);
+							pstm.setString(3, columns[2]);
+							pstm.executeUpdate();
+							noRows++;
+						}
+					}
+				}
+				log(LConstants.ERROR_NONE, String.format("Loaded %d rows to Procedures Table.", noRows));
+				pstm.close();
+				br.close();
+				ir.close();
+				is.close();
+			}
+		} catch (FileNotFoundException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (NullPointerException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (IOException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		}
+	}
+
+	private void loadRules() {
+		try {
+			InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("db/rules.txt");
+			if (is != null) {
+				InputStreamReader ir = new InputStreamReader(is);
+				BufferedReader br = new BufferedReader(ir);
+				PreparedStatement pstm = connection
+						.prepareStatement("INSERT INTO Rules (RUID, RUNM, RUDC) VALUES (?, ?, ?)");
+				String line;
+				String[] columns = null;
+				noRows = 0;
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
+					if (line.length() > 1) {
+						if (!line.startsWith("-")) {
+							columns = line.split("\t");
+							pstm.setShort(1, Short.valueOf(columns[0]));
+							pstm.setString(2, columns[1]);
+							pstm.setString(3, columns[2]);
+							pstm.executeUpdate();
+							noRows++;
+						}
+					}
+				}
+				log(LConstants.ERROR_NONE, String.format("Loaded %d rows to Rules Table.", noRows));
+				pstm.close();
+				br.close();
+				ir.close();
+				is.close();
+			}
+		} catch (FileNotFoundException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (NullPointerException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (IOException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		}
+	}
+
+	private void loadSetup() {
+		try {
+			InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("db/setup.txt");
+			if (is != null) {
+				InputStreamReader ir = new InputStreamReader(is);
+				BufferedReader br = new BufferedReader(ir);
+				PreparedStatement pstm = connection.prepareStatement("INSERT INTO Setup (STID, STVA) VALUES (?, ?)");
+				String line;
+				String[] columns = null;
+				noRows = 0;
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
+					if (line.length() > 1) {
+						if (!line.startsWith("-")) {
+							columns = line.split("\t");
+							pstm.setShort(1, Short.valueOf(columns[0]));
+							pstm.setString(2, columns[1]);
+							pstm.executeUpdate();
+							noRows++;
+						}
+					}
+				}
+				log(LConstants.ERROR_NONE, String.format("Loaded %d rows to Setup Table.", noRows));
+				pstm.close();
+				br.close();
+				ir.close();
+				is.close();
+			}
+		} catch (FileNotFoundException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (NullPointerException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (IOException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		}
+	}
+
+	private void loadSpecialties() {
+		try {
+			InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("db/specialties.txt");
+			if (is != null) {
+				InputStreamReader ir = new InputStreamReader(is);
+				BufferedReader br = new BufferedReader(ir);
+				PreparedStatement pstm = connection.prepareStatement(
+						"INSERT INTO Specialties (SYID, SYFL, SYLD, SYSP, SYNM) VALUES (?, ?, ?, ?, ?)");
+				String line;
+				String[] columns = null;
+				noRows = 0;
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
+					if (line.length() > 1) {
+						if (!line.startsWith("-")) {
+							columns = line.split("\t");
+							pstm.setShort(1, Short.valueOf(columns[0]));
+							pstm.setString(2, columns[1]);
+							pstm.setString(3, columns[2]);
+							pstm.setString(4, columns[3]);
+							pstm.setString(5, columns[4]);
+							pstm.executeUpdate();
+							noRows++;
+						}
+					}
+				}
+				log(LConstants.ERROR_NONE, String.format("Loaded %d rows to Specialties Table.", noRows));
+				pstm.close();
+				br.close();
+				ir.close();
+				is.close();
+			}
+		} catch (FileNotFoundException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (NullPointerException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (IOException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		}
+	}
+
+	private void loadSpecimenGroups() {
+		try {
+			InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("db/specimengroups.txt");
+			if (is != null) {
+				InputStreamReader ir = new InputStreamReader(is);
+				BufferedReader br = new BufferedReader(ir);
+				PreparedStatement pstm = connection
+						.prepareStatement("INSERT INTO SpeciGroups (SGID, SBID, POID, SG1B, SG1M, "
+								+ "SG1R, SG2B, SG2M, SG2R, SG3B, SG3M, SG3R, SG4B, SG4M, SG4R, SGV5, SGLN, SGDC) VALUES "
+								+ "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				String line;
+				String[] columns = null;
+				noRows = 0;
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
+					if (line.length() > 1) {
+						if (!line.startsWith("-")) {
+							columns = line.split("\t");
+							pstm.setShort(1, Short.valueOf(columns[0]));
+							pstm.setShort(2, Short.valueOf(columns[1]));
+							pstm.setShort(3, Short.valueOf(columns[2]));
+							pstm.setShort(4, Short.valueOf(columns[3]));
+							pstm.setShort(5, Short.valueOf(columns[4]));
+							pstm.setShort(6, Short.valueOf(columns[5]));
+							pstm.setShort(7, Short.valueOf(columns[6]));
+							pstm.setShort(8, Short.valueOf(columns[7]));
+							pstm.setShort(9, Short.valueOf(columns[8]));
+							pstm.setShort(10, Short.valueOf(columns[9]));
+							pstm.setShort(11, Short.valueOf(columns[10]));
+							pstm.setShort(12, Short.valueOf(columns[11]));
+							pstm.setShort(13, Short.valueOf(columns[12]));
+							pstm.setShort(14, Short.valueOf(columns[13]));
+							pstm.setShort(15, Short.valueOf(columns[14]));
+							pstm.setInt(16, Integer.valueOf(columns[15]));
+							pstm.setString(17, columns[16]);
+							pstm.setString(18, columns[17]);
+							pstm.executeUpdate();
+							noRows++;
+						}
+					}
+				}
+				log(LConstants.ERROR_NONE, String.format("Loaded %d rows to Specimen Groups Table.", noRows));
+				pstm.close();
+				br.close();
+				ir.close();
+				is.close();
+			}
+		} catch (FileNotFoundException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (NullPointerException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (IOException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		}
+	}
+
+	private void loadSubspecial() {
+		try {
+			InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("db/subspecialties.txt");
+			if (is != null) {
+				InputStreamReader ir = new InputStreamReader(is);
+				BufferedReader br = new BufferedReader(ir);
+				PreparedStatement pstm = connection.prepareStatement(
+						"INSERT INTO Specialties (SYID, SYFL, SYLD, SYSP, SYNM) VALUES (?, ?, ?, ?, ?)");
+				String line;
+				String[] columns = null;
+				noRows = 0;
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
+					if (line.length() > 1) {
+						if (!line.startsWith("-")) {
+							columns = line.split("\t");
+							pstm.setShort(1, Short.valueOf(columns[0]));
+							pstm.setString(2, columns[1]);
+							pstm.setString(3, columns[2]);
+							pstm.setString(4, columns[3]);
+							pstm.setString(5, columns[4]);
+							pstm.executeUpdate();
+							noRows++;
+						}
+					}
+				}
+				log(LConstants.ERROR_NONE, String.format("Loaded %d rows to Subspecialties Table.", noRows));
+				pstm.close();
+				br.close();
+				ir.close();
+				is.close();
+			}
+		} catch (FileNotFoundException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (NullPointerException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (IOException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		}
+	}
+
+	private void loadTables() {
+		for (int i = 0; i < 11; i++) {
+			switch (i) {
+			case 0:
+				loadSetup();
+				break;
+			case 1:
+				loadWorkdays();
+				break;
+			case 2:
+				loadProcedures();
+				break;
+			case 3:
+				loadRules();
+				break;
+			case 4:
+				loadSpecialties();
+				break;
+			case 5:
+				loadSubspecial();
+				break;
+			case 6:
+				loadCoders();
+				break;
+			case 7:
+				loadTurnaround();
+				break;
+			case 8:
+				loadOrderTypes();
+				break;
+			case 9:
+				loadOrderGroups();
+				break;
+			default:
+				loadSpecimenGroups();
+			}
+		}
+	}
+
+	private void loadTurnaround() {
+		try {
+			InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("db/turnaround.txt");
+			if (is != null) {
+				InputStreamReader ir = new InputStreamReader(is);
+				BufferedReader br = new BufferedReader(ir);
+				PreparedStatement pstm = connection.prepareStatement(
+						"INSERT INTO Turnaround (TAID, GRSS, EMBD, MICR, ROUT, FINL, TANM) VALUES (?, ?, ?, ?, ?, ?, ?)");
+				String line;
+				String[] columns = null;
+				noRows = 0;
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
+					if (line.length() > 1) {
+						if (!line.startsWith("-")) {
+							columns = line.split("\t");
+							pstm.setShort(1, Short.valueOf(columns[0]));
+							pstm.setShort(2, Short.valueOf(columns[1]));
+							pstm.setShort(3, Short.valueOf(columns[2]));
+							pstm.setShort(4, Short.valueOf(columns[3]));
+							pstm.setShort(5, Short.valueOf(columns[4]));
+							pstm.setShort(6, Short.valueOf(columns[5]));
+							pstm.setString(7, columns[6]);
+							pstm.executeUpdate();
+							noRows++;
+						}
+					}
+				}
+				log(LConstants.ERROR_NONE, String.format("Loaded %d rows to Turnaround Time Table.", noRows));
+				pstm.close();
+				br.close();
+				ir.close();
+				is.close();
+			}
+		} catch (FileNotFoundException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (NullPointerException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (IOException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		}
+	}
+
+	private void loadWorkdays() {
+		try {
+			InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream("db/workdays.txt");
+			if (is != null) {
+				InputStreamReader ir = new InputStreamReader(is);
+				BufferedReader br = new BufferedReader(ir);
+				PreparedStatement pstm = connection
+						.prepareStatement("INSERT INTO Workdays (WDID, WDNO, WDTP, WDDT) VALUES (?, ?, ?, ?)");
+				String line;
+				String[] columns = null;
+				noRows = 0;
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
+					if (line.length() > 1) {
+						if (!line.startsWith("-")) {
+							columns = line.split("\t");
+							pstm.setInt(1, Integer.valueOf(columns[0]));
+							pstm.setInt(2, Integer.valueOf(columns[1]));
+							pstm.setString(3, columns[2]);
+							pstm.setTimestamp(4, new Timestamp(Long.valueOf(columns[3])));
+							pstm.executeUpdate();
+							noRows++;
+						}
+					}
+				}
+				log(LConstants.ERROR_NONE, String.format("Loaded %d rows to Workdays Table.", noRows));
+				pstm.close();
+				br.close();
+				ir.close();
+				is.close();
+			}
+		} catch (FileNotFoundException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (NullPointerException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (IOException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SQLException e) {
 			log(LConstants.ERROR_SQL, dbName, e);
 		}
 	}

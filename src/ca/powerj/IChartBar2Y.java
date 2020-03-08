@@ -29,7 +29,9 @@ import org.eclipse.birt.chart.model.data.impl.NumberDataSetImpl;
 import org.eclipse.birt.chart.model.data.impl.SeriesDefinitionImpl;
 import org.eclipse.birt.chart.model.data.impl.TextDataSetImpl;
 import org.eclipse.birt.chart.model.impl.ChartWithAxesImpl;
+import org.eclipse.birt.chart.model.type.BarSeries;
 import org.eclipse.birt.chart.model.type.LineSeries;
+import org.eclipse.birt.chart.model.type.impl.BarSeriesImpl;
 import org.eclipse.birt.chart.model.type.impl.LineSeriesImpl;
 
 public class IChartBar2Y extends IChartCore {
@@ -93,34 +95,22 @@ public class IChartBar2Y extends IChartCore {
 		xAxisPrimary.getSeriesDefinitions().add(sdX);
 		sdX.getSeries().add(seCategory);
 		// Cases In (Y-Series 1)
-		LineSeries ls1 = (LineSeries) LineSeriesImpl.create();
-		ls1.setSeriesIdentifier(legend[0]);
-		ls1.setDataSet(orthoValues1);
-		LineAttributes la1 = LineAttributesImpl.create(ColorDefinitionImpl.ORANGE(), LineStyle.SOLID_LITERAL, 2);
-		ls1.setLineAttributes(la1);
-		ls1.getLabel().setVisible(true);
-		ls1.getLabel().getCaption().getFont().setSize(10.0f);
-		for (int i = 0; i < ls1.getMarkers().size(); i++) {
-			ls1.getMarkers().get(i).setType(MarkerType.TRIANGLE_LITERAL);
-			ls1.getMarkers().get(i).setSize(4);
-		}
+		BarSeries bs1 = (BarSeries) BarSeriesImpl.create();
+		bs1.setDataSet(orthoValues1);
+		bs1.setSeriesIdentifier(legend[0]);
+		bs1.getLabel().setVisible(true);
+		bs1.getLabel().getCaption().getFont().setSize(10.0f);
 		SeriesDefinition sdY1 = SeriesDefinitionImpl.create();
 		sdY1.getSeriesPalette().shift(-2);
 		yAxisPrimary.getSeriesDefinitions().add(sdY1);
-		sdY1.getSeries().add(ls1);
+		sdY1.getSeries().add(bs1);
 		// Cases Out (Y-Series 2)
-		LineSeries ls2 = (LineSeries) LineSeriesImpl.create();
-		ls2.setSeriesIdentifier(legend[1]);
-		ls2.setDataSet(orthoValues2);
-		LineAttributes la2 = LineAttributesImpl.create(ColorDefinitionImpl.GREEN(), LineStyle.SOLID_LITERAL, 2);
-		ls2.setLineAttributes(la2);
-		ls2.getLabel().setVisible(true);
-		ls2.getLabel().getCaption().getFont().setSize(10.0f);
-		for (int i = 0; i < ls2.getMarkers().size(); i++) {
-			ls2.getMarkers().get(i).setType(MarkerType.BOX_LITERAL);
-			ls2.getMarkers().get(i).setSize(4);
-		}
-		sdY1.getSeries().add(ls2);
+		BarSeries bs2 = (BarSeries) BarSeriesImpl.create();
+		bs2.setDataSet(orthoValues2);
+		bs2.setSeriesIdentifier(legend[1]);
+		bs2.getLabel().setVisible(true);
+		bs2.getLabel().getCaption().getFont().setSize(10.0f);
+		sdY1.getSeries().add(bs2);
 		// Backlog (Y-Serires 3)
 		LineSeries ls3 = (LineSeries) LineSeriesImpl.create();
 		ls3.setSeriesIdentifier(legend[2]);

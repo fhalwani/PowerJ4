@@ -10,6 +10,7 @@ class LWorkdays {
 	private DPowerJ dbPowerJ;
 
 	LWorkdays(LBase pj) {
+		LBase.busy.set(true);
 		this.pj = pj;
 		dbPowerJ = pj.dbPowerJ;
 		pj.log(LConstants.ERROR_NONE, className,

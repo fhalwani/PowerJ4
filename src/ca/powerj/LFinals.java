@@ -38,6 +38,7 @@ class LFinals {
 	}
 
 	LFinals(long caseID, String caseNo, LBase pj) {
+		LBase.busy.set(true);
 		this.pj = pj;
 		dbAP = pj.dbAP;
 		dbPowerJ = pj.dbPowerJ;

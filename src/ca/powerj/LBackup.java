@@ -1,4 +1,5 @@
 package ca.powerj;
+
 import java.awt.HeadlessException;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Scanner;
+
 import javax.swing.JFileChooser;
 
 class LBackup {
@@ -133,10 +135,12 @@ class LBackup {
 		} finally {
 			try {
 				rst.close();
-			} catch (Exception e) {}
+			} catch (Exception e) {
+			}
 			try {
 				fos.close();
-			} catch (Exception e) {}
+			} catch (Exception e) {
+			}
 			pj.setBusy(false);
 		}
 	}
@@ -152,12 +156,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("ACID"),
-						rst.getShort("SYID"),
-						rst.getString("ACFL"),
-						rst.getString("ACLD"),
-						rst.getString("ACNM"));
+				output = String.format(input, rst.getShort("ACID"), rst.getShort("SYID"), rst.getString("ACFL"),
+						rst.getString("ACLD"), rst.getString("ACNM"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -178,16 +178,9 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getLong("CAID"),
-						rst.getShort("PRID"),
-						rst.getShort("ADCD"),
-						rst.getInt("ADV5"),
-						rst.getTimestamp("ADDT").getTime(),
-						rst.getDouble("ADV1"),
-						rst.getDouble("ADV2"),
-						rst.getDouble("ADV3"),
-						rst.getDouble("ADV4"));
+				output = String.format(input, rst.getLong("CAID"), rst.getShort("PRID"), rst.getShort("ADCD"),
+						rst.getInt("ADV5"), rst.getTimestamp("ADDT").getTime(), rst.getDouble("ADV1"),
+						rst.getDouble("ADV2"), rst.getDouble("ADV3"), rst.getDouble("ADV4"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -199,8 +192,8 @@ class LBackup {
 
 	private void backupCases() throws SQLException, IOException {
 		fileName = dataDir + "cases.txt";
-		input = "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t" +
-		"%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%s\n";
+		input = "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t"
+				+ "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%s\n";
 		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Cases ORDER BY CAID");
 		file = new File(fileName);
 		if (!file.exists())
@@ -209,42 +202,16 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getLong("CAID"),
-						rst.getShort("FAID"),
-						rst.getShort("SBID"),
-						rst.getShort("SMID"),
-						rst.getShort("GRID"),
-						rst.getShort("EMID"),
-						rst.getShort("MIID"),
-						rst.getShort("ROID"),
-						rst.getShort("FNID"),
-						rst.getShort("GRTA"),
-						rst.getShort("EMTA"),
-						rst.getShort("MITA"),
-						rst.getShort("ROTA"),
-						rst.getShort("FNTA"),
-						rst.getShort("CASP"),
-						rst.getShort("CABL"),
-						rst.getShort("CASL"),
-						rst.getShort("CASY"),
-						rst.getShort("CAFS"),
-						rst.getShort("CAHE"),
-						rst.getShort("CASS"),
-						rst.getShort("CAIH"),
-						rst.getShort("CAMO"),
-						rst.getShort("CAV5"),
-						rst.getTimestamp("ACED").getTime(),
-						rst.getTimestamp("GRED").getTime(),
-						rst.getTimestamp("EMED").getTime(),
-						rst.getTimestamp("MIED").getTime(),
-						rst.getTimestamp("ROED").getTime(),
-						rst.getTimestamp("FNED").getTime(),
-						rst.getDouble("CAV1"),
-						rst.getDouble("CAV2"),
-						rst.getDouble("CAV3"),
-						rst.getDouble("CAV4"),
-						rst.getString("CANO"));
+				output = String.format(input, rst.getLong("CAID"), rst.getShort("FAID"), rst.getShort("SBID"),
+						rst.getShort("SMID"), rst.getShort("GRID"), rst.getShort("EMID"), rst.getShort("MIID"),
+						rst.getShort("ROID"), rst.getShort("FNID"), rst.getShort("GRTA"), rst.getShort("EMTA"),
+						rst.getShort("MITA"), rst.getShort("ROTA"), rst.getShort("FNTA"), rst.getShort("CASP"),
+						rst.getShort("CABL"), rst.getShort("CASL"), rst.getShort("CASY"), rst.getShort("CAFS"),
+						rst.getShort("CAHE"), rst.getShort("CASS"), rst.getShort("CAIH"), rst.getShort("CAMO"),
+						rst.getShort("CAV5"), rst.getTimestamp("ACED").getTime(), rst.getTimestamp("GRED").getTime(),
+						rst.getTimestamp("EMED").getTime(), rst.getTimestamp("MIED").getTime(),
+						rst.getTimestamp("ROED").getTime(), rst.getTimestamp("FNED").getTime(), rst.getDouble("CAV1"),
+						rst.getDouble("CAV2"), rst.getDouble("CAV3"), rst.getDouble("CAV4"), rst.getString("CANO"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -259,7 +226,7 @@ class LBackup {
 	}
 
 	private void backupCoders() throws SQLException, IOException {
-		String[] tables = {"Coder1", "Coder2", "Coder3", "Coder4"};
+		String[] tables = { "Coder1", "Coder2", "Coder3", "Coder4" };
 		input = "%d\t%d\t%d\t%f\t%f\t%f\t%s\t%s\n";
 		for (int i = 0; i < 4; i++) {
 			fileName = dataDir + tables[i].toLowerCase() + ".txt";
@@ -271,14 +238,8 @@ class LBackup {
 				noRows = 0;
 				fos = new FileOutputStream(file);
 				while (rst.next()) {
-					output = String.format(input,
-							rst.getShort("COID"),
-							rst.getShort("RUID"),
-							rst.getShort("COQY"),
-							rst.getDouble("COV1"),
-							rst.getDouble("COV2"),
-							rst.getDouble("COV3"),
-							rst.getString("CONM"),
+					output = String.format(input, rst.getShort("COID"), rst.getShort("RUID"), rst.getShort("COQY"),
+							rst.getDouble("COV1"), rst.getDouble("COV2"), rst.getDouble("COV3"), rst.getString("CONM"),
 							rst.getString("CODC"));
 					fos.write(output.getBytes());
 					noRows++;
@@ -301,11 +262,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getLong("CAID"),
-						formatLines(rst.getString("COM1")),
-						formatLines(rst.getString("COM2")),
-						formatLines(rst.getString("COM3")),
+				output = String.format(input, rst.getLong("CAID"), formatLines(rst.getString("COM1")),
+						formatLines(rst.getString("COM2")), formatLines(rst.getString("COM3")),
 						formatLines(rst.getString("COM4")));
 				fos.write(output.getBytes());
 				noRows++;
@@ -327,10 +285,7 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getLong("CAID"),
-						rst.getShort("ERID"),
-						rst.getString("CANO"),
+				output = String.format(input, rst.getLong("CAID"), rst.getShort("ERID"), rst.getString("CANO"),
 						formatLines(rst.getString("ERDC")));
 				fos.write(output.getBytes());
 				noRows++;
@@ -352,12 +307,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("FAID"),
-						rst.getString("FAFL"),
-						rst.getString("FALD"),
-						rst.getString("FANM"),
-						rst.getString("FADC"));
+				output = String.format(input, rst.getShort("FAID"), rst.getString("FAFL"), rst.getString("FALD"),
+						rst.getString("FANM"), rst.getString("FADC"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -378,16 +329,9 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getLong("SPID"),
-						rst.getShort("PRID"),
-						rst.getShort("FRBL"),
-						rst.getShort("FRSL"),
-						rst.getInt("FRV5"),
-						rst.getDouble("FRV1"),
-						rst.getDouble("FRV2"),
-						rst.getDouble("FRV3"),
-						rst.getDouble("FRV4"));
+				output = String.format(input, rst.getLong("SPID"), rst.getShort("PRID"), rst.getShort("FRBL"),
+						rst.getShort("FRSL"), rst.getInt("FRV5"), rst.getDouble("FRV1"), rst.getDouble("FRV2"),
+						rst.getDouble("FRV3"), rst.getDouble("FRV4"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -408,16 +352,9 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("OGID"),
-						rst.getShort("OTID"),
-						rst.getShort("OGC1"),
-						rst.getShort("OGC2"),
-						rst.getShort("OGC3"),
-						rst.getShort("OGC4"),
-						rst.getInt("OGC5"),
-						rst.getString("OGNM"),
-						rst.getString("OGDC"));
+				output = String.format(input, rst.getShort("OGID"), rst.getShort("OTID"), rst.getShort("OGC1"),
+						rst.getShort("OGC2"), rst.getShort("OGC3"), rst.getShort("OGC4"), rst.getInt("OGC5"),
+						rst.getString("OGNM"), rst.getString("OGDC"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -438,10 +375,7 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("OMID"),
-						rst.getShort("OGID"),
-						rst.getString("OMNM"),
+				output = String.format(input, rst.getShort("OMID"), rst.getShort("OGID"), rst.getString("OMNM"),
 						rst.getString("OMDC"));
 				fos.write(output.getBytes());
 				noRows++;
@@ -463,9 +397,7 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("OTID"),
-						rst.getString("OTNM"));
+				output = String.format(input, rst.getShort("OTID"), rst.getString("OTNM"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -486,14 +418,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getLong("SPID"),
-						rst.getShort("OGID"),
-						rst.getShort("ORQY"),
-						rst.getDouble("ORV1"),
-						rst.getDouble("ORV2"),
-						rst.getDouble("ORV3"),
-						rst.getDouble("ORV4"));
+				output = String.format(input, rst.getLong("SPID"), rst.getShort("OGID"), rst.getShort("ORQY"),
+						rst.getDouble("ORV1"), rst.getDouble("ORV2"), rst.getDouble("ORV3"), rst.getDouble("ORV4"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -514,34 +440,14 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getLong("PNID"),
-						rst.getShort("FAID"),
-						rst.getShort("SBID"),
-						rst.getShort("SMID"),
-						rst.getShort("POID"),
-						rst.getShort("GRID"),
-						rst.getShort("EMID"),
-						rst.getShort("MIID"),
-						rst.getShort("ROID"),
-						rst.getShort("FNID"),
-						rst.getShort("GRTA"),
-						rst.getShort("EMTA"),
-						rst.getShort("MITA"),
-						rst.getShort("ROTA"),
-						rst.getShort("FNTA"),
-						rst.getShort("PNST"),
-						rst.getShort("PNSP"),
-						rst.getShort("PNBL"),
-						rst.getShort("PNSL"),
-						rst.getInt("PNV5"),
-						rst.getTimestamp("ACED").getTime(),
-						rst.getTimestamp("GRED").getTime(),
-						rst.getTimestamp("EMED").getTime(),
-						rst.getTimestamp("MIED").getTime(),
-						rst.getTimestamp("ROED").getTime(),
-						rst.getTimestamp("FNED").getTime(),
-						rst.getString("PNNO"));
+				output = String.format(input, rst.getLong("PNID"), rst.getShort("FAID"), rst.getShort("SBID"),
+						rst.getShort("SMID"), rst.getShort("POID"), rst.getShort("GRID"), rst.getShort("EMID"),
+						rst.getShort("MIID"), rst.getShort("ROID"), rst.getShort("FNID"), rst.getShort("GRTA"),
+						rst.getShort("EMTA"), rst.getShort("MITA"), rst.getShort("ROTA"), rst.getShort("FNTA"),
+						rst.getShort("PNST"), rst.getShort("PNSP"), rst.getShort("PNBL"), rst.getShort("PNSL"),
+						rst.getInt("PNV5"), rst.getTimestamp("ACED").getTime(), rst.getTimestamp("GRED").getTime(),
+						rst.getTimestamp("EMED").getTime(), rst.getTimestamp("MIED").getTime(),
+						rst.getTimestamp("ROED").getTime(), rst.getTimestamp("FNED").getTime(), rst.getString("PNNO"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -562,14 +468,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("PRID"),
-						rst.getInt("PRVL"),
-						rst.getDate("PRDT").getTime(),
-						rst.getString("PRCD"),
-						rst.getString("PRAC"),
-						rst.getString("PRNM"),
-						rst.getString("PRLS"),
+				output = String.format(input, rst.getShort("PRID"), rst.getInt("PRVL"), rst.getDate("PRDT").getTime(),
+						rst.getString("PRCD"), rst.getString("PRAC"), rst.getString("PRNM"), rst.getString("PRLS"),
 						rst.getString("PRFR"));
 				fos.write(output.getBytes());
 				noRows++;
@@ -591,10 +491,7 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("POID"),
-						rst.getString("PONM"),
-						rst.getString("PODC"));
+				output = String.format(input, rst.getShort("POID"), rst.getString("PONM"), rst.getString("PODC"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -615,10 +512,7 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("RUID"),
-						rst.getString("RUNM"),
-						rst.getString("RUDC"));
+				output = String.format(input, rst.getShort("RUID"), rst.getString("RUNM"), rst.getString("RUDC"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -639,10 +533,7 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getInt("WDID"),
-						rst.getShort("PRID"),
-						rst.getShort("SRID"));
+				output = String.format(input, rst.getInt("WDID"), rst.getShort("PRID"), rst.getShort("SRID"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -663,13 +554,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("SRID"),
-						rst.getShort("FAID"),
-						rst.getShort("SBID"),
-						rst.getShort("SRCD"),
-						rst.getString("SRNM"),
-						rst.getString("SRDC"));
+				output = String.format(input, rst.getShort("SRID"), rst.getShort("FAID"), rst.getShort("SBID"),
+						rst.getShort("SRCD"), rst.getString("SRNM"), rst.getString("SRDC"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -690,9 +576,7 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("STID"),
-						rst.getString("STVA"));
+				output = String.format(input, rst.getShort("STID"), rst.getString("STVA"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -713,12 +597,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("SYID"),
-						rst.getString("SYFL"),
-						rst.getString("SYLD"),
-						rst.getString("SYSP"),
-						rst.getString("SYNM"));
+				output = String.format(input, rst.getShort("SYID"), rst.getString("SYFL"), rst.getString("SYLD"),
+						rst.getString("SYSP"), rst.getString("SYNM"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -739,22 +619,10 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getLong("SPID"),
-						rst.getLong("CAID"),
-						rst.getShort("SMID"),
-						rst.getShort("SPBL"),
-						rst.getShort("SPSL"),
-						rst.getShort("SPFR"),
-						rst.getShort("SPHE"),
-						rst.getShort("SPSS"),
-						rst.getShort("SPIH"),
-						rst.getShort("SPMO"),
-						rst.getInt("SPV5"),
-						rst.getDouble("SPV1"),
-						rst.getDouble("SPV2"),
-						rst.getDouble("SPV3"),
-						rst.getDouble("SPV4"),
+				output = String.format(input, rst.getLong("SPID"), rst.getLong("CAID"), rst.getShort("SMID"),
+						rst.getShort("SPBL"), rst.getShort("SPSL"), rst.getShort("SPFR"), rst.getShort("SPHE"),
+						rst.getShort("SPSS"), rst.getShort("SPIH"), rst.getShort("SPMO"), rst.getInt("SPV5"),
+						rst.getDouble("SPV1"), rst.getDouble("SPV2"), rst.getDouble("SPV3"), rst.getDouble("SPV4"),
 						rst.getString("SPDC"));
 				fos.write(output.getBytes());
 				noRows++;
@@ -776,25 +644,11 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("SGID"),
-						rst.getShort("SBID"),
-						rst.getShort("POID"),
-						rst.getShort("SG1B"),
-						rst.getShort("SG1M"),
-						rst.getShort("SG1R"),
-						rst.getShort("SG2B"),
-						rst.getShort("SG2M"),
-						rst.getShort("SG2R"),
-						rst.getShort("SG3B"),
-						rst.getShort("SG3M"),
-						rst.getShort("SG3R"),
-						rst.getShort("SG4B"),
-						rst.getShort("SG4M"),
-						rst.getShort("SG4R"),
-						rst.getInt("SGV5"),
-						rst.getString("SGLN"),
-						rst.getString("SGDC"));
+				output = String.format(input, rst.getShort("SGID"), rst.getShort("SBID"), rst.getShort("POID"),
+						rst.getShort("SG1B"), rst.getShort("SG1M"), rst.getShort("SG1R"), rst.getShort("SG2B"),
+						rst.getShort("SG2M"), rst.getShort("SG2R"), rst.getShort("SG3B"), rst.getShort("SG3M"),
+						rst.getShort("SG3R"), rst.getShort("SG4B"), rst.getShort("SG4M"), rst.getShort("SG4R"),
+						rst.getInt("SGV5"), rst.getString("SGLN"), rst.getString("SGDC"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -815,12 +669,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("SMID"),
-						rst.getShort("SGID"),
-						rst.getShort("TAID"),
-						rst.getString("SMNM"),
-						rst.getString("SMDC"));
+				output = String.format(input, rst.getShort("SMID"), rst.getShort("SGID"), rst.getShort("TAID"),
+						rst.getString("SMNM"), rst.getString("SMDC"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -841,10 +691,7 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("SBID"),
-						rst.getShort("SYID"),
-						rst.getString("SBNM"),
+				output = String.format(input, rst.getShort("SBID"), rst.getShort("SYID"), rst.getString("SBNM"),
 						rst.getString("SBDC"));
 				fos.write(output.getBytes());
 				noRows++;
@@ -866,14 +713,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getShort("TAID"),
-						rst.getShort("GRSS"),
-						rst.getShort("EMBD"),
-						rst.getShort("MICR"),
-						rst.getShort("ROUT"),
-						rst.getShort("FINL"),
-						rst.getString("TANM"));
+				output = String.format(input, rst.getShort("TAID"), rst.getShort("GRSS"), rst.getShort("EMBD"),
+						rst.getShort("MICR"), rst.getShort("ROUT"), rst.getShort("FINL"), rst.getString("TANM"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -894,10 +735,7 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input,
-						rst.getInt("WDID"),
-						rst.getInt("WDNO"),
-						rst.getString("WDTP"),
+				output = String.format(input, rst.getInt("WDID"), rst.getInt("WDNO"), rst.getString("WDTP"),
 						rst.getDate("WDDT").getTime());
 				fos.write(output.getBytes());
 				noRows++;
@@ -931,7 +769,8 @@ class LBackup {
 					success = true;
 				}
 			}
-		} catch (HeadlessException ignore) {}
+		} catch (HeadlessException ignore) {
+		}
 		return success;
 	}
 
@@ -1143,7 +982,8 @@ class LBackup {
 		} finally {
 			try {
 				pstm.close();
-			} catch (Exception e) {}
+			} catch (Exception e) {
+			}
 			scanner.close();
 			pj.setBusy(false);
 		}
@@ -1155,7 +995,8 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Accessions (ACID, SYID, ACFL, ACLD, ACNM) VALUES (?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ
+					.prepareStatement("INSERT INTO Accessions (ACID, SYID, ACFL, ACLD, ACNM) VALUES (?, ?, ?, ?, ?)");
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
@@ -1164,7 +1005,7 @@ class LBackup {
 						pstm.setShort(1, Short.valueOf(columns[0]));
 						pstm.setShort(2, Short.valueOf(columns[1]));
 						pstm.setString(3, columns[2]);
-						pstm.setString(4, columns[3]);	
+						pstm.setString(4, columns[3]);
 						pstm.setString(5, columns[4]);
 						pstm.executeUpdate();
 						noRows++;
@@ -1182,8 +1023,8 @@ class LBackup {
 		file = new File(fileName);
 		if (file.exists()) {
 			noRows = 0;
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Additionals (CAID, PRID, ADCD, ADV5, ADDT, ADV1, " +
-					"ADV2, ADV3, ADV4) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Additionals (CAID, PRID, ADCD, ADV5, ADDT, ADV1, "
+					+ "ADV2, ADV3, ADV4) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			scanner = new Scanner(new FileReader(fileName));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
@@ -1215,11 +1056,11 @@ class LBackup {
 		file = new File(fileName);
 		if (file.exists()) {
 			noRows = 0;
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Cases (CAID, FAID, SBID, SMID, GRID, " +
-					"EMID, MIID, ROID, FNID, GRTA, EMTA, MITA, ROTA, FNTA, CASP, CABL, CASL, CASY, " +
-					"CAFS, CAHE, CASS, CAIH, CAMO, CAV5, ACED, GRED, EMED, MIED, ROED, FNED, CAV1, " +
-					"CAV2, CAV3, CAV4, CANO) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Cases (CAID, FAID, SBID, SMID, GRID, "
+					+ "EMID, MIID, ROID, FNID, GRTA, EMTA, MITA, ROTA, FNTA, CASP, CABL, CASL, CASY, "
+					+ "CAFS, CAHE, CASS, CAIH, CAMO, CAV5, ACED, GRED, EMED, MIED, ROED, FNED, CAV1, "
+					+ "CAV2, CAV3, CAV4, CANO) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+					+ "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
@@ -1272,15 +1113,15 @@ class LBackup {
 	}
 
 	private void restoreCoders() throws SQLException, FileNotFoundException, NumberFormatException {
-		String[] tables = {"Coder1", "Coder2", "Coder3", "Coder4"};
+		final String[] tables = { "Coder1", "Coder2", "Coder3", "Coder4" };
 		for (int i = 0; i < 4; i++) {
 			fileName = dataDir + tables[i].toLowerCase() + ".txt";
 			file = new File(fileName);
 			if (file.exists()) {
 				noRows = 0;
 				scanner = new Scanner(new FileReader(fileName));
-				pstm = pj.dbPowerJ.prepareStatement("INSERT INTO " + tables[i] + " (COID, RUID, COQY, COV1, COV2, COV3, CONM, CODC) " +
-						"VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+				pstm = pj.dbPowerJ.prepareStatement("INSERT INTO " + tables[i]
+						+ " (COID, RUID, COQY, COV1, COV2, COV3, CONM, CODC) " + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 				while (scanner.hasNextLine()) {
 					input = scanner.nextLine();
 					if (input.length() > 1) {
@@ -1311,8 +1152,8 @@ class LBackup {
 		file = new File(fileName);
 		if (file.exists()) {
 			noRows = 0;
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Comments (CAID, COM1, COM2, COM3, COM4) " +
-					"VALUES (?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(
+					"INSERT INTO Comments (CAID, COM1, COM2, COM3, COM4) " + "VALUES (?, ?, ?, ?, ?)");
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
@@ -1367,7 +1208,8 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Facilities (FAID, FAFL, FALD, FANM, FADC) VALUES (?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ
+					.prepareStatement("INSERT INTO Facilities (FAID, FAFL, FALD, FANM, FADC) VALUES (?, ?, ?, ?, ?)");
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
@@ -1396,8 +1238,8 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Frozens (SPID, PRID, FRBL, FRSL, FRV5, " +
-					"FRV1, FRV2, FRV3, FRV4) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Frozens (SPID, PRID, FRBL, FRSL, FRV5, "
+					+ "FRV1, FRV2, FRV3, FRV4) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
@@ -1429,8 +1271,8 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO OrderGroups (OGID, OTID, OGC1, OGC2, OGC3, " +
-					"OGC4, OGC5, OGNM, OGDC) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO OrderGroups (OGID, OTID, OGC1, OGC2, OGC3, "
+					+ "OGC4, OGC5, OGNM, OGDC) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
@@ -1488,8 +1330,8 @@ class LBackup {
 		file = new File(fileName);
 		if (file.exists()) {
 			noRows = 0;
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Orders (SPID, OGID, ORQY, ORV1, ORV2, " +
-					"ORV3, ORV4) VALUES (?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(
+					"INSERT INTO Orders (SPID, OGID, ORQY, ORV1, ORV2, " + "ORV3, ORV4) VALUES (?, ?, ?, ?, ?, ?, ?)");
 			scanner = new Scanner(new FileReader(fileName));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
@@ -1544,10 +1386,10 @@ class LBackup {
 		file = new File(fileName);
 		if (file.exists()) {
 			noRows = 0;
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Pending (PNID, FAID, SBID, SMID, POID, " +
-					"GRID, EMID, MIID, ROID, FNID, GRTA, EMTA, MITA, ROTA, FNTA, PNST, PNSP, PNBL, " +
-					"PNSL, PNV5, ACED, GRED, EMED, MIED, ROED, FNED, PNNO) VALUES (?, ?, ?, ?, ?, ?, " +
-					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Pending (PNID, FAID, SBID, SMID, POID, "
+					+ "GRID, EMID, MIID, ROID, FNID, GRTA, EMTA, MITA, ROTA, FNTA, PNST, PNSP, PNBL, "
+					+ "PNSL, PNV5, ACED, GRED, EMED, MIED, ROED, FNED, PNNO) VALUES (?, ?, ?, ?, ?, ?, "
+					+ "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			scanner = new Scanner(new FileReader(fileName));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
@@ -1598,8 +1440,8 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Persons (PRID, PRVL, PRDT, PRCD, PRAC, " +
-					"PRNM, PRLS, PRFR) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Persons (PRID, PRVL, PRDT, PRCD, PRAC, "
+					+ "PRNM, PRLS, PRFR) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
@@ -1708,7 +1550,8 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Services (SRID, FAID, SBID, SRCD, SRNM, SRDC) VALUES (?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(
+					"INSERT INTO Services (SRID, FAID, SBID, SRCD, SRNM, SRDC) VALUES (?, ?, ?, ?, ?, ?)");
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
@@ -1762,7 +1605,8 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Specialties (SYID, SYFL, SYLD, SYSP, SYNM) VALUES (?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ
+					.prepareStatement("INSERT INTO Specialties (SYID, SYFL, SYLD, SYSP, SYNM) VALUES (?, ?, ?, ?, ?)");
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
@@ -1790,9 +1634,9 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO SpeciGroups (SGID, SBID, POID, SG1B, SG1M, " +
-					"SG1R, SG2B, SG2M, SG2R, SG3B, SG3M, SG3R, SG4B, SG4M, SG4R, SGV5, SGLN, SGDC) VALUES " +
-					"(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO SpeciGroups (SGID, SBID, POID, SG1B, SG1M, "
+					+ "SG1R, SG2B, SG2M, SG2R, SG3B, SG3M, SG3R, SG4B, SG4M, SG4R, SGV5, SGLN, SGDC) VALUES "
+					+ "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
@@ -1833,7 +1677,8 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO SpeciMaster (SMID, SGID, TAID, SMNM, SMDC) VALUES (?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ
+					.prepareStatement("INSERT INTO SpeciMaster (SMID, SGID, TAID, SMNM, SMDC) VALUES (?, ?, ?, ?, ?)");
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
@@ -1861,9 +1706,9 @@ class LBackup {
 		file = new File(fileName);
 		if (file.exists()) {
 			noRows = 0;
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Specimens (SPID, CAID, SMID, SPBL, SPSL, " +
-					"SPFR, SPHE, SPSS, SPIH, SPMO, SPV5, SPV1, SPV2, SPV3, SPV4, SPDC) VALUES (?, ?, " +
-					"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Specimens (SPID, CAID, SMID, SPBL, SPSL, "
+					+ "SPFR, SPHE, SPSS, SPIH, SPMO, SPV5, SPV1, SPV2, SPV3, SPV4, SPDC) VALUES (?, ?, "
+					+ "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			scanner = new Scanner(new FileReader(fileName));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
@@ -1930,7 +1775,8 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Turnaround (TAID, GRSS, EMBD, MICR, ROUT, FINL, TANM) VALUES (?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(
+					"INSERT INTO Turnaround (TAID, GRSS, EMBD, MICR, ROUT, FINL, TANM) VALUES (?, ?, ?, ?, ?, ?, ?)");
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {

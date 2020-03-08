@@ -11,6 +11,7 @@ class LValue5 {
 	DPowerJ dbPowerJ;
 
 	LValue5(LBase pj) {
+		LBase.busy.set(true);
 		this.pj = pj;
 		dbPowerJ = pj.dbPowerJ;
 		pj.log(LConstants.ERROR_NONE, className,

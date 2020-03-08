@@ -11,6 +11,7 @@ class LSync {
 	private DPowerpath dbAP;
 
 	LSync(LBase pjcore) {
+		LBase.busy.set(true);
 		this.pj = pjcore;
 		dbAP = pj.dbAP;
 		dbPowerJ = pj.dbPowerJ;

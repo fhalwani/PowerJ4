@@ -232,7 +232,7 @@ class LBase implements Runnable {
 		boolean isStarting = true;
 		boolean isUpToDate = false;
 		while (!stopped.get()) {
-			if (!busy.get()) {
+			if (!isBusy()) {
 				if (!offLine) {
 					// Reset error flag
 					errorID = LConstants.ERROR_NONE;
@@ -249,7 +249,6 @@ class LBase implements Runnable {
 						}
 						break;
 					case JOB_MONTHLY:
-						busy.set(true);
 						if (PowerJ.IS_SERVER) {
 							if (isNewMonth()) {
 								new LWorkdays(this);
@@ -267,10 +266,8 @@ class LBase implements Runnable {
 							}
 						}
 						jobID = JOB_DAILY;
-						busy.set(false);
 						break;
 					case JOB_DAILY:
-						busy.set(true);
 						if (PowerJ.IS_SERVER) {
 							new LSync(this);
 						}
@@ -278,10 +275,8 @@ class LBase implements Runnable {
 							new LSync(this);
 						}
 						jobID = JOB_REFRESH;
-						busy.set(false);
 						break;
 					case JOB_REFRESH:
-						busy.set(true);
 						if (PowerJ.IS_SERVER) {
 							if (nextUpdate - System.currentTimeMillis() < timerInterval) {
 								new LPending(isStarting, this);
@@ -321,20 +316,17 @@ class LBase implements Runnable {
 								jobID = JOB_SLEEP;
 							}
 						}
-						busy.set(false);
 						break;
 					case JOB_SLEEP:
-						if (!busy.get()) {
-							jobID = JOB_SLEEPING;
-							log(LConstants.ERROR_NONE, LConstants.APP_NAME,
-									dates.formatter(LDates.FORMAT_DATETIME) + " - Going to sleep...");
-							if (dbAP != null) {
-								dbAP.close();
-							}
-							if (dbPowerJ != null) {
-								dbPowerJ.close();
-							}
+						if (dbAP != null) {
+							dbAP.close();
 						}
+						if (dbPowerJ != null) {
+							dbPowerJ.close();
+						}
+						log(LConstants.ERROR_NONE, LConstants.APP_NAME,
+								dates.formatter(LDates.FORMAT_DATETIME) + " - Going to sleep...");
+						jobID = JOB_SLEEPING;
 						break;
 					case JOB_SLEEPING:
 						if (nextUpdate - System.currentTimeMillis() < (timerInterval * 2)) {
@@ -413,7 +405,7 @@ class LBase implements Runnable {
 	 * Cleanly stop the engine.
 	 */
 	boolean stopWorker() {
-		if (busy.get()) {
+		if (isBusy()) {
 			return false;
 		}
 		stopped.set(true);
