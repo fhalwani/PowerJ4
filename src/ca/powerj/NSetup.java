@@ -219,6 +219,7 @@ class NSetup extends NBase implements ItemListener {
 				GridBagConstraints.EAST, panel);
 		JCheckBox checkBox = new JCheckBox();
 		checkBox.setName("Saturday");
+		checkBox.setFont(LConstants.APP_FONT);
 		checkBox.setText("Saturday Closed: ");
 		checkBox.setMnemonic(KeyEvent.VK_T);
 		checkBox.putClientProperty("DV", LSetup.VAR_SAT_OFF);
@@ -230,6 +231,7 @@ class NSetup extends NBase implements ItemListener {
 				GridBagConstraints.EAST, panel);
 		checkBox = new JCheckBox();
 		checkBox.setName("Sunday");
+		checkBox.setFont(LConstants.APP_FONT);
 		checkBox.setText("Sunday Closed: ");
 		checkBox.setMnemonic(KeyEvent.VK_U);
 		checkBox.putClientProperty("DV", LSetup.VAR_SUN_OFF);

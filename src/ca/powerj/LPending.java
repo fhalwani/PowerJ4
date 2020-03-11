@@ -7,6 +7,7 @@ import java.util.Calendar;
 
 class LPending {
 	int noUpdates = 0;
+	private final long startTime = System.currentTimeMillis();
 	private final String className = "Workflow";
 	private MFacilities facilities;
 	private MAccessions accessions;
@@ -19,12 +20,12 @@ class LPending {
 	private ArrayList<OCasePending> list = new ArrayList<OCasePending>();
 
 	LPending(boolean firstRun, LBase pj) {
+		LBase.busy.set(true);
 		this.pj = pj;
 		dbAP = pj.dbAP;
 		dbPowerJ = pj.dbPowerJ;
 		pj.log(LConstants.ERROR_NONE, className,
 				pj.dates.formatter(LDates.FORMAT_DATETIME) + " - Workflow Manager Started...");
-		long startTime = System.currentTimeMillis();
 		try {
 			dbAP.prepareWorkflow();
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
@@ -553,13 +554,15 @@ class LPending {
 	/** Update Number of stained slides for a case. */
 	private short getNoSlides() {
 		short noSlides = 0;
+		short noRows = 0;
 		ResultSet rst = null;
 		try {
 			dbAP.setLong(DPowerpath.STM_CASE_ORDERS, 1, thisCase.caseID);
 			dbAP.setTime(DPowerpath.STM_CASE_ORDERS, 2, thisCase.accessed.getTimeInMillis());
-			dbAP.setTime(DPowerpath.STM_CASE_ORDERS, 3, System.currentTimeMillis());
+			dbAP.setTime(DPowerpath.STM_CASE_ORDERS, 3, startTime);
 			rst = dbAP.getResultSet(DPowerpath.STM_CASE_ORDERS);
 			while (rst.next()) {
+				noRows++;
 				if (masterOrders.matchOrder(rst.getShort("procedure_id"))) {
 					switch (masterOrders.getOrderType()) {
 					case OOrderType.SLIDE:
@@ -573,6 +576,10 @@ class LPending {
 						// Ignore
 					}
 				}
+			}
+			if (noSlides == 0) {
+				System.out.println("NoSlides: " + noSlides);
+				System.out.println("Rows: " + noRows);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
@@ -601,6 +608,7 @@ class LPending {
 					}
 					rst.close();
 					if (thisCase.update) {
+						thisCase.noSlides = getNoSlides();
 						if (updateRouted() > 0) {
 							thisCase.update = false;
 							noUpdates++;

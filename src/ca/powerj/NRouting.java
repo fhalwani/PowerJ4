@@ -317,7 +317,7 @@ class NRouting extends NBase {
 
 	private class ModelCases extends ITableModel {
 		private final String[] columns = { "NO", "CASE", "FAC", "SPY", "SUB", "PROC", "SPEC", "SPECS", "BLKS", "SLDS",
-				pj.setup.getString(LSetup.VAR_V5_NAME), "ACCESS", "ROUTE", "BY", "TO" };
+				pj.setup.getString(LSetup.VAR_V5_NAME).toUpperCase(), "ACCESS", "ROUTE", "BY", "TO" };
 
 		@Override
 		public Class<?> getColumnClass(int col) {
@@ -412,7 +412,7 @@ class NRouting extends NBase {
 
 	private class ModelSummary extends ITableModel {
 		private final String[] columns = { "NO", "INIT", "NAME", "CASES", "SPECS", "SLIDES",
-				pj.setup.getString(LSetup.VAR_V5_NAME), "FTE" };
+				pj.setup.getString(LSetup.VAR_V5_NAME).toUpperCase(), "FTE" };
 
 		@Override
 		public Class<?> getColumnClass(int col) {

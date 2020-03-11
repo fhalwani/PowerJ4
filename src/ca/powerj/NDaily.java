@@ -141,7 +141,7 @@ class NDaily extends NBase {
 
 	private class ModelCases extends ITableModel {
 		private final String[] columns = { "NO", "CASE", "SPY", "SUB", "PROC", "SPEC", "SPECS", "BLKS", "SLDS",
-				pj.setup.getString(LSetup.VAR_V5_NAME), "ACCESS", "ROUTE", "BY", "TO", "CUTOFF", "passed", "%" };
+				pj.setup.getString(LSetup.VAR_V5_NAME).toUpperCase(), "ACCESS", "ROUTE", "BY", "TO", "CUTOFF", "SPENT", "PRCNT" };
 
 		@Override
 		public Class<?> getColumnClass(int col) {

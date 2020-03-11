@@ -146,9 +146,9 @@ class DPowerpath extends DCore {
 		case STM_CASE_NUMBER:
 			return "SELECT id FROM accession_2 WITH (NOLOCK) WHERE accession_no = ?";
 		case STM_CASE_ORDERS:
-			return "SELECT o.procedure_id, o.quantity, o.created_date, p.code FROM acc_order AS o WITH (NOLOCK)\n" +
-			"INNER JOIN lab_procedure AS p WITH (NOLOCK) ON p.id = o.procedure_id\n" +
-			"WHERE o.acc_id = ? AND (o.created_date BETWEEN ? AND ?) AND o.status = 'C' AND p.preparation_catg = 'L'" +
+			return "SELECT o.procedure_id, o.quantity, o.created_date, p.code FROM acc_order AS o WITH (NOLOCK) \n" +
+			"INNER JOIN lab_procedure AS p WITH (NOLOCK) ON p.id = o.procedure_id \n" +
+			"WHERE o.acc_id = ? AND (o.created_date BETWEEN ? AND ?) AND p.preparation_catg = 'L' \n" +
 			"ORDER BY o.procedure_id";
 		case STM_CASE_PROCESS:
 			return "SELECT a.assigned_to_id, a.completed_date, s.description FROM acc_process_step AS a WITH (NOLOCK)\n" +
@@ -230,9 +230,9 @@ class DPowerpath extends DCore {
 		case STM_SPECIMENS:
 			return "SELECT id, code, description FROM tmplt_profile WHERE type = 'S' ORDER BY id";
 		case STM_SPEC_ORDERS:
-			return "SELECT o.procedure_id, o.quantity, o.created_date, p.code FROM acc_order AS o WITH (NOLOCK)\n" +
-			"INNER JOIN lab_procedure AS p WITH (NOLOCK) ON p.id = o.procedure_id\n" +
-			"WHERE o.acc_specimen_id = ? AND o.created_date < ? AND o.status = 'C'\n" +
+			return "SELECT o.procedure_id, o.quantity, o.created_date, p.code FROM acc_order AS o WITH (NOLOCK) \n" +
+			"INNER JOIN lab_procedure AS p WITH (NOLOCK) ON p.id = o.procedure_id \n" +
+			"WHERE o.acc_specimen_id = ? AND o.created_date < ? \n" +
 			"ORDER BY o.procedure_id";
 		default:
 			return "UPDATE acc_specimen SET tmplt_profile_id = ? WHERE id = ?";

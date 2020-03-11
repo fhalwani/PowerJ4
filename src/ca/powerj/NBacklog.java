@@ -163,7 +163,7 @@ class NBacklog extends NBase {
 
 	private class ModelBacklog extends ITableModel {
 		private final String[] columns = { "NO", "CASE", "ACCESS", "FAC", "SPY", "SUB", "PROC", "STATUS", "SPEC",
-				"SPECS", "BLKS", "SLDS", pj.setup.getString(LSetup.VAR_V5_NAME), "CUTOFF", "SPENT", "%" };
+				"SPECS", "BLKS", "SLDS", pj.setup.getString(LSetup.VAR_V5_NAME).toUpperCase(), "CUTOFF", "SPENT", "PRCNT" };
 
 		@Override
 		public Class<?> getColumnClass(int col) {

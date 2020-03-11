@@ -881,14 +881,14 @@ class LBackup {
 		try {
 			pj.setBusy(true);
 			if (getDir()) {
-				delete();
+//				delete();
 				for (int i = 0; i < 26; i++) {
 					switch (i) {
 					case 0:
-						restoreSetup();
+//						restoreSetup();
 						break;
 					case 1:
-						restoreWorkdays();
+//						restoreWorkdays();
 						break;
 					case 2:
 						restoreFacilities();
@@ -897,31 +897,31 @@ class LBackup {
 						restorePersons();
 						break;
 					case 4:
-						restoreProcedures();
+//						restoreProcedures();
 						break;
 					case 5:
-						restoreRules();
+//						restoreRules();
 						break;
 					case 6:
-						restoreSpecialties();
+//						restoreSpecialties();
 						break;
 					case 7:
-						restoreTurnaround();
+//						restoreTurnaround();
 						break;
 					case 8:
-						restoreCoders();
+//						restoreCoders();
 						break;
 					case 9:
-						restoreSubspecial();
+//						restoreSubspecial();
 						break;
 					case 10:
-						restoreOrderTypes();
+//						restoreOrderTypes();
 						break;
 					case 11:
-						restoreOrderGroups();
+//						restoreOrderGroups();
 						break;
 					case 12:
-						restoreSpeciGroups();
+//						restoreSpeciGroups();
 						break;
 					case 13:
 						restoreAccessions();
@@ -939,28 +939,28 @@ class LBackup {
 						restoreSchedules();
 						break;
 					case 18:
-						restorePending();
+//						restorePending();
 						break;
 					case 19:
-						restoreCases();
+//						restoreCases();
 						break;
 					case 20:
-						restoreSpecimens();
+//						restoreSpecimens();
 						break;
 					case 21:
-						restoreOrders();
+//						restoreOrders();
 						break;
 					case 22:
-						restoreFrozens();
+//						restoreFrozens();
 						break;
 					case 23:
-						restoreAdditionals();
+//						restoreAdditionals();
 						break;
 					case 24:
-						restoreComments();
+//						restoreComments();
 						break;
 					default:
-						restoreErrors();
+//						restoreErrors();
 					}
 					try {
 						Thread.sleep(LConstants.SLEEP_TIME);
