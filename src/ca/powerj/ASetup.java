@@ -17,6 +17,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Properties;
 
+import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
+import com.microsoft.sqlserver.jdbc.SQLServerException;
+
 class ASetup {
 	private final byte DB_DERBY = 1;
 	private final byte DB_MARIA = 2;
@@ -36,10 +39,8 @@ class ASetup {
 	private String dbPort = "";
 	private String dbUser = "";
 	private String dbPass = "";
+	private String input = "";
 	private BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-	private StringBuilder buffer = new StringBuilder();
-	private SecureRandom randomNo = new SecureRandom();
-	private ArrayList<Object> list = new ArrayList<>();
 	private Connection connection = null;
 	private Statement stm = null;
 
@@ -71,7 +72,7 @@ class ASetup {
 		}
 	}
 
-	private void createDB(int dbID) {
+	private void createDB() {
 		String url = "";
 		try {
 			switch (dbID) {
@@ -141,6 +142,110 @@ class ASetup {
 		} catch (InterruptedException e) {
 		} catch (SQLException e) {
 			log(LConstants.ERROR_SQL, dbName, e);
+		}
+	}
+
+	private void createLogin() {
+		SecureRandom randomNo = new SecureRandom();
+		ArrayList<Object> list = new ArrayList<>();
+		// Add ASCII Decimal values to ArrayList
+		list.add((char) 32);
+		list.add((char) 33);
+		list.add((char) 35);
+		list.add((char) 36);
+		list.add((char) 40);
+		list.add((char) 44);
+		list.add((char) 45);
+		list.add((char) 46);
+		list.add((char) 61);
+		list.add((char) 63);
+		// Do not use 85 (not compatible)
+		for (int i = 48; i < 85; i++) {
+			list.add((char) i);
+		}
+		for (int i = 86; i < 91; i++) {
+			list.add((char) i);
+		}
+		for (int i = 97; i < 123; i++) {
+			list.add((char) i);
+		}
+		// rotate the elements in the list by the specified distance. This will create
+		// strong password
+		Collections.rotate(list, 5);
+		StringBuilder buffer = new StringBuilder();
+		buffer.setLength(0);
+		// Password length should be 23 characters
+		for (int length = 0; length < 23; length++) {
+			char c = (char) list.get(randomNo.nextInt(list.size()));
+			buffer.append(c);
+		}
+		sysPassClient = buffer.toString();
+		if (dbID == DB_POSTG) {
+			if (errorID == LConstants.ERROR_NONE) {
+				System.out.println("CREATE ROLE " + sysUserClient + " LOGIN PASSWORD '" + sysPassClient
+						+ "' NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;");
+			}
+			if (errorID == LConstants.ERROR_NONE) {
+				System.out.println("GRANT USAGE ON SCHEMA " + dbSchema + " TO " + sysUserClient + ";");
+				System.out.println("GRANT SELECT, INSERT, DELETE, UPDATE, EXECUTE ON ALL TABLES IN SCHEMA " + dbSchema
+						+ " TO " + sysUserClient + ";");
+			}
+		} else if (dbID == DB_MARIA) {
+			if (errorID == LConstants.ERROR_NONE) {
+				System.out.println("CREATE USER " + sysUserClient + "@'%' IDENTIFIED BY '" + sysPassClient + "';");
+			}
+			if (errorID == LConstants.ERROR_NONE) {
+				System.out.println("GRANT SELECT, INSERT, DELETE, UPDATE, EXECUTE ON " + dbSchema + ".* TO "
+						+ sysUserClient + "@'%';");
+			}
+			System.out.println("FLUSH PRIVILEGES;");
+		} else {
+			if (errorID == LConstants.ERROR_NONE) {
+				System.out.println("CREATE USER " + sysUserClient + " WITH PASSWORD = '" + sysPassClient
+						+ "', DEFAULT_SCHEMA = " + dbSchema);
+			}
+			if (errorID == LConstants.ERROR_NONE) {
+				System.out.println("exec sp_addrolemember db_datareader, " + sysUserClient);
+			}
+			if (errorID == LConstants.ERROR_NONE) {
+				System.out.println("exec sp_addrolemember db_datawriter, " + sysUserClient);
+			}
+			if (errorID == LConstants.ERROR_NONE) {
+				System.out.println("GRANT EXECUTE TO " + sysUserClient);
+			}
+		}
+		switch (dbID) {
+		case DB_MARIA:
+			dbArch = "MARIADB";
+			dbHost = "localhost";
+			dbPort = "3306";
+			break;
+		case DB_MSSQL:
+			dbArch = "MSSQL";
+			dbHost = "localhost";
+			dbPort = "1433";
+			break;
+		case DB_POSTG:
+			dbArch = "POSTGRES";
+			dbHost = "localhost";
+			dbPort = "5432";
+			break;
+		default:
+			dbArch = "DERBY";
+			dbHost = "localhost";
+			dbPort = "2313";
+		}
+		getDbParameters();
+		if (dbHost.trim().length() == 0 || dbArch.trim().length() == 0) {
+			log(LConstants.ERROR_NONE, "Exiting");
+			System.exit(0);
+		}
+		LCrypto crypto = new LCrypto(appDir);
+		String[] data = { dbArch, dbHost, dbPort, dbSchema, sysUserClient, sysPassClient };
+		if (crypto.setData(data)) {
+			log(LConstants.ERROR_NONE, "Users binary file completed successfully.");
+		} else {
+			log(LConstants.ERROR_IO, "Users binary file failed!");
 		}
 	}
 
@@ -414,7 +519,8 @@ class ASetup {
 						+ "SELECT * FROM udvAccessions ORDER BY ACNM;\n" + "END";
 				break;
 			case 1:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpAdditionals @param1 INT AS \n" + "BEGIN\n" + "SET NOCOUNT ON;\n"
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpAdditionals @param1 INT AS \n" + "BEGIN\n"
+						+ "SET NOCOUNT ON;\n"
 						+ "SELECT PRID, ADCD, ADV5, ADV1, ADV2, ADV3, ADV4, ADDT, PRNM, PRLS, PRFR, CANO\n"
 						+ "FROM udvAdditionals WHERE CAID = @param1 ORDER BY ADDT;\n" + "END";
 				break;
@@ -448,8 +554,8 @@ class ASetup {
 						+ "SELECT COM1, COM2, COM3, COM4 FROM Comments WHERE CAID = @param1;\n" + "END";
 				break;
 			case 8:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpCseID @param1 CHAR(12) AS \n" + "BEGIN\n" + "SET NOCOUNT ON;\n"
-						+ "SELECT CAID FROM Cases WHERE CANO = @param1;\n" + "END";
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpCseID @param1 CHAR(12) AS \n" + "BEGIN\n"
+						+ "SET NOCOUNT ON;\n" + "SELECT CAID FROM Cases WHERE CANO = @param1;\n" + "END";
 				break;
 			case 9:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpCseNo @param1 INT AS \n" + "BEGIN\n" + "SET NOCOUNT ON;\n"
@@ -473,8 +579,8 @@ class ASetup {
 						+ "ORDER BY FAID, SYID, SBID, POID, FNID;\n" + "END";
 				break;
 			case 12:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpCseYear @param1 DATETIME, @param2 DATETIME AS \n" + "BEGIN\n"
-						+ "SET NOCOUNT ON;\n"
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpCseYear @param1 DATETIME, @param2 DATETIME AS \n"
+						+ "BEGIN\n" + "SET NOCOUNT ON;\n"
 						+ "SELECT c.faid, b.syid, c.sbid, g.poid, f.fanm, y.synm, b.sbnm, r.ponm, DATEPART(YEAR, c.fned) as yearID, \n"
 						+ "count(c.caid) as cases, sum(c.casp) as casp, sum(c.cabl) as cabl, sum(c.casl) as casl, sum(c.cahe) as cahe, \n"
 						+ "sum(c.cass) as cass, sum(c.caih) as caih, sum(c.casy) as casy, sum(c.cafs) as cafs, sum(c.cav1) as cav1, \n"
@@ -539,12 +645,12 @@ class ASetup {
 						+ "SELECT * FROM udvOrderMaster ORDER BY OMNM;\n" + "END";
 				break;
 			case 23:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpPending AS \n" + "BEGIN\n" + "SELECT * FROM udvPending ORDER BY PNID;\n"
-						+ "END";
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpPending AS \n" + "BEGIN\n"
+						+ "SELECT * FROM udvPending ORDER BY PNID;\n" + "END";
 				break;
 			case 24:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpPendingRouted @param1 DATETIME, @param2 DATETIME AS \n" + "BEGIN\n"
-						+ "SET NOCOUNT ON;\n" + "SELECT * FROM udvPending\n"
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpPendingRouted @param1 DATETIME, @param2 DATETIME AS \n"
+						+ "BEGIN\n" + "SET NOCOUNT ON;\n" + "SELECT * FROM udvPending\n"
 						+ "WHERE (ROED BETWEEN @param1 AND @param2)\n" + "ORDER BY PNID;\n" + "END";
 				break;
 			case 25:
@@ -556,31 +662,31 @@ class ASetup {
 						+ "SELECT * FROM Persons ORDER BY PRNM;\n" + "END";
 				break;
 			case 27:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpPrsID @param1 SMALLINT AS \n" + "BEGIN\n" + "SET NOCOUNT ON;\n"
-						+ "SELECT PRVL FROM Persons WHERE PRID = @param1;\n" + "END";
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpPrsID @param1 SMALLINT AS \n" + "BEGIN\n"
+						+ "SET NOCOUNT ON;\n" + "SELECT PRVL FROM Persons WHERE PRID = @param1;\n" + "END";
 				break;
 			case 28:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpRule AS \n" + "BEGIN\n" + "SET NOCOUNT ON;\n"
 						+ "SELECT RUID, RUNM, RUDC FROM Rules ORDER BY RUID;\n" + "END";
 				break;
 			case 29:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpSchedServ @param1 DATE, @param2 DATE AS \n" + "BEGIN\n" + "SET NOCOUNT ON;\n"
-						+ "SELECT WDID, SRID, PRID, PRNM, SRNM\n" + "FROM udvSchedules\n"
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpSchedServ @param1 DATE, @param2 DATE AS \n" + "BEGIN\n"
+						+ "SET NOCOUNT ON;\n" + "SELECT WDID, SRID, PRID, PRNM, SRNM\n" + "FROM udvSchedules\n"
 						+ "WHERE WDDT BETWEEN @param1 AND @param2 \n" + "ORDER BY SRNM, WDID;\n" + "END";
 				break;
 			case 30:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpSchedStaff @param1 DATE, @param2 DATE AS \n" + "BEGIN\n" + "SET NOCOUNT ON;\n"
-						+ "SELECT WDID, SRID, PRID, PRNM, SRNM\n" + "FROM udvSchedules\n"
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpSchedStaff @param1 DATE, @param2 DATE AS \n" + "BEGIN\n"
+						+ "SET NOCOUNT ON;\n" + "SELECT WDID, SRID, PRID, PRNM, SRNM\n" + "FROM udvSchedules\n"
 						+ "WHERE WDDT BETWEEN @param1 AND @param2 \n" + "ORDER BY PRNM, WDID, SRNM;\n" + "END";
 				break;
 			case 31:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpSchedSum @param1 DATE, @param2 DATE AS \n" + "BEGIN\n" + "SET NOCOUNT ON;\n"
-						+ "SELECT * FROM udvSchedules\n" + "WHERE WDDT BETWEEN @param1 AND @param2 \n"
-						+ "ORDER BY FAID, PRID, WDID, SRID\n" + "END";
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpSchedSum @param1 DATE, @param2 DATE AS \n" + "BEGIN\n"
+						+ "SET NOCOUNT ON;\n" + "SELECT * FROM udvSchedules\n"
+						+ "WHERE WDDT BETWEEN @param1 AND @param2 \n" + "ORDER BY FAID, PRID, WDID, SRID\n" + "END";
 				break;
 			case 32:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpSpecimens @param1 INT AS \n" + "BEGIN\n" + "SET NOCOUNT ON;\n"
-						+ "SELECT SPID, SMID, SPBL, SPSL, SPFR, SPHE, SPSS, SPIH, SPMO,\n"
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpSpecimens @param1 INT AS \n" + "BEGIN\n"
+						+ "SET NOCOUNT ON;\n" + "SELECT SPID, SMID, SPBL, SPSL, SPFR, SPHE, SPSS, SPIH, SPMO,\n"
 						+ "SPV5, SPV1, SPV2, SPV3, SPV4, SPDC, SMNM, SMDC, PONM\n"
 						+ "FROM udvSpecimens WHERE CAID = @param1 ORDER BY SPID;\n" + "END";
 				break;
@@ -593,15 +699,16 @@ class ASetup {
 						+ "SELECT * FROM udvSpeciMaster ORDER BY SMNM;\n" + "END";
 				break;
 			case 35:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpSpecSu5 @param1 DATE, @param2 DATE AS \n" + "BEGIN\n" + "SET NOCOUNT ON;\n"
-						+ "SELECT g.sgid, COUNT(s.spid) AS qty, SUM(s.spv1) AS spv1,\n"
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpSpecSu5 @param1 DATE, @param2 DATE AS \n" + "BEGIN\n"
+						+ "SET NOCOUNT ON;\n" + "SELECT g.sgid, COUNT(s.spid) AS qty, SUM(s.spv1) AS spv1,\n"
 						+ "SUM(s.spv2) AS spv2, SUM(s.spv3) AS spv3, SUM(s.spv4) AS spv4\n"
 						+ "FROM specigroups g INNER JOIN specimaster m ON g.sgid = m.sgid \n"
 						+ "INNER JOIN specimens s ON m.smid = s.smid INNER JOIN cases c ON c.caid = s.caid\n"
 						+ "WHERE c.fned BETWEEN @param1 AND @param2\n" + "GROUP BY g.sgid\n" + "END";
 				break;
 			case 36:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpSpecSum @param1 DATE, @param2 DATE AS \n" + "BEGIN\n" + "SET NOCOUNT ON;\n"
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpSpecSum @param1 DATE, @param2 DATE AS \n" + "BEGIN\n"
+						+ "SET NOCOUNT ON;\n"
 						+ "SELECT b.syid, g.sbid, g.sgid, c.faid, c.fnid, y.synm, b.sbnm, b.sbdc, g.sgdc, f.fanm,\n"
 						+ "p.prnm, p.prls, p.prfr, COUNT(s.spid) AS qty, SUM(s.spbl) AS spbl, SUM(s.spsl) AS spsl,\n"
 						+ "SUM(s.sphe) AS sphe, SUM(s.spss) AS spss, SUM(s.spih) AS spih, SUM(s.spv1) AS spv1,\n"
@@ -628,8 +735,8 @@ class ASetup {
 						+ "SELECT STID, STVA FROM Setup ORDER BY STID;\n" + "END";
 				break;
 			case 40:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpStpID @param1 SMALLINT AS \n" + "BEGIN\n" + "SET NOCOUNT ON;\n"
-						+ "SELECT STVA FROM Setup WHERE STID = @param1;\n" + "END";
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpStpID @param1 SMALLINT AS \n" + "BEGIN\n"
+						+ "SET NOCOUNT ON;\n" + "SELECT STVA FROM Setup WHERE STID = @param1;\n" + "END";
 				break;
 			case 41:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpSubspecial AS \n" + "BEGIN\n" + "SET NOCOUNT ON;\n"
@@ -670,7 +777,7 @@ class ASetup {
 		}
 	}
 
-	private void createTables(int dbID) {
+	private void createTables() {
 		String sql = "";
 		noRows = 0;
 		for (int i = 0; i < 29; i++) {
@@ -719,36 +826,36 @@ class ASetup {
 				break;
 			case 9:
 				sql = "CREATE TABLE " + dbSchema + ".Coder1 (" + "COID SMALLINT PRIMARY KEY,\n"
-						+ "RUID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Rules (RUID),\n" + "COQY SMALLINT NOT NULL,\n"
-						+ "COV1 DECIMAL(5, 3) NOT NULL,\n" + "COV2 DECIMAL(5, 3) NOT NULL,\n"
-						+ "COV3 DECIMAL(5, 3) NOT NULL,\n" + "CONM VARCHAR(16) UNIQUE NOT NULL,\n"
-						+ "CODC VARCHAR(256) NOT NULL)";
+						+ "RUID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Rules (RUID),\n"
+						+ "COQY SMALLINT NOT NULL,\n" + "COV1 DECIMAL(5, 3) NOT NULL,\n"
+						+ "COV2 DECIMAL(5, 3) NOT NULL,\n" + "COV3 DECIMAL(5, 3) NOT NULL,\n"
+						+ "CONM VARCHAR(16) UNIQUE NOT NULL,\n" + "CODC VARCHAR(256) NOT NULL)";
 				break;
 			case 10:
 				sql = "CREATE TABLE " + dbSchema + ".Coder2 (" + "COID SMALLINT PRIMARY KEY,\n"
-						+ "RUID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Rules (RUID),\n" + "COQY SMALLINT NOT NULL,\n"
-						+ "COV1 DECIMAL(5, 3) NOT NULL,\n" + "COV2 DECIMAL(5, 3) NOT NULL,\n"
-						+ "COV3 DECIMAL(5, 3) NOT NULL,\n" + "CONM VARCHAR(16) UNIQUE NOT NULL,\n"
-						+ "CODC VARCHAR(256) NOT NULL)";
+						+ "RUID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Rules (RUID),\n"
+						+ "COQY SMALLINT NOT NULL,\n" + "COV1 DECIMAL(5, 3) NOT NULL,\n"
+						+ "COV2 DECIMAL(5, 3) NOT NULL,\n" + "COV3 DECIMAL(5, 3) NOT NULL,\n"
+						+ "CONM VARCHAR(16) UNIQUE NOT NULL,\n" + "CODC VARCHAR(256) NOT NULL)";
 				break;
 			case 11:
 				sql = "CREATE TABLE " + dbSchema + ".Coder3 (" + "COID SMALLINT PRIMARY KEY,\n"
-						+ "RUID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Rules (RUID),\n" + "COQY SMALLINT NOT NULL,\n"
-						+ "COV1 DECIMAL(5, 3) NOT NULL,\n" + "COV2 DECIMAL(5, 3) NOT NULL,\n"
-						+ "COV3 DECIMAL(5, 3) NOT NULL,\n" + "CONM VARCHAR(16) UNIQUE NOT NULL,\n"
-						+ "CODC VARCHAR(128) NOT NULL)";
+						+ "RUID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Rules (RUID),\n"
+						+ "COQY SMALLINT NOT NULL,\n" + "COV1 DECIMAL(5, 3) NOT NULL,\n"
+						+ "COV2 DECIMAL(5, 3) NOT NULL,\n" + "COV3 DECIMAL(5, 3) NOT NULL,\n"
+						+ "CONM VARCHAR(16) UNIQUE NOT NULL,\n" + "CODC VARCHAR(128) NOT NULL)";
 				break;
 			case 12:
 				sql = "CREATE TABLE " + dbSchema + ".Coder4 (" + "COID SMALLINT PRIMARY KEY,\n"
-						+ "RUID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Rules (RUID),\n" + "COQY SMALLINT NOT NULL,\n"
-						+ "COV1 DECIMAL(5, 3) NOT NULL,\n" + "COV2 DECIMAL(5, 3) NOT NULL,\n"
-						+ "COV3 DECIMAL(5, 3) NOT NULL,\n" + "CONM VARCHAR(16) UNIQUE NOT NULL,\n"
-						+ "CODC VARCHAR(256) NOT NULL)";
+						+ "RUID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Rules (RUID),\n"
+						+ "COQY SMALLINT NOT NULL,\n" + "COV1 DECIMAL(5, 3) NOT NULL,\n"
+						+ "COV2 DECIMAL(5, 3) NOT NULL,\n" + "COV3 DECIMAL(5, 3) NOT NULL,\n"
+						+ "CONM VARCHAR(16) UNIQUE NOT NULL,\n" + "CODC VARCHAR(256) NOT NULL)";
 				break;
 			case 13:
 				sql = "CREATE TABLE " + dbSchema + ".Accessions (" + "ACID SMALLINT PRIMARY KEY,\n"
-						+ "SYID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Specialties (SYID),\n" + "ACFL CHAR(1) NOT NULL,\n"
-						+ "ACLD CHAR(1) NOT NULL,\n" + "ACNM VARCHAR(30) UNIQUE NOT NULL)";
+						+ "SYID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Specialties (SYID),\n"
+						+ "ACFL CHAR(1) NOT NULL,\n" + "ACLD CHAR(1) NOT NULL,\n" + "ACNM VARCHAR(30) UNIQUE NOT NULL)";
 				break;
 			case 14:
 				sql = "CREATE TABLE " + dbSchema + ".Subspecial (" + "SBID SMALLINT PRIMARY KEY,\n"
@@ -800,13 +907,15 @@ class ASetup {
 			case 20:
 				sql = "CREATE TABLE " + dbSchema + ".Services (" + "SRID SMALLINT PRIMARY KEY,\n"
 						+ "FAID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Facilities (FAID),\n"
-						+ "SBID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Subspecial (SBID),\n" + "SRCD SMALLINT NOT NULL,\n"
-						+ "SRNM VARCHAR(8) UNIQUE NOT NULL,\n" + "SRDC VARCHAR(64) NOT NULL)";
+						+ "SBID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Subspecial (SBID),\n"
+						+ "SRCD SMALLINT NOT NULL,\n" + "SRNM VARCHAR(8) UNIQUE NOT NULL,\n"
+						+ "SRDC VARCHAR(64) NOT NULL)";
 				break;
 			case 21:
-				sql = "CREATE TABLE " + dbSchema + ".Schedules (" + "WDID INT NOT NULL REFERENCES " + dbSchema + ".Workdays (WDID),\n"
-						+ "SRID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Services (SRID),\n"
-						+ "PRID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Persons (PRID),\n" + "PRIMARY KEY(WDID, SRID, PRID))";
+				sql = "CREATE TABLE " + dbSchema + ".Schedules (" + "WDID INT NOT NULL REFERENCES " + dbSchema
+						+ ".Workdays (WDID),\n" + "SRID SMALLINT NOT NULL REFERENCES " + dbSchema
+						+ ".Services (SRID),\n" + "PRID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Persons (PRID),\n"
+						+ "PRIMARY KEY(WDID, SRID, PRID))";
 				break;
 			case 22:
 				sql = "CREATE TABLE " + dbSchema + ".Cases (" + "CAID INT PRIMARY KEY,\n"
@@ -831,7 +940,8 @@ class ASetup {
 			case 23:
 				sql = "CREATE TABLE " + dbSchema + ".Specimens (" + "SPID INT PRIMARY KEY,\n"
 						+ "CAID INT NOT NULL REFERENCES " + dbSchema + ".Cases (CAID),\n"
-						+ "SMID SMALLINT NOT NULL REFERENCES " + dbSchema + ".SpeciMaster (SMID), SPBL SMALLINT NOT NULL,\n"
+						+ "SMID SMALLINT NOT NULL REFERENCES " + dbSchema
+						+ ".SpeciMaster (SMID), SPBL SMALLINT NOT NULL,\n"
 						+ "SPSL SMALLINT NOT NULL, SPFR SMALLINT NOT NULL, SPHE SMALLINT NOT NULL,\n"
 						+ "SPSS SMALLINT NOT NULL, SPIH SMALLINT NOT NULL, SPMO SMALLINT NOT NULL,\n"
 						+ "SPV5 INT NOT NULL, SPV1 DECIMAL(5, 3) NOT NULL,\n"
@@ -839,28 +949,31 @@ class ASetup {
 						+ "SPV4 DECIMAL(5, 3) NOT NULL, SPDC VARCHAR(80) NOT NULL)";
 				break;
 			case 24:
-				sql = "CREATE TABLE " + dbSchema + ".Orders (" + "SPID INT NOT NULL REFERENCES " + dbSchema + ".Specimens (SPID),\n"
-						+ "OGID SMALLINT NOT NULL REFERENCES " + dbSchema + ".OrderGroups (OGID), ORQY SMALLINT NOT NULL,\n"
+				sql = "CREATE TABLE " + dbSchema + ".Orders (" + "SPID INT NOT NULL REFERENCES " + dbSchema
+						+ ".Specimens (SPID),\n" + "OGID SMALLINT NOT NULL REFERENCES " + dbSchema
+						+ ".OrderGroups (OGID), ORQY SMALLINT NOT NULL,\n"
 						+ "ORV1 DECIMAL(5, 3) NOT NULL, ORV2 DECIMAL(5, 3) NOT NULL,\n"
 						+ "ORV3 DECIMAL(5, 3) NOT NULL, ORV4 DECIMAL(5, 3) NOT NULL,\n" + "PRIMARY KEY (SPID, OGID))";
 				break;
 			case 25:
-				sql = "CREATE TABLE " + dbSchema + ".Frozens (" + "SPID INT PRIMARY KEY REFERENCES " + dbSchema + ".Specimens (SPID),\n"
-						+ "PRID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Persons (PRID), FRBL SMALLINT NOT NULL,\n"
+				sql = "CREATE TABLE " + dbSchema + ".Frozens (" + "SPID INT PRIMARY KEY REFERENCES " + dbSchema
+						+ ".Specimens (SPID),\n" + "PRID SMALLINT NOT NULL REFERENCES " + dbSchema
+						+ ".Persons (PRID), FRBL SMALLINT NOT NULL,\n"
 						+ "FRSL SMALLINT NOT NULL, FRV5 INT NOT NULL, FRV1 DECIMAL(5, 3) NOT NULL,\n"
 						+ "FRV2 DECIMAL(5, 3) NOT NULL, FRV3 DECIMAL(5, 3) NOT NULL,\n"
 						+ "FRV4 DECIMAL(5, 3) NOT NULL)";
 				break;
 			case 26:
-				sql = "CREATE TABLE " + dbSchema + ".Additionals (" + "CAID INT NOT NULL REFERENCES " + dbSchema + ".Cases (CAID),\n"
-						+ "PRID SMALLINT NOT NULL REFERENCES " + dbSchema + ".Persons (PRID), ADCD SMALLINT NOT NULL,\n"
+				sql = "CREATE TABLE " + dbSchema + ".Additionals (" + "CAID INT NOT NULL REFERENCES " + dbSchema
+						+ ".Cases (CAID),\n" + "PRID SMALLINT NOT NULL REFERENCES " + dbSchema
+						+ ".Persons (PRID), ADCD SMALLINT NOT NULL,\n"
 						+ "ADV5 INT NOT NULL, ADDT DATETIME NOT NULL, ADV1 DECIMAL(5, 3) NOT NULL,\n"
 						+ "ADV2 DECIMAL(5, 3) NOT NULL, ADV3 DECIMAL(5, 3) NOT NULL,\n"
 						+ "ADV4 DECIMAL(5, 3) NOT NULL, PRIMARY KEY (CAID, PRID, ADCD, ADDT))";
 				break;
 			case 27:
-				sql = "CREATE TABLE " + dbSchema + ".Comments (" + "CAID INT PRIMARY KEY REFERENCES " + dbSchema + ".Cases (CAID),\n"
-						+ "COM1 VARCHAR(2048) NOT NULL, COM2 VARCHAR(2048) NOT NULL,\n"
+				sql = "CREATE TABLE " + dbSchema + ".Comments (" + "CAID INT PRIMARY KEY REFERENCES " + dbSchema
+						+ ".Cases (CAID),\n" + "COM1 VARCHAR(2048) NOT NULL, COM2 VARCHAR(2048) NOT NULL,\n"
 						+ "COM3 VARCHAR(2048) NOT NULL, COM4 VARCHAR(2048) NOT NULL)";
 				break;
 			default:
@@ -901,44 +1014,7 @@ class ASetup {
 		}
 	}
 
-	private void createUsers(int dbID) {
-		if (dbID == DB_POSTG) {
-			if (errorID == LConstants.ERROR_NONE) {
-				execute("CREATE ROLE " + sysUserClient + " LOGIN PASSWORD '" + sysPassClient
-						+ "' NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;");
-			}
-			if (errorID == LConstants.ERROR_NONE) {
-//				execute("GRANT SELECT, INSERT, DELETE, UPDATE, EXECUTE ON ALL TABLES IN SCHEMA " +
-//				dbSchema + " TO " + sysUserServer + ";");
-				execute("GRANT USAGE ON SCHEMA " + dbSchema + " TO " + sysUserClient + ";");
-			}
-		} else if (dbID == DB_MARIA) {
-			if (errorID == LConstants.ERROR_NONE) {
-				execute("CREATE USER " + sysUserClient + "@'%' IDENTIFIED BY '" + sysPassClient + "';");
-			}
-			if (errorID == LConstants.ERROR_NONE) {
-				execute("GRANT SELECT, INSERT, DELETE, UPDATE, EXECUTE ON " + dbSchema + ".* TO " + sysUserClient
-						+ "@'%';");
-			}
-			execute("FLUSH PRIVILEGES;");
-		} else {
-			if (errorID == LConstants.ERROR_NONE) {
-				execute("CREATE USER " + sysUserClient + " WITH PASSWORD = '" + sysPassClient + "', DEFAULT_SCHEMA = "
-						+ dbSchema);
-			}
-			if (errorID == LConstants.ERROR_NONE) {
-				execute("exec sp_addrolemember db_datareader, " + sysUserClient);
-			}
-			if (errorID == LConstants.ERROR_NONE) {
-				execute("exec sp_addrolemember db_datawriter, " + sysUserClient);
-			}
-			if (errorID == LConstants.ERROR_NONE) {
-				execute("GRANT EXECUTE TO " + sysUserClient);
-			}
-		}
-	}
-
-	private void createViews(int dbID) {
+	private void createViews() {
 		String sql = "";
 		noRows = 0;
 		for (int i = 0; i < 19; i++) {
@@ -1220,16 +1296,6 @@ class ASetup {
 		}
 	}
 
-	private String generatePassword() {
-		buffer.setLength(0);
-		// Password length should be 23 characters
-		for (int length = 0; length < 23; length++) {
-			char c = (char) list.get(randomNo.nextInt(list.size()));
-			buffer.append(c);
-		}
-		return buffer.toString();
-	}
-
 	private void getDbParameters() {
 		try {
 			System.out.printf("Database Host (%s): ", dbHost);
@@ -1262,44 +1328,49 @@ class ASetup {
 		}
 	}
 
-	private void initialize(String[] args) {
-		for (String s : args) {
-			s = s.trim();
-			if (s.length() > 6 && s.substring(0, 6).toLowerCase().equals("--path")) {
-				appDir = s.substring(6).trim();
+	private boolean getLogin() {
+		LCrypto crypto = new LCrypto(appDir);
+		String[] data = crypto.getData();
+		if (data != null) {
+			if (data.length == 6) {
+				dbArch = data[0].toUpperCase();
+				dbHost = data[1];
+				dbPort = data[2];
+				dbUser = data[4];
+				dbPass = data[5];
+				if (dbArch.equals("DERBY")) {
+					dbID = DB_DERBY;
+				} else if (dbArch.equals("MSSQL")) {
+					dbID = DB_MSSQL;
+				} else if (dbArch.equals("MARIADB")) {
+					dbID = DB_MARIA;
+				} else if (dbArch.equals("POSTGRES")) {
+					dbID = DB_POSTG;
+				} else {
+					log(LConstants.ERROR_BINARY_FILE, "PJSetup", "Invalid application binary file");
+				}
+				return true;
 			}
 		}
-		if (appDir.length() == 0) {
-			appDir = System.getProperty("user.home") + System.getProperty("file.separator") + "PowerJ"
-					+ System.getProperty("file.separator");
-		} else if (!appDir.endsWith(System.getProperty("file.separator"))) {
-			appDir += System.getProperty("file.separator");
-		}
-		// Add ASCII Decimal values to ArrayList
-		list.add((char) 32);
-		list.add((char) 33);
-		list.add((char) 35);
-		list.add((char) 36);
-		list.add((char) 40);
-		list.add((char) 44);
-		list.add((char) 45);
-		list.add((char) 46);
-		list.add((char) 61);
-		list.add((char) 63);
-		// Do not use 85 (not compatible)
-		for (int i = 48; i < 85; i++) {
-			list.add((char) i);
-		}
-		for (int i = 86; i < 91; i++) {
-			list.add((char) i);
-		}
-		for (int i = 97; i < 123; i++) {
-			list.add((char) i);
-		}
-		// rotate the elements in the list by the specified distance. This will create
-		// strong password
-		Collections.rotate(list, 5);
+		log(LConstants.ERROR_NONE, "PJSetup", "No or invalid application binary file!");
+		return false;
+	}
+
+	private void initialize(String[] args) {
 		try {
+			for (String s : args) {
+				s = s.trim();
+				if (s.length() > 6 && s.substring(0, 6).toLowerCase().equals("--path")) {
+					appDir = s.substring(6).trim();
+				}
+			}
+			if (appDir.length() == 0) {
+				appDir = System.getProperty("user.home") + System.getProperty("file.separator") + "PowerJ"
+						+ System.getProperty("file.separator");
+			} else if (!appDir.endsWith(System.getProperty("file.separator"))) {
+				appDir += System.getProperty("file.separator");
+			}
+			System.out.println("Creating directory (if not exists) in: " + appDir);
 			File theDir = new File(appDir);
 			if (!theDir.exists()) {
 				theDir.mkdir();
@@ -1316,45 +1387,35 @@ class ASetup {
 			if (!subDir.exists()) {
 				subDir.mkdir();
 			}
-		} catch (SecurityException e) {
-			log(LConstants.ERROR_VARIABLE, "PJSetup", e);
-			System.exit(1);
-		}
-		try {
-			System.out.print("Select installation type (1 = Desktop, 2 = Client, 3 = Server): ");
-			String input = br.readLine();
-			if (input == null || input.trim().length() == 0) {
-				log(LConstants.ERROR_NONE, "Exiting");
-				System.exit(0);
-			}
-			sysID = Integer.parseInt(input);
-			if (sysID < 1 || sysID > 3) {
-				log(LConstants.ERROR_NONE, "Exiting");
-				System.exit(0);
-			}
-			if (sysID == 2 || sysID == 3) {
-				System.out.print("Select database architecture (1 = MariaDB, 2 = MSSql, 3 = PostgreSQL): ");
+			System.out.print("Install the database (y,n)? ");
+			input = br.readLine();
+			if (input != null && input.trim().length() == 1 && input.trim().toLowerCase().equals("y")) {
+				System.out.print("Select installation type (1 = Desktop, 2 = Client, 3 = Server): ");
 				input = br.readLine();
 				if (input == null || input.trim().length() == 0) {
 					log(LConstants.ERROR_NONE, "Exiting");
 					System.exit(0);
 				}
-				dbID = 1 + Integer.parseInt(input);
-			} else {
-				dbID = 1;
-			}
-			if (dbID < 1 || dbID > 4) {
-				log(LConstants.ERROR_NONE, "Exiting");
-				System.exit(0);
-			}
-			LCrypto crypto = new LCrypto(appDir);
-			System.out.print("Install the database (y,n)? ");
-			input = br.readLine();
-			if (input == null || input.trim().length() == 0) {
-				log(LConstants.ERROR_NONE, "Exiting");
-				System.exit(0);
-			} else if (input.trim().toLowerCase().startsWith("y")) {
-				sysPassClient = generatePassword();
+				sysID = Integer.parseInt(input);
+				if (sysID < 1 || sysID > 3) {
+					log(LConstants.ERROR_NONE, "Exiting");
+					System.exit(0);
+				}
+				if (sysID == 2 || sysID == 3) {
+					System.out.print("Select database architecture (1 = MariaDB, 2 = MSSql, 3 = PostgreSQL): ");
+					input = br.readLine();
+					if (input == null || input.trim().length() == 0) {
+						log(LConstants.ERROR_NONE, "Exiting");
+						System.exit(0);
+					}
+					dbID = 1 + Integer.parseInt(input);
+				} else {
+					dbID = 1;
+				}
+				if (dbID < 1 || dbID > 4) {
+					log(LConstants.ERROR_NONE, "Exiting");
+					System.exit(0);
+				}
 				dbUser = System.getProperty("user.name");
 				switch (dbID) {
 				case DB_MARIA:
@@ -1366,15 +1427,7 @@ class ASetup {
 						log(LConstants.ERROR_NONE, "Exiting");
 						System.exit(0);
 					}
-					setDB(dbID);
-					if (errorID == 0) {
-						String[] data = { dbArch, dbHost, dbPort, dbSchema, sysUserClient, sysPassClient };
-						if (crypto.setData(data)) {
-							log(LConstants.ERROR_NONE, "Setup completed successfully.");
-						} else {
-							log(LConstants.ERROR_IO, "Setup did not complete!");
-						}
-					}
+					createDB();
 					break;
 				case DB_MSSQL:
 					dbArch = "MSSQL";
@@ -1385,15 +1438,7 @@ class ASetup {
 						log(LConstants.ERROR_NONE, "Exiting");
 						System.exit(0);
 					}
-					setDB(dbID);
-					if (errorID == 0) {
-						String[] data = { dbArch, dbHost, dbPort, dbSchema, sysUserClient, sysPassClient };
-						if (crypto.setData(data)) {
-							log(LConstants.ERROR_NONE, "Setup completed successfully.");
-						} else {
-							log(LConstants.ERROR_IO, "Setup did not complete!");
-						}
-					}
+					createDB();
 					break;
 				case DB_POSTG:
 					dbArch = "POSTGRES";
@@ -1404,51 +1449,98 @@ class ASetup {
 						log(LConstants.ERROR_NONE, "Exiting");
 						System.exit(0);
 					}
-					setDB(dbID);
-					if (errorID == 0) {
-						String[] data = { dbArch, dbHost, dbPort, dbSchema, sysUserClient, sysPassClient };
-						if (crypto.setData(data)) {
-							log(LConstants.ERROR_NONE, "Setup completed successfully.");
-						} else {
-							log(LConstants.ERROR_IO, "Setup did not complete!");
-						}
-					}
+					createDB();
 					break;
 				default:
 					dbArch = "DERBY";
 					dbHost = "localhost";
 					dbPort = "2313";
-					setDB(dbID);
-					if (errorID == 0) {
-						String[] data = { dbArch, dbHost, dbPort, dbSchema, sysUserClient, sysPassClient };
-						if (crypto.setData(data)) {
-							log(LConstants.ERROR_NONE, "Setup completed successfully.");
-						} else {
-							log(LConstants.ERROR_IO, "Setup did not complete!");
-						}
-					}
+					createDB();
 				}
 			} else {
-				String[] data = crypto.getData();
-				if (data != null) {
-					// Else, Derby
-					if (data.length == 6) {
-						dbArch = data[0].toUpperCase();
-						dbHost = data[1];
-						dbPort = data[2];
-						dbUser = data[4];
-						dbPass = data[5];
+				if (!getLogin()) {
+					System.out.print("Create the autologin (y,n)? ");
+					input = br.readLine();
+					if (input != null && input.trim().length() == 1 && input.trim().toLowerCase().equals("y")) {
+						System.out.print("Select database architecture (1 = MariaDB, 2 = MSSql, 3 = PostgreSQL): ");
+						input = br.readLine();
+						if (input == null || input.trim().length() == 0) {
+							log(LConstants.ERROR_NONE, "Exiting");
+							System.exit(0);
+						}
+						dbID = 1 + Integer.parseInt(input);
+						createLogin();
 					} else {
-						log(LConstants.ERROR_BINARY_FILE, "Variables", "Invalid application binary file");
+						log(LConstants.ERROR_NONE, "Exiting");
+						System.exit(0);
+					}
+				}
+				if (errorID == LConstants.ERROR_NONE) {
+					switch (dbID) {
+					case DB_MARIA:
+						setMaria();
+						break;
+					case DB_MSSQL:
+						setMSSQL();
+						break;
+					case DB_POSTG:
+						setPostgres();
+						break;
+					default:
+						setDerby();
 					}
 				}
 			}
+			if (errorID == LConstants.ERROR_NONE) {
+				System.out.print("Create the tables (y,n)? ");
+				input = br.readLine();
+				if (input != null && input.trim().length() == 1 && input.trim().toLowerCase().equals("y")) {
+					createTables();
+				}
+			}
+			if (errorID == LConstants.ERROR_NONE) {
+				System.out.print("Create the views (y,n)? ");
+				input = br.readLine();
+				if (input != null && input.trim().length() == 1 && input.trim().toLowerCase().equals("y")) {
+					createViews();
+				}
+			}
+			if (errorID == LConstants.ERROR_NONE) {
+				if (dbID == DB_MSSQL || dbID == DB_MARIA) {
+					System.out.print("Create the procedures (y,n)? ");
+					input = br.readLine();
+					if (input != null && input.trim().length() == 1 && input.trim().toLowerCase().equals("y")) {
+						if (dbID == DB_MSSQL) {
+							createProcMSSQL();
+						} else {
+							createProcMaria();
+						}
+					}
+				}
+			}
+			if (errorID == LConstants.ERROR_NONE) {
+				System.out.print("Create the autologin (y,n)? ");
+				input = br.readLine();
+				if (input != null && input.trim().length() == 1 && input.trim().toLowerCase().equals("y")) {
+					createLogin();
+				}
+			}
+			if (errorID == LConstants.ERROR_NONE) {
+				System.out.print("Load the data (y,n)? ");
+				input = br.readLine();
+				if (input != null && input.trim().length() == 1 && input.trim().toLowerCase().equals("y")) {
+					loadTables();
+				}
+			}
+		} catch (SecurityException e) {
+			log(LConstants.ERROR_UNEXPECTED, "PJSetup", e);
 		} catch (NumberFormatException e) {
-			log(LConstants.ERROR_VARIABLE, "Unknown response");
+			log(LConstants.ERROR_VARIABLE, "PJSetup", e);
 		} catch (IOException e) {
-			log(LConstants.ERROR_VARIABLE, "Unknown response");
+			log(LConstants.ERROR_VARIABLE, "PJSetup", e);
 		} finally {
 			close();
+			System.out.print("Goodbye...");
 			System.exit(errorID);
 		}
 	}
@@ -1819,8 +1911,8 @@ class ASetup {
 			if (is != null) {
 				InputStreamReader ir = new InputStreamReader(is);
 				BufferedReader br = new BufferedReader(ir);
-				PreparedStatement pstm = connection.prepareStatement(
-						"INSERT INTO Specialties (SYID, SYFL, SYLD, SYSP, SYNM) VALUES (?, ?, ?, ?, ?)");
+				PreparedStatement pstm = connection
+						.prepareStatement("INSERT INTO Subspecial (SBID, SYID, SBNM, SBDC) VALUES (?, ?, ?, ?)");
 				String line;
 				String[] columns = null;
 				noRows = 0;
@@ -1830,10 +1922,9 @@ class ASetup {
 						if (!line.startsWith("-")) {
 							columns = line.split("\t");
 							pstm.setShort(1, Short.valueOf(columns[0]));
-							pstm.setString(2, columns[1]);
+							pstm.setShort(2, Short.valueOf(columns[1]));
 							pstm.setString(3, columns[2]);
 							pstm.setString(4, columns[3]);
-							pstm.setString(5, columns[4]);
 							pstm.executeUpdate();
 							noRows++;
 						}
@@ -2003,38 +2094,73 @@ class ASetup {
 		}
 	}
 
-	private void setDB(int dbID) {
-		createDB(dbID);
-		if (errorID == LConstants.ERROR_NONE) {
-			createTables(dbID);
+	private void setDerby() {
+		try {
+			Properties p = System.getProperties();
+			p.setProperty("derby.system.home", appDir);
+			DriverManager.setLoginTimeout(15);
+			connection = DriverManager.getConnection("jdbc:derby:" + dbSchema + ";create=false;");
+			stm = connection.createStatement();
+			execute("SET SCHEMA " + dbSchema);
+			dbName = "Derby";
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
 		}
-		if (errorID == LConstants.ERROR_NONE) {
-			createViews(dbID);
+	}
+
+	private void setMaria() {
+		try {
+			String url = "jdbc:mysql://" + dbHost + ":" + dbPort + "/" + dbSchema
+					+ "?autoReconnect=true&useUnicode=true" + "&useLegacyDatetimeCode=false&serverTimezone=UTC";
+			DriverManager.setLoginTimeout(15);
+			connection = DriverManager.getConnection(url, dbUser, dbPass);
+			stm = connection.createStatement();
+			execute("USE " + dbSchema);
+			dbName = "Maria";
+		} catch (IllegalArgumentException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SecurityException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
 		}
-		if (errorID == LConstants.ERROR_NONE) {
-			switch (dbID) {
-			case DB_MSSQL:
-				createProcMSSQL();
-				if (errorID == LConstants.ERROR_NONE) {
-					createUsers(dbID);
-				}
-				break;
-			case DB_MARIA:
-				createProcMaria();
-				if (errorID == LConstants.ERROR_NONE) {
-					createUsers(dbID);
-				}
-				break;
-			case DB_POSTG:
-				// No procedures in postgreSql 10
-				createUsers(dbID);
-				break;
-			default:
-				// No procedures or users in Derby
-			}
+	}
+
+	private void setMSSQL() {
+		SQLServerDataSource ds = new SQLServerDataSource();
+		try {
+			ds.setIntegratedSecurity(false);
+			ds.setLoginTimeout(2);
+			ds.setPortNumber(Integer.parseInt(dbPort));
+			ds.setServerName(dbHost);
+			ds.setDatabaseName(dbSchema);
+			ds.setUser(dbUser);
+			ds.setPassword(dbPass);
+			connection = ds.getConnection();
+			stm = connection.createStatement();
+			execute("USE " + dbSchema);
+			dbName = "MSSQL";
+		} catch (SQLServerException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
 		}
-		if (errorID == LConstants.ERROR_NONE) {
-			loadTables();
+	}
+
+	private void setPostgres() {
+		try {
+			String url = "jdbc:postgresql://" + dbHost + ":" + dbPort + "/" + dbSchema;
+			DriverManager.setLoginTimeout(15);
+			connection = DriverManager.getConnection(url, dbUser, dbPass);
+			stm = connection.createStatement();
+			execute("SET search_path TO " + dbSchema);
+			dbName = "Postgres";
+		} catch (IllegalArgumentException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SecurityException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, dbName, e);
 		}
 	}
 }
