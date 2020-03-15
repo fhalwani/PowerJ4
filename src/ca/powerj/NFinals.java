@@ -365,9 +365,18 @@ class NFinals extends NBase {
 			pj.dbPowerJ.setLong(DPowerJ.STM_CMT_SELECT, 1, caseID);
 			rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_CMT_SELECT);
 			while (rst.next()) {
-				if (rst.getString("CODC") != null) {
-					// deleted after a year
-					comment = rst.getString("CODC");
+				// deleted after a year
+				if (rst.getString("COM1") != null && rst.getString("COM1").length() > 2) {
+					comment = rst.getString("COM1") + "\n----------------\n";
+				}
+				if (rst.getString("COM2") != null && rst.getString("COM2").length() > 2) {
+					comment += rst.getString("COM2") + "\n----------------\n";
+				}
+				if (rst.getString("COM3") != null && rst.getString("COM3").length() > 2) {
+					comment += rst.getString("COM3") + "\n----------------\n";
+				}
+				if (rst.getString("COM4") != null && rst.getString("COM4").length() > 2) {
+					comment += rst.getString("COM4") + "\n----------------\n";
 				}
 			}
 			pj.dbPowerJ.closeRst(rst);

@@ -23,8 +23,8 @@ class NTurnaround extends NBase {
 		super(pj);
 		setName("Turnaround");
 		pj.dbPowerJ.prepareTurnaround();
-		getData();
 		createPanel();
+		getData();
 		setFilter(IToolBar.TB_FAC, (short) 0);
 		programmaticChange = false;
 	}
@@ -83,6 +83,7 @@ class NTurnaround extends NBase {
 		String str    = "";
 		OTurnSum row   = new OTurnSum();
 		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_CSE_SL_TAT);
+		firstYear  = 9999;
 		try {
 			while (rst.next()) {
 				row = new OTurnSum();

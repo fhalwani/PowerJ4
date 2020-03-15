@@ -457,7 +457,7 @@ class NForecast extends NBase {
 					annual.specialty = rst.getString("SYNM").trim();
 					annual.subspecial = rst.getString("SBNM").trim();
 					annual.procedure = rst.getString("PONM").trim();
-					yearID = rst.getShort("YEARID");
+					yearID = rst.getShort("FNYEAR");
 					annual.cases.put(yearID, rst.getInt("CACA"));
 					annual.specs.put(yearID, rst.getInt("CASP"));
 					annual.blocks.put(yearID, rst.getInt("CABL"));

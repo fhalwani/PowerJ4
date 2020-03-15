@@ -317,7 +317,7 @@ class ASetup {
 				break;
 			case 12:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpCseYear(param1 DATETIME, param2 DATETIME)\n" + "BEGIN\n"
-						+ "SELECT c.faid, b.syid, c.sbid, g.poid, f.fanm, y.synm, b.sbnm, r.ponm, date_part('year', c.fned) as yearID\n"
+						+ "SELECT c.faid, b.syid, c.sbid, g.poid, f.fanm, y.synm, b.sbnm, r.ponm, date_part('year', c.fned) as yearID, \n"
 						+ "count(caid) as cases, sum(c.casp) as casp, sum(c.cabl) as cabl, sum(c.casl) as casl, sum(c.cahe) as cahe,\n"
 						+ "sum(c.cass) as cass, sum(c.caih) as caih, sum(c.casy) as casy, sum(c.cafs) as cafs, sum(c.cav1) as cav1,\n"
 						+ "sum(c.cav2) as cav2, sum(c.cav3) as cav3, sum(c.cav4) as cav4, sum(c.cav5) as cav5\n"

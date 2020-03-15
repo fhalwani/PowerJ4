@@ -27,13 +27,24 @@ class LValue5 {
 	}
 
 	private void update() {
+		byte interval = pj.setup.getByte(LSetup.VAR_V5_INTERVAL);
+		Calendar calLast = pj.dates.setMidnight(pj.setup.getLong(LSetup.VAR_V5_LAST));
+		Calendar calNext = pj.dates.setMidnight(0);
+		int noMonths = pj.dates.getNoMonths(calLast, calNext);
+		if (interval < 1) {
+			interval = 1;
+		} else if (interval > 24) {
+			interval = 24;
+		}
+		if (noMonths < interval) {
+			return;
+		}
 		final byte V5_ROWID = 0;
 		final byte V5_QTY = 1;
 		final byte V5_VAL1 = 2;
 		final byte V5_VAL2 = 3;
 		final byte V5_VAL3 = 4;
 		final byte V5_VAL4 = 5;
-		byte interval = pj.setup.getByte(LSetup.VAR_V5_INTERVAL);
 		byte noYears = pj.setup.getByte(LSetup.VAR_V5_UPDATE);
 		boolean[] isActive = { false, false, pj.setup.getBoolean(LSetup.VAR_CODER1_ACTIVE),
 				pj.setup.getBoolean(LSetup.VAR_CODER2_ACTIVE), pj.setup.getBoolean(LSetup.VAR_CODER3_ACTIVE),
@@ -44,20 +55,14 @@ class LValue5 {
 		int fte5 = pj.setup.getInt(LSetup.VAR_V5_FTE); // 4644000
 		Integer[] frozn = { 0, 0, 0, 0, 0, 0 };
 		Integer[] total = { 0, 0, 0, 0, 0, 0 };
-		Calendar calLast = pj.dates.setMidnight(pj.setup.getLong(LSetup.VAR_V5_LAST));
-		Calendar calNext = pj.dates.setMidnight(0);
-		int noMonths = pj.dates.getNoMonths(calLast, calNext);
-		if (noMonths < interval) {
-			return;
-		}
 		ArrayList<Integer[]> specimens = new ArrayList<Integer[]>();
 		ResultSet rst = null;
+		if (noYears < 1) {
+			noYears = 1;
+		} else if (noYears > 3) {
+			noYears = 3;
+		}
 		try {
-			if (noYears < 1) {
-				noYears = 1;
-			} else if (noYears > 3) {
-				noYears = 3;
-			}
 			calNext.set(Calendar.DAY_OF_MONTH, 1);
 			calLast.setTimeInMillis(calNext.getTimeInMillis());
 			calLast.add(Calendar.YEAR, -noYears);
