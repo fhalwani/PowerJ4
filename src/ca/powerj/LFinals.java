@@ -101,44 +101,24 @@ class LFinals {
 					codeCase(caseID);
 				} else if (caseNo.length() > 4) {
 					// For Debug
-					getCase(caseNo);
+					doCase(caseNo);
 				} else {
 					getLastUpdate();
 					getMaxDate();
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
-						try {
-							Thread.sleep(LConstants.SLEEP_TIME);
-						} catch (InterruptedException e) {
-						}
-						getCases();
+						doCases();
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
-						try {
-							Thread.sleep(LConstants.SLEEP_TIME);
-						} catch (InterruptedException e) {
-						}
-						redo();
+						doAmendments();
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
-						try {
-							Thread.sleep(LConstants.SLEEP_TIME);
-						} catch (InterruptedException e) {
-						}
-						getAmendments();
+						doAdditionals();
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
-						try {
-							Thread.sleep(LConstants.SLEEP_TIME);
-						} catch (InterruptedException e) {
-						}
-						getCorrelations();
+						doCorrelations();
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
-						try {
-							Thread.sleep(LConstants.SLEEP_TIME);
-						} catch (InterruptedException e) {
-						}
-						getAdditional();
+						doErrors();
 					}
 				}
 			}
@@ -266,7 +246,7 @@ class LFinals {
 		return (dbPowerJ.execute(DPowerJ.STM_ERR_DELETE) > 0);
 	}
 
-	private void getAdditional() {
+	private void doAdditionals() {
 		final short qty = 1;
 		boolean exists = false;
 		short orderID = 0;
@@ -321,7 +301,7 @@ class LFinals {
 						}
 					}
 				}
-				if (pj.abort()) {
+				if (pj.errorID != LConstants.ERROR_NONE || pj.abort()) {
 					break;
 				} else if (++noRows % 100 == 0) {
 					try {
@@ -335,6 +315,8 @@ class LFinals {
 				pj.log(LConstants.ERROR_NONE, className, "Workload Coded " + noCases + " additional orders in "
 						+ noSeconds + " seconds (" + (noCases * 60 / noSeconds) + "/min)");
 			}
+			Thread.sleep(LConstants.SLEEP_TIME);
+		} catch (InterruptedException e) {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
@@ -342,10 +324,10 @@ class LFinals {
 		}
 	}
 
-	private void getAmendments() {
+	private void doAmendments() {
 		boolean exists = false;
 		short orderID = 0, codeID = 0;
-		int noRows = 0, noCases = 0;
+		int noCases = 0;
 		long startTime = System.currentTimeMillis();
 		double dValue1 = 0, dValue2 = 0, dValue3 = 0, dValue4 = 0;
 		String descr = "";
@@ -399,28 +381,30 @@ class LFinals {
 						masterSpecimens.getCoderID(LConstants.CODER_4, LConstants.CODER_M),
 						masterSpecimens.getCoderID(LConstants.CODER_4, LConstants.CODER_R));
 				dbAP.setLong(DPowerpath.STM_CASE_ORDERS, 1, thisCase.caseID);
-				dbAP.setTime(DPowerpath.STM_CASE_ORDERS, 2, thisCase.accessed.getTimeInMillis());
-				dbAP.setTime(DPowerpath.STM_CASE_ORDERS, 3, thisCase.finaled.getTimeInMillis());
 				rstOrders = dbAP.getResultSet(DPowerpath.STM_CASE_ORDERS);
 				while (rstOrders.next()) {
 					orderID = rstOrders.getShort("procedure_id");
 					if (masterOrders.matchOrder(orderID)) {
 						if (masterOrders.getOrderType() != OOrderType.IGNORE) {
-							thisOrder = thisSpecimen.lstOrders.get(masterOrders.getGroupID());
-							if (thisOrder == null) {
-								thisOrder = new OOrderFinal();
-								thisOrder.grpID = masterOrders.getGroupID();
-								thisSpecimen.lstOrders.put(masterOrders.getGroupID(), thisOrder);
+							if (rstOrders.getTimestamp("created_date").getTime() > thisCase.accessed.getTimeInMillis()
+									&& rstOrders.getTimestamp("created_date").getTime() < thisCase.finaled
+											.getTimeInMillis()) {
+								thisOrder = thisSpecimen.lstOrders.get(masterOrders.getGroupID());
+								if (thisOrder == null) {
+									thisOrder = new OOrderFinal();
+									thisOrder.grpID = masterOrders.getGroupID();
+									thisSpecimen.lstOrders.put(masterOrders.getGroupID(), thisOrder);
+								}
+								thisOrder.qty += rstOrders.getShort("quantity");
+								coder1.addOrder(orderID, masterOrders.getGroupID(), masterOrders.getCodeID(1),
+										thisOrder.qty, false, false, 0);
+								coder2.addOrder(orderID, masterOrders.getGroupID(), masterOrders.getCodeID(2),
+										thisOrder.qty, false, false, 0);
+								coder3.addOrder(orderID, masterOrders.getGroupID(), masterOrders.getCodeID(3),
+										thisOrder.qty, false, false, 0);
+								coder4.addOrder(orderID, masterOrders.getGroupID(), masterOrders.getCodeID(4),
+										thisOrder.qty, false, false, 0);
 							}
-							thisOrder.qty += rstOrders.getShort("quantity");
-							coder1.addOrder(orderID, masterOrders.getGroupID(), masterOrders.getCodeID(1),
-									thisOrder.qty, false, false, 0);
-							coder2.addOrder(orderID, masterOrders.getGroupID(), masterOrders.getCodeID(2),
-									thisOrder.qty, false, false, 0);
-							coder3.addOrder(orderID, masterOrders.getGroupID(), masterOrders.getCodeID(3),
-									thisOrder.qty, false, false, 0);
-							coder4.addOrder(orderID, masterOrders.getGroupID(), masterOrders.getCodeID(4),
-									thisOrder.qty, false, false, 0);
 						}
 					}
 				}
@@ -451,9 +435,9 @@ class LFinals {
 					} catch (InterruptedException e) {
 					}
 				}
-				if (pj.abort()) {
+				if (pj.errorID != LConstants.ERROR_NONE || pj.abort()) {
 					break;
-				} else if (++noRows % 100 == 0) {
+				} else if (noCases % 100 == 0) {
 					try {
 						Thread.sleep(LConstants.SLEEP_TIME);
 					} catch (InterruptedException e) {
@@ -477,7 +461,7 @@ class LFinals {
 		}
 	}
 
-	private void getCase(String caseNo) {
+	private void doCase(String caseNo) {
 		dbAP.setString(DPowerpath.STM_CASE_NUMBER, 1, caseNo);
 		long caseID = dbAP.getLong(DPowerpath.STM_CASE_NUMBER);
 		if (caseID > 0) {
@@ -489,7 +473,7 @@ class LFinals {
 		}
 	}
 
-	private void getCases() {
+	private void doCases() {
 		int noCases = 0;
 		long caseID = 0;
 		long startTime = System.currentTimeMillis();
@@ -515,13 +499,9 @@ class LFinals {
 						}
 					}
 				}
-				if (pj.errorID != LConstants.ERROR_NONE) {
+				if (pj.errorID != LConstants.ERROR_NONE || pj.abort()) {
 					break;
-				}
-				if (pj.abort()) {
-					break;
-				}
-				if (noCases % 100 == 0) {
+				} else if (noCases % 100 == 0) {
 					try {
 						Thread.sleep(LConstants.SLEEP_TIME);
 					} catch (InterruptedException e) {
@@ -544,14 +524,14 @@ class LFinals {
 		}
 	}
 
-	private void getCorrelations() {
+	private void doCorrelations() {
 		if (coder1.getCorrelations() < 0.001 && coder2.getCorrelations() < 0.001 && coder3.getCorrelations() < 0.001
 				&& coder4.getCorrelations() < 0.001) {
 			return;
 		}
 		final short codeID = 3;
 		boolean exists = false;
-		int noRows = 0, noCases = 0;
+		int noCases = 0;
 		long startTime = System.currentTimeMillis();
 		double dValue1 = coder1.getCorrelations();
 		double dValue2 = coder2.getCorrelations();
@@ -590,9 +570,9 @@ class LFinals {
 				if (dbPowerJ.execute(DPowerJ.STM_ADD_INSERT) > 0) {
 					noCases++;
 				}
-				if (pj.abort()) {
+				if (pj.errorID != LConstants.ERROR_NONE || pj.abort()) {
 					break;
-				} else if (++noRows % 100 == 0) {
+				} else if (noCases % 100 == 0) {
 					try {
 						Thread.sleep(LConstants.SLEEP_TIME);
 					} catch (InterruptedException e) {
@@ -612,6 +592,47 @@ class LFinals {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
 			dbAP.closeRst(rstCases);
+		}
+	}
+
+	private void doErrors() {
+		int noCases = 0;
+		long caseID = 0;
+		long startTime = System.currentTimeMillis();
+		ResultSet rst = null;
+		try {
+			rst = dbPowerJ.getResultSet(DPowerJ.STM_ERR_SELECT);
+			while (rst.next()) {
+				caseID = rst.getLong("CAID");
+				pj.log(LConstants.ERROR_NONE, className, "Re-coding Error case " + caseID);
+				if (codeCase(caseID)) {
+					if (pj.errorID == LConstants.ERROR_NONE) {
+						if (deleteError(caseID)) {
+							saveCase(false);
+							noCases++;
+						}
+					}
+				}
+				if (pj.errorID != LConstants.ERROR_NONE || pj.abort()) {
+					break;
+				} else if (noCases % 100 == 0) {
+					try {
+						Thread.sleep(LConstants.SLEEP_TIME);
+					} catch (InterruptedException e) {
+					}
+				}
+			}
+			long noSeconds = (System.currentTimeMillis() - startTime) / 1000000000;
+			if (noCases > 0 && noSeconds > 0) {
+				pj.log(LConstants.ERROR_NONE, className, "Workload Coded " + noCases + " corrected errors in "
+						+ noSeconds + " seconds (" + (noCases * 60 / noSeconds) + "/min)");
+			}
+			Thread.sleep(LConstants.SLEEP_TIME);
+		} catch (InterruptedException e) {
+		} catch (SQLException e) {
+			pj.log(LConstants.ERROR_SQL, className, e);
+		} finally {
+			dbPowerJ.closeRst(rst);
 		}
 	}
 
@@ -733,7 +754,7 @@ class LFinals {
 	}
 
 	private void getLastUpdate() {
-		// Earliest date is 1/1/2011 (1293858000001)
+		// Earliest date for Ottawa is 1/1/2011 (1293858000001)
 		long minWorkloadDate = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
 		// Add 0.01 second to avoid duplicated 1st case
 		lastUpdate = dbPowerJ.getTime(DPowerJ.STM_CSE_SL_LST) + 1;
@@ -1086,46 +1107,6 @@ class LFinals {
 		return (maxDate - lastUpdate < LDates.ONE_DAY);
 	}
 
-	private void redo() {
-		int noRows = 0;
-		long caseID = 0;
-		long startTime = System.currentTimeMillis();
-		ResultSet rst = null;
-		try {
-			rst = dbPowerJ.getResultSet(DPowerJ.STM_ERR_SELECT);
-			while (rst.next()) {
-				caseID = rst.getLong("CAID");
-				pj.log(LConstants.ERROR_NONE, className, "Re-coding Error case " + caseID);
-				if (codeCase(caseID)) {
-					if (pj.errorID == LConstants.ERROR_NONE) {
-						if (deleteError(caseID)) {
-							saveCase(false);
-						}
-					}
-				}
-				if (pj.errorID != LConstants.ERROR_NONE) {
-					break;
-				} else if (pj.abort()) {
-					break;
-				} else if (++noRows % 100 == 0) {
-					try {
-						Thread.sleep(LConstants.SLEEP_TIME);
-					} catch (InterruptedException e) {
-					}
-				}
-			}
-			long noSeconds = (System.currentTimeMillis() - startTime) / 1000000000;
-			if (noRows > 0 && noSeconds > 0) {
-				pj.log(LConstants.ERROR_NONE, className, "Workload Coded " + noRows + " corrected errors in "
-						+ noSeconds + " seconds (" + (noRows * 60 / noSeconds) + "/min)");
-			}
-		} catch (SQLException e) {
-			pj.log(LConstants.ERROR_SQL, className, e);
-		} finally {
-			dbPowerJ.closeRst(rst);
-		}
-	}
-
 	private void saveCase(boolean isNew) {
 		byte errorID = 0;
 		if (thisCase.hasError) {
@@ -1141,15 +1122,6 @@ class LFinals {
 			errorID = 5;
 		} else {
 			errorID = 0;
-		}
-		if (thisCase.caseNo.length() > 12) {
-			String temp = thisCase.caseNo;
-			thisCase.caseNo = temp.substring(0, 7);
-			temp = temp.substring(7);
-			while (temp.length() > 5) {
-				temp = temp.substring(1);
-			}
-			thisCase.caseNo += temp;
 		}
 		if (errorID > 0) {
 			saveError(errorID);
