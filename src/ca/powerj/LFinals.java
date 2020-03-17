@@ -101,7 +101,7 @@ class LFinals {
 					codeCase(caseID);
 				} else if (caseNo.length() > 4) {
 					// For Debug
-					doCase(caseNo);
+					getCase(caseNo);
 				} else {
 					getLastUpdate();
 					getMaxDate();
@@ -112,7 +112,7 @@ class LFinals {
 						doAmendments();
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
-						doAdditionals();
+						doAdditional();
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 						doCorrelations();
@@ -246,11 +246,11 @@ class LFinals {
 		return (dbPowerJ.execute(DPowerJ.STM_ERR_DELETE) > 0);
 	}
 
-	private void doAdditionals() {
+	private void doAdditional() {
 		final short qty = 1;
 		boolean exists = false;
 		short orderID = 0;
-		int noRows = 0, noCases = 0;
+		int noCases = 0;
 		long startTime = System.currentTimeMillis();
 		double dValue1 = 0, dValue2 = 0, dValue3 = 0, dValue4 = 0;
 		ResultSet rstOrders = null;
@@ -303,7 +303,7 @@ class LFinals {
 				}
 				if (pj.errorID != LConstants.ERROR_NONE || pj.abort()) {
 					break;
-				} else if (++noRows % 100 == 0) {
+				} else if (noCases % 100 == 0) {
 					try {
 						Thread.sleep(LConstants.SLEEP_TIME);
 					} catch (InterruptedException e) {
@@ -387,8 +387,7 @@ class LFinals {
 					if (masterOrders.matchOrder(orderID)) {
 						if (masterOrders.getOrderType() != OOrderType.IGNORE) {
 							if (rstOrders.getTimestamp("created_date").getTime() > thisCase.accessed.getTimeInMillis()
-									&& rstOrders.getTimestamp("created_date").getTime() < thisCase.finaled
-											.getTimeInMillis()) {
+									&& rstOrders.getTimestamp("created_date").getTime() < thisCase.finaled.getTimeInMillis()) {
 								thisOrder = thisSpecimen.lstOrders.get(masterOrders.getGroupID());
 								if (thisOrder == null) {
 									thisOrder = new OOrderFinal();
@@ -430,10 +429,6 @@ class LFinals {
 					if (dbPowerJ.execute(DPowerJ.STM_ADD_INSERT) > 0) {
 						noCases++;
 					}
-					try {
-						Thread.sleep(LConstants.SLEEP_TIME);
-					} catch (InterruptedException e) {
-					}
 				}
 				if (pj.errorID != LConstants.ERROR_NONE || pj.abort()) {
 					break;
@@ -461,18 +456,6 @@ class LFinals {
 		}
 	}
 
-	private void doCase(String caseNo) {
-		dbAP.setString(DPowerpath.STM_CASE_NUMBER, 1, caseNo);
-		long caseID = dbAP.getLong(DPowerpath.STM_CASE_NUMBER);
-		if (caseID > 0) {
-			if (codeCase(caseID)) {
-				if (pj.errorID == LConstants.ERROR_NONE) {
-					saveCase(false);
-				}
-			}
-		}
-	}
-
 	private void doCases() {
 		int noCases = 0;
 		long caseID = 0;
@@ -484,18 +467,12 @@ class LFinals {
 			rst = dbAP.getResultSet(DPowerpath.STM_CASES_FINAL);
 			while (rst.next()) {
 				caseID = rst.getLong("CaseID");
-				// User-defined what cases to code or ignore (autopsy, cytology, etc)
-				// or by facility
 				if (accessions.doWorkload(rst.getShort("acc_type_id"))
 						&& facilities.doWorkload(rst.getShort("facility_id"))) {
 					if (codeCase(caseID)) {
 						if (pj.errorID == LConstants.ERROR_NONE) {
 							saveCase(true);
 							noCases++;
-							try {
-								Thread.sleep(LConstants.SLEEP_TIME);
-							} catch (InterruptedException e) {
-							}
 						}
 					}
 				}
@@ -601,7 +578,7 @@ class LFinals {
 		long startTime = System.currentTimeMillis();
 		ResultSet rst = null;
 		try {
-			rst = dbPowerJ.getResultSet(DPowerJ.STM_ERR_SELECT);
+			rst = dbPowerJ.getResultSet(DPowerJ.STM_ERR_SL_FXD);
 			while (rst.next()) {
 				caseID = rst.getLong("CAID");
 				pj.log(LConstants.ERROR_NONE, className, "Re-coding Error case " + caseID);
@@ -633,6 +610,18 @@ class LFinals {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
 			dbPowerJ.closeRst(rst);
+		}
+	}
+
+	private void getCase(String caseNo) {
+		dbAP.setString(DPowerpath.STM_CASE_NUMBER, 1, caseNo);
+		long caseID = dbAP.getLong(DPowerpath.STM_CASE_NUMBER);
+		if (caseID > 0) {
+			if (codeCase(caseID)) {
+				if (pj.errorID == LConstants.ERROR_NONE) {
+					saveCase(false);
+				}
+			}
 		}
 	}
 
@@ -754,7 +743,7 @@ class LFinals {
 	}
 
 	private void getLastUpdate() {
-		// Earliest date for Ottawa is 1/1/2011 (1293858000001)
+		// Earliest date is 1/1/2011 (1293858000001)
 		long minWorkloadDate = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
 		// Add 0.01 second to avoid duplicated 1st case
 		lastUpdate = dbPowerJ.getTime(DPowerJ.STM_CSE_SL_LST) + 1;
@@ -947,7 +936,7 @@ class LFinals {
 							+ orderID + ", Code " + rst.getString("code") + ", "
 							+ LConstants.ERROR_STRINGS[thisSpecimen.errorID];
 					thisCase.comment += comment + "\n";
-					pj.log(LConstants.ERROR_SQL, className, comment);
+					pj.log(LConstants.ERROR_NONE, className, comment);
 					break;
 				}
 			}
@@ -1059,15 +1048,15 @@ class LFinals {
 							+ ", Template " + rst.getInt("tmplt_profile_id") + ", Descr " + rst.getString("description")
 							+ ", " + LConstants.ERROR_STRINGS[thisSpecimen.errorID];
 					thisCase.comment += comment + "\n";
-					pj.log(LConstants.ERROR_SQL, className, comment);
+					pj.log(LConstants.ERROR_NONE, className, comment);
 				}
 			}
-			if (thisCase.noSpec < 1) {
+			if (thisCase.noSpec == 0) {
 				thisCase.hasError = true;
 				comment = "ERROR: getSpecimens, " + thisCase.caseNo + ", "
 						+ LConstants.ERROR_STRINGS[LConstants.ERROR_SPECIMENS_COUNT_ZERO];
 				thisCase.comment += comment + "\n";
-				pj.log(LConstants.ERROR_SQL, className, comment);
+				pj.log(LConstants.ERROR_NONE, className, comment);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
@@ -1122,6 +1111,15 @@ class LFinals {
 			errorID = 5;
 		} else {
 			errorID = 0;
+		}
+		if (thisCase.caseNo.length() > 12) {
+			String temp = thisCase.caseNo;
+			thisCase.caseNo = temp.substring(0, 7);
+			temp = temp.substring(7);
+			while (temp.length() > 5) {
+				temp = temp.substring(1);
+			}
+			thisCase.caseNo += temp;
 		}
 		if (errorID > 0) {
 			saveError(errorID);
@@ -1247,12 +1245,11 @@ class LFinals {
 		comment = "";
 		if (thisCase.comment.length() > 0) {
 			comment = thisCase.comment + "\n--------------------------\n";
+		} else if (coder1.hasComment()) {
+			comment = coder1.getComment();
 		}
-		if (coder1.hasComment()) {
-			comment += coder1.getComment();
-			if (comment.length() > 2048) {
-				comment = comment.substring(0, 2048);
-			}
+		if (comment.length() > 2048) {
+			comment = comment.substring(0, 2048);
 		}
 		dbPowerJ.setString(index, 1, comment);
 		comment = "";

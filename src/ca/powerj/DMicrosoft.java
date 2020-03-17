@@ -1,5 +1,7 @@
 package ca.powerj;
+
 import java.sql.SQLException;
+
 import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
 import com.microsoft.sqlserver.jdbc.SQLServerException;
 
@@ -29,6 +31,7 @@ class DMicrosoft extends DServer {
 				stm = connection.createStatement();
 				execute("USE dbpj");
 				prepareBase();
+				pj.log(LConstants.ERROR_NONE, dbName, "Connected to MSSQL.");
 			}
 		} catch (SQLServerException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);

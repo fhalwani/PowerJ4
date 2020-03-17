@@ -1,9 +1,10 @@
 package ca.powerj;
+
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 class DMaria extends DServer {
-	
+
 	DMaria(LBase pjcore) {
 		super(pjcore);
 		dbName = "MySQL";
@@ -16,15 +17,14 @@ class DMaria extends DServer {
 	private void setConnection() {
 		try {
 			if (connection == null || connection.isClosed()) {
-				String url = "jdbc:mysql://" + pj.pjHost + ":" +
-						pj.pjPort + "/" + pj.pjSchema +
-						"?autoReconnect=true&useUnicode=true" +
-						"&useLegacyDatetimeCode=false&serverTimezone=UTC";
+				String url = "jdbc:mysql://" + pj.pjHost + ":" + pj.pjPort + "/" + pj.pjSchema
+						+ "?autoReconnect=true&useUnicode=true" + "&useLegacyDatetimeCode=false&serverTimezone=UTC";
 				DriverManager.setLoginTimeout(15);
 				connection = DriverManager.getConnection(url, pj.pjUser, pj.pjPass);
 				stm = connection.createStatement();
 				execute("USE " + pj.pjSchema);
 				prepareBase();
+				pj.log(LConstants.ERROR_NONE, dbName, "Connected to MariaDB.");
 			}
 		} catch (IllegalArgumentException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);

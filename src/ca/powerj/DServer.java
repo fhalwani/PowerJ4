@@ -343,7 +343,7 @@ class DServer extends DPowerJ {
 		pstms.put(STM_CSE_UPDATE, prepareStatement(setSQL(STM_CSE_UPDATE)));
 		pstms.put(STM_ERR_DELETE, prepareStatement(setSQL(STM_ERR_DELETE)));
 		pstms.put(STM_ERR_INSERT, prepareStatement(setSQL(STM_ERR_INSERT)));
-		pstms.put(STM_ERR_SELECT, prepareCallables(setSQL(STM_ERR_SELECT)));
+		pstms.put(STM_ERR_SL_FXD, prepareCallables(setSQL(STM_ERR_SL_FXD)));
 		pstms.put(STM_FAC_SELECT, prepareCallables(setSQL(STM_FAC_SELECT)));
 		pstms.put(STM_FRZ_INSERT, prepareStatement(setSQL(STM_FRZ_INSERT)));
 		pstms.put(STM_FRZ_UPDATE, prepareStatement(setSQL(STM_FRZ_UPDATE)));

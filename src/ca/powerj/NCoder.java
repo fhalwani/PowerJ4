@@ -43,23 +43,21 @@ class NCoder extends NBase {
 	NCoder(AClient parent, byte coderID) {
 		super(parent);
 		parent.dbPowerJ.prepareStpCoder(coderID);
-		byte index = 0;
 		switch (coderID) {
 		case CODER1:
-			index = LSetup.VAR_CODER1_NAME;
+			setName(pj.setup.getString(LSetup.VAR_CODER1_NAME));
 			break;
 		case CODER2:
-			index = LSetup.VAR_CODER2_NAME;
+			setName(pj.setup.getString(LSetup.VAR_CODER2_NAME));
 			break;
 		case CODER3:
-			index = LSetup.VAR_CODER3_NAME;
+			setName(pj.setup.getString(LSetup.VAR_CODER3_NAME));
 			break;
 		default:
-			index = LSetup.VAR_CODER4_NAME;
+			setName(pj.setup.getString(LSetup.VAR_CODER4_NAME));
 		}
-		setName(pj.setup.getString(index));
-		getData();
 		createPanel();
+		getData();
 		programmaticChange = false;
 	}
 
@@ -242,6 +240,7 @@ class NCoder extends NBase {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
 			pj.dbPowerJ.closeRst(rst);
+			model.fireTableDataChanged();
 		}
 	}
 
@@ -284,10 +283,7 @@ class NCoder extends NBase {
 		if (coder.descr.length() > 256) {
 			coder.descr = coder.descr.substring(0, 256);
 		}
-		if (coder.ruleID > Byte.MAX_VALUE) {
-			coder.ruleID = Byte.MAX_VALUE;
-		}
-		pj.dbPowerJ.setInt(index,    1, coder.ruleID);
+		pj.dbPowerJ.setShort(index,  1, coder.ruleID);
 		pj.dbPowerJ.setShort(index,  2, coder.count);
 		pj.dbPowerJ.setDouble(index, 3, coder.valueA);
 		pj.dbPowerJ.setDouble(index, 4, coder.valueB);

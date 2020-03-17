@@ -343,7 +343,7 @@ class DDesktop extends DPowerJ {
 		pstms.put(STM_CSE_UPDATE, prepareStatement(setSQL(STM_CSE_UPDATE)));
 		pstms.put(STM_ERR_DELETE, prepareStatement(setSQL(STM_ERR_DELETE)));
 		pstms.put(STM_ERR_INSERT, prepareStatement(setSQL(STM_ERR_INSERT)));
-		pstms.put(STM_ERR_SELECT, prepareStatement(setSQL(STM_ERR_SELECT)));
+		pstms.put(STM_ERR_SL_FXD, prepareStatement(setSQL(STM_ERR_SL_FXD)));
 		pstms.put(STM_FAC_SELECT, prepareStatement(setSQL(STM_FAC_SELECT)));
 		pstms.put(STM_FRZ_INSERT, prepareStatement(setSQL(STM_FRZ_INSERT)));
 		pstms.put(STM_FRZ_UPDATE, prepareStatement(setSQL(STM_FRZ_UPDATE)));
@@ -415,7 +415,7 @@ class DDesktop extends DPowerJ {
 		case STM_FRZ_SL_SU5:
 			return "SELECT COUNT(*) AS QTY, SUM(FRV1) AS FRV1, SUM(FRV2) AS FRV2, " +
 					"SUM(FRV3) AS FRV3, SUM(FRV4) AS FRV4 " +
-			"FROM udvFrozens WHERE WHERE ACED BETWEEN ? AND ?";
+			"FROM udvFrozens WHERE ACED BETWEEN ? AND ?";
 		case STM_FRZ_SL_SUM:
 			return "SELECT FAID, SYID, SBID, POID, PRID, FANM, SYNM, SBNM, PONM, PRNM, PRLS, PRFR, COUNT(SPID) AS FRSP, " +
 			"SUM(CAST(FRBL as INT)) AS FRBL, SUM(CAST(FRSL as INT)) AS FRSL, SUM(CAST(FRV5 as INT)) AS FRV5, SUM(FRV1) AS FRV1, SUM(FRV2) AS FRV2, " +

@@ -16,6 +16,10 @@ public class PowerJS extends LBase implements Daemon {
 
 	public static void main(String[] args) {
 		launcher.init(args);
+		if (launcher.errorID == LConstants.ERROR_NONE) {
+			// start the thread
+			launcher.startWorker();
+		}
 		Scanner sc = new Scanner(System.in);
 		System.out.printf("Enter 'stop' to halt: ");
 		while (!sc.nextLine().toLowerCase().equals("stop"))
@@ -30,6 +34,10 @@ public class PowerJS extends LBase implements Daemon {
 	@Override
 	public void init(DaemonContext context) throws DaemonInitException, Exception {
 		launcher.init(context.getArguments());
+		if (errorID == LConstants.ERROR_NONE) {
+			// start the thread
+			startWorker();
+		}
 	}
 
 	@Override

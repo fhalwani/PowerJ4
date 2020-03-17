@@ -38,8 +38,8 @@ class LCoder extends LCoderA {
 		if (wcode == null) {
 			caseCoder.hasError = true;
 			caseCoder.errorID = LConstants.ERROR_ORDER_UNKNOWN;
-			comment = "ERROR: Unknown Order " +
-					codeID + ", Specimen " + specimenNo + ", " +
+			comment = "ERROR: addOrder, " + thisCase.caseNo + ", Specimen " +
+					specimenNo + ", Order " + codeID + ", " +
 					LConstants.ERROR_STRINGS[caseCoder.errorID];
 			caseCoder.comment += comment + "\n";
 			pj.log(caseCoder.errorID, coderName, comment);
@@ -143,7 +143,7 @@ class LCoder extends LCoderA {
 		if (wcode == null) {
 			caseCoder.hasError = true;
 			caseCoder.errorID = LConstants.ERROR_SPECIMEN_UNKNOWN;
-			comment = "ERROR: Unknown Specimen " +
+			comment = "ERROR: addSpecimen, " + thisCase.caseNo + ", Specimen " +
 					thisCase.noSpec + ", Coder " + specimenCoder.coderID + ", " +
 					LConstants.ERROR_STRINGS[caseCoder.errorID];
 			caseCoder.comment += comment + "\n";

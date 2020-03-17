@@ -269,7 +269,7 @@ class NSpecimenGroup extends NBase {
 				specimen.hasLN = (rst.getString("SGLN").toUpperCase().equals("Y"));
 				specimen.codes[0][0] = new OItem(rst.getShort("SG1B"), rst.getString("C1NB"));
 				specimen.codes[0][1] = new OItem(rst.getShort("SG2B"), rst.getString("C2NB"));
-				specimen.codes[0][2] = new OItem(rst.getShort("SG3B"), rst.getString("C2NB"));
+				specimen.codes[0][2] = new OItem(rst.getShort("SG3B"), rst.getString("C3NB"));
 				specimen.codes[0][3] = new OItem(rst.getShort("SG4B"), rst.getString("C4NB"));
 				specimen.codes[1][0] = new OItem(rst.getShort("SG1M"), rst.getString("C1NM"));
 				specimen.codes[1][1] = new OItem(rst.getShort("SG2M"), rst.getString("C2NM"));

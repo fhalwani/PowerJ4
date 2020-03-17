@@ -130,18 +130,15 @@ class LBase implements Runnable {
 			s = s.trim();
 			if (s.length() > 6 && s.substring(0, 6).toLowerCase().equals("--path")) {
 				appDir = s.substring(6).trim();
-			} else if (s.length() > 11 && s.substring(0, 12).toLowerCase().equals("--logingross")) {
-				// gross or grossing
+			} else if (s.equals("--logingross")) {
 				userID = -222;
 				autoLogin = true;
-			} else if (s.length() > 11 && s.substring(0, 12).toLowerCase().equals("--loginhisto")) {
-				// histo or histology
+			} else if (s.equals("--loginhisto")) {
 				userID = -111;
 				autoLogin = true;
-			} else if (s.length() > 11 && s.substring(0, 12).toLowerCase().equals("--login00375")) {
-				userID = 375;
-				autoLogin = true;
-			} else if (s.toLowerCase().equals("--offline")) {
+			} else if (s.equals("--nologin")) {
+				userID = 1;
+			} else if (s.equals("--offline")) {
 				offLine = true;
 			}
 		}
@@ -231,6 +228,7 @@ class LBase implements Runnable {
 		byte jobID = JOB_STARTUP;
 		boolean isStarting = true;
 		boolean isUpToDate = false;
+		log(LConstants.ERROR_NONE, "Worker thread started.");
 		while (!stopped.get()) {
 			if (!isBusy()) {
 				if (!offLine) {
@@ -260,9 +258,9 @@ class LBase implements Runnable {
 						if (PowerJ.IS_DESKTOP) {
 							if (isNewMonth()) {
 								new LWorkdays(this);
-//								if (errorID == LConstants.ERROR_NONE) {
-//									new LValue5(this);
-//								}
+								if (errorID == LConstants.ERROR_NONE) {
+									new LValue5(this);
+								}
 							}
 						}
 						jobID = JOB_DAILY;
@@ -324,14 +322,12 @@ class LBase implements Runnable {
 						if (dbPowerJ != null) {
 							dbPowerJ.close();
 						}
-						log(LConstants.ERROR_NONE, LConstants.APP_NAME,
-								dates.formatter(LDates.FORMAT_DATETIME) + " - Going to sleep...");
+						log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread going to sleep...");
 						jobID = JOB_SLEEPING;
 						break;
 					case JOB_SLEEPING:
 						if (nextUpdate - System.currentTimeMillis() < (timerInterval * 2)) {
-							log(LConstants.ERROR_NONE, LConstants.APP_NAME,
-									dates.formatter(LDates.FORMAT_DATETIME) + " - Waking up...");
+							log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread waking up...");
 							jobID = JOB_STARTUP;
 							isUpToDate = false;
 						}
