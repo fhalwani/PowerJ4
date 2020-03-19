@@ -5,10 +5,14 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -18,6 +22,26 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingWorker;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Chunk;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 
 class NFinals extends NBase {
 	private final byte ADDL_CODE = 0;
@@ -97,6 +121,9 @@ class NFinals extends NBase {
 	private final byte FILTER_PRO = 3;
 	private short[] filters = { 0, 0, 0, 0 };
 	private String[] coders = new String[5];
+	private String[] columns = { "NO", "FAC", "SPY", "SUB", "PROC", "SPEC", coders[0], coders[1], coders[2], coders[3],
+			coders[4], "SPECS", "BLKS", "SLDS", "H&E", "SS", "IHC", "MOL", "SYNP", "FS", "ACCESS", "GROSS", "EMBED",
+			"MICRO", "ROUTE", "FINAL", "GRNM", "EMNM", "MINM", "RONM", "FINM", "GRTA", "EMTA", "MITA", "ROTA", "FITA" };
 	private long caseID = 0;
 	private long specID = 0;
 	private ArrayList<OCaseFinal> cases = new ArrayList<OCaseFinal>();
@@ -121,6 +148,11 @@ class NFinals extends NBase {
 		coders[2] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
 		coders[3] = pj.setup.getString(LSetup.VAR_CODER4_NAME);
 		coders[4] = pj.setup.getString(LSetup.VAR_V5_NAME);
+		columns[6] = coders[0];
+		columns[7] = coders[1];
+		columns[8] = coders[2];
+		columns[9] = coders[3];
+		columns[10] = coders[4];
 		createPanel();
 		WorkerData worker = new WorkerData();
 		worker.execute();
@@ -349,6 +381,249 @@ class NFinals extends NBase {
 		add(scrollAll, BorderLayout.CENTER);
 	}
 
+	@Override
+	void pdf() {
+		String fileName = pj.getFilePdf("finals.pdf").trim();
+		if (fileName.length() == 0)
+			return;
+		final float[] widths = { 1.5f, 1, 1.5f, 1, 1.5f, 1.5f, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
+				2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+		String str = "Backlog - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME);
+		LPdf pdfLib = new LPdf();
+		HashMap<String, Font> fonts = pdfLib.getFonts();
+		Document document = new Document(PageSize._11X17.rotate(), 36, 18, 18, 18);
+		Paragraph paragraph = new Paragraph();
+		PdfPCell cell = new PdfPCell();
+		PdfPTable table = new PdfPTable(columns.length);
+		try {
+			FileOutputStream fos = new FileOutputStream(fileName);
+			PdfWriter.getInstance(document, fos);
+			document.open();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.add(new Chunk(pj.setup.getString(LSetup.VAR_LAB_NAME)));
+			document.add(paragraph);
+			paragraph = new Paragraph();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.setAlignment(Element.ALIGN_CENTER);
+			paragraph.add(new Chunk(str));
+			document.add(paragraph);
+			document.add(Chunk.NEWLINE);
+			table.setWidthPercentage(100);
+			table.setWidths(widths);
+			for (int col = 0; col < columns.length; col++) {
+				paragraph = new Paragraph();
+				paragraph.setFont(fonts.get("Font10b"));
+				paragraph.setAlignment(Element.ALIGN_CENTER);
+				paragraph.add(new Chunk(columns[col]));
+				cell = new PdfPCell();
+				cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+				cell.setBackgroundColor(BaseColor.YELLOW);
+				cell.addElement(paragraph);
+				table.addCell(cell);
+			}
+			table.setHeaderRows(1);
+			// data rows
+			int i = 0;
+			for (int row = 0; row < tblCase.getRowCount(); row++) {
+				i = tblCase.convertRowIndexToModel(row);
+				for (int col = 0; col < columns.length; col++) {
+					paragraph = new Paragraph();
+					paragraph.setFont(fonts.get("Font10n"));
+					cell = new PdfPCell();
+					switch (col) {
+					case CASE_NO:
+						paragraph.add(new Chunk(cases.get(i).caseNo));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_FAC:
+						paragraph.add(new Chunk(cases.get(i).facName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_SPY:
+						paragraph.add(new Chunk(cases.get(i).specName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_SUB:
+						paragraph.add(new Chunk(cases.get(i).subName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_PROC:
+						paragraph.add(new Chunk(cases.get(i).procName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_SPEC:
+						paragraph.add(new Chunk(cases.get(i).specName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_VAL1:
+						paragraph.add(new Chunk(pj.numbers.formatDouble(3, cases.get(i).value1)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_VAL2:
+						paragraph.add(new Chunk(pj.numbers.formatDouble(3, cases.get(i).value2)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_VAL3:
+						paragraph.add(new Chunk(pj.numbers.formatDouble(3, cases.get(i).value3)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_VAL4:
+						paragraph.add(new Chunk(pj.numbers.formatDouble(3, cases.get(i).value4)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_VAL5:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).value5 / 60)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOSP:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).noSpec)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOBL:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).noBlocks)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOSL:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).noSlides)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOHE:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).noHE)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOSS:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).noSS)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOIH:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).noIHC)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOMO:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).noMol)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOSY:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).noSynop)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOFS:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).noFSSpec)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_ACED:
+						paragraph.add(new Chunk(pj.dates.formatter(cases.get(i).accessed, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_GRED:
+						paragraph.add(new Chunk(pj.dates.formatter(cases.get(i).grossed, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_EMED:
+						paragraph.add(new Chunk(pj.dates.formatter(cases.get(i).embeded, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_MIED:
+						paragraph.add(new Chunk(pj.dates.formatter(cases.get(i).microed, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_ROED:
+						paragraph.add(new Chunk(pj.dates.formatter(cases.get(i).routed, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_FIED:
+						paragraph.add(new Chunk(pj.dates.formatter(cases.get(i).finaled, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_GRBY:
+						paragraph.add(new Chunk(cases.get(i).grossName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_EMBY:
+						paragraph.add(new Chunk(cases.get(i).embedName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_MIBY:
+						paragraph.add(new Chunk(cases.get(i).microName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_ROBY:
+						paragraph.add(new Chunk(cases.get(i).routeName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_FIBY:
+						paragraph.add(new Chunk(cases.get(i).finalName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_GRTA:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).grossTAT)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_EMTA:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).embedTAT)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_MITA:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).microTAT)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_ROTA:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).routeTAT)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					default:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).finalTAT)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					}
+					cell.addElement(paragraph);
+					table.addCell(cell);
+				}
+			}
+			document.add(table);
+			document.close();
+		} catch (DocumentException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
+		}
+	}
+
 	private void setCase() {
 		if (LBase.busy.get())
 			return;
@@ -523,6 +798,218 @@ class NFinals extends NBase {
 		}
 	}
 
+	@Override
+	void xls() {
+		String fileName = pj.getFileXls("finals.xls").trim();
+		if (fileName.length() == 0)
+			return;
+		try {
+			Workbook wb = new HSSFWorkbook();
+			LExcel xlsLib = new LExcel(wb);
+			HashMap<String, CellStyle> styles = xlsLib.getStyles();
+			Sheet sheet = wb.createSheet("Finals");
+			// title row
+			Row xlsRow = sheet.createRow(0);
+			xlsRow.setHeightInPoints(45);
+			Cell xlsCell = xlsRow.createCell(0);
+			xlsCell.setCellValue("Finals - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME));
+			xlsCell.setCellStyle(styles.get("title"));
+			sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$O$1"));
+			// header row
+			xlsRow = sheet.createRow(1);
+			xlsRow.setHeightInPoints(30);
+			for (int col = 0; col < columns.length - 1; col++) {
+				xlsCell = xlsRow.createCell(col);
+				xlsCell.setCellValue(columns[col + 1]);
+				xlsCell.setCellStyle(styles.get("header"));
+				switch (col) {
+				case CASE_ACED:
+				case CASE_GRED:
+				case CASE_EMED:
+				case CASE_MIED:
+				case CASE_ROED:
+				case CASE_FIED:
+					sheet.setColumnWidth(col, 18 * 256); // 18 characters
+					sheet.setDefaultColumnStyle(col, styles.get("datetime"));
+					break;
+				case CASE_NOSP:
+				case CASE_NOBL:
+				case CASE_NOSL:
+				case CASE_NOHE:
+				case CASE_NOSS:
+				case CASE_NOIH:
+				case CASE_NOMO:
+				case CASE_NOSY:
+				case CASE_NOFS:
+				case CASE_VAL5:
+				case CASE_GRTA:
+				case CASE_EMTA:
+				case CASE_MITA:
+				case CASE_ROTA:
+				case CASE_FITA:
+					sheet.setColumnWidth(col, 5 * 256); // 10 characters
+					sheet.setDefaultColumnStyle(col, styles.get("data_int"));
+					break;
+				case CASE_FAC:
+				case CASE_SUB:
+				case CASE_GRBY:
+				case CASE_EMBY:
+				case CASE_MIBY:
+				case CASE_ROBY:
+				case CASE_FIBY:
+					sheet.setColumnWidth(col, 5 * 256); // 5 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				case CASE_SPY:
+					sheet.setColumnWidth(col, 10 * 256);
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				case CASE_PROC:
+					sheet.setColumnWidth(col, 8 * 256); // 5 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				case CASE_SPEC:
+					sheet.setColumnWidth(col, 12 * 256);
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				default:
+					sheet.setColumnWidth(col, 18 * 256); // 18 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+				}
+			}
+			// data rows
+			int rownum = 2;
+			int i = 0;
+			for (int row = 0; row < tblCase.getRowCount(); row++) {
+				i = tblCase.convertRowIndexToModel(row);
+				xlsRow = sheet.createRow(rownum++);
+				for (int col = 0; col < columns.length - 1; col++) {
+					xlsCell = xlsRow.createCell(col);
+					switch (col) {
+					case CASE_NO:
+						xlsCell.setCellValue(cases.get(i).caseNo);
+						break;
+					case CASE_FAC:
+						xlsCell.setCellValue(cases.get(i).facName);
+						break;
+					case CASE_SPY:
+						xlsCell.setCellValue(cases.get(i).specName);
+						break;
+					case CASE_SUB:
+						xlsCell.setCellValue(cases.get(i).subName);
+						break;
+					case CASE_PROC:
+						xlsCell.setCellValue(cases.get(i).procName);
+						break;
+					case CASE_SPEC:
+						xlsCell.setCellValue(cases.get(i).specName);
+						break;
+					case CASE_VAL1:
+						xlsCell.setCellValue(cases.get(i).value1);
+						break;
+					case CASE_VAL2:
+						xlsCell.setCellValue(cases.get(i).value2);
+						break;
+					case CASE_VAL3:
+						xlsCell.setCellValue(cases.get(i).value3);
+						break;
+					case CASE_VAL4:
+						xlsCell.setCellValue(cases.get(i).value4);
+						break;
+					case CASE_VAL5:
+						xlsCell.setCellValue(cases.get(i).value5 / 60);
+						break;
+					case CASE_NOSP:
+						xlsCell.setCellValue(cases.get(i).noSpec);
+						break;
+					case CASE_NOBL:
+						xlsCell.setCellValue(cases.get(i).noBlocks);
+						break;
+					case CASE_NOSL:
+						xlsCell.setCellValue(cases.get(i).noSlides);
+						break;
+					case CASE_NOHE:
+						xlsCell.setCellValue(cases.get(i).noHE);
+						break;
+					case CASE_NOSS:
+						xlsCell.setCellValue(cases.get(i).noSS);
+						break;
+					case CASE_NOIH:
+						xlsCell.setCellValue(cases.get(i).noIHC);
+						break;
+					case CASE_NOMO:
+						xlsCell.setCellValue(cases.get(i).noMol);
+						break;
+					case CASE_NOSY:
+						xlsCell.setCellValue(cases.get(i).noSynop);
+						break;
+					case CASE_NOFS:
+						xlsCell.setCellValue(cases.get(i).noFSSpec);
+						break;
+					case CASE_ACED:
+						xlsCell.setCellValue(cases.get(i).accessed);
+						break;
+					case CASE_GRED:
+						xlsCell.setCellValue(cases.get(i).grossed);
+						break;
+					case CASE_EMED:
+						xlsCell.setCellValue(cases.get(i).embeded);
+						break;
+					case CASE_MIED:
+						xlsCell.setCellValue(cases.get(i).microed);
+						break;
+					case CASE_ROED:
+						xlsCell.setCellValue(cases.get(i).routed);
+						break;
+					case CASE_FIED:
+						xlsCell.setCellValue(cases.get(i).finaled);
+						break;
+					case CASE_GRBY:
+						xlsCell.setCellValue(cases.get(i).grossName);
+						break;
+					case CASE_EMBY:
+						xlsCell.setCellValue(cases.get(i).embedName);
+						break;
+					case CASE_MIBY:
+						xlsCell.setCellValue(cases.get(i).microName);
+						break;
+					case CASE_ROBY:
+						xlsCell.setCellValue(cases.get(i).routeName);
+						break;
+					case CASE_FIBY:
+						xlsCell.setCellValue(cases.get(i).finalName);
+						break;
+					case CASE_GRTA:
+						xlsCell.setCellValue(cases.get(i).grossTAT);
+						break;
+					case CASE_EMTA:
+						xlsCell.setCellValue(cases.get(i).embedTAT);
+						break;
+					case CASE_MITA:
+						xlsCell.setCellValue(cases.get(i).microTAT);
+						break;
+					case CASE_ROTA:
+						xlsCell.setCellValue(cases.get(i).routeTAT);
+						break;
+					default:
+						xlsCell.setCellValue(cases.get(i).finalTAT);
+					}
+				}
+			}
+			sheet.createFreezePane(1, 2);
+			// Write the output to a file
+			FileOutputStream out = new FileOutputStream(fileName);
+			wb.write(out);
+			out.close();
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
+		} catch (IOException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (Exception e) {
+			pj.log(LConstants.ERROR_UNEXPECTED, getName(), e);
+		}
+	}
+
 	private class ModelAdditional extends ITableModel {
 		private final String[] columns = { "ADDL", coders[0], coders[1], coders[2], coders[3], coders[4], "STAFF",
 				"DATE" };
@@ -593,10 +1080,6 @@ class NFinals extends NBase {
 	}
 
 	private class ModelCase extends ITableModel {
-		private final String[] columns = { "NO", "FAC", "SPY", "SUB", "PROC", "SPEC", coders[0], coders[1], coders[2],
-				coders[3], coders[4], "SPECS", "BLKS", "SLDS", "H&E", "SS", "IHC", "MOL", "SYNP", "FS", "ACCESS",
-				"GROSS", "EMBED", "MICRO", "ROUTE", "FINAL", "GRNM", "EMNM", "MINM", "RONM", "FINM", "GRTA", "EMTA",
-				"MITA", "ROTA", "FITA" };
 
 		@Override
 		public Class<?> getColumnClass(int col) {

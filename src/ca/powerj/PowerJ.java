@@ -1,9 +1,9 @@
 package ca.powerj;
 
 public class PowerJ {
-	static final boolean IS_CLIENT = false;
+	static final boolean IS_CLIENT = true;
 	static final boolean IS_DESKTOP = false;
-	static final boolean IS_SERVER = true;
+	static final boolean IS_SERVER = false;
 	static final boolean IS_SETUP = false;
 
 	public PowerJ(String[] args) {

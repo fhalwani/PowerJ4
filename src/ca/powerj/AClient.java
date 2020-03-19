@@ -164,17 +164,17 @@ class AClient extends LBase implements Runnable, WindowListener {
 	}
 
 	String getFileXls(String def) {
-		FileNameExtensionFilter filter = new FileNameExtensionFilter("XLS files", "xls", "xlsx");
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("XLS files", "xls");
 		String fileName = getFilePath(def, filter);
 		if (fileName.trim().length() > 2) {
 			int i = fileName.lastIndexOf('.');
 			if (i > 0) {
 				String extension = fileName.substring(i + 1).trim().toLowerCase();
-				if (!extension.equals("xlsx")) {
-					fileName = fileName.substring(0, i).trim() + ".xlsx";
+				if (!extension.equals("xls")) {
+					fileName = fileName.substring(0, i).trim() + ".xls";
 				}
 			} else {
-				fileName += ".xlsx";
+				fileName += ".xls";
 			}
 		}
 		File file = new File(fileName);
@@ -213,7 +213,7 @@ class AClient extends LBase implements Runnable, WindowListener {
 		}
 		if (errorID != LConstants.ERROR_NONE) {
 			quit();
-		} else if (offLine && userID == 375) {
+		} else if (offLine && userID == 1) {
 			// Debug mode
 			for (byte i = 0; i < 32; i++) {
 				userAccess[i] = true;

@@ -3,14 +3,38 @@ package ca.powerj;
 import java.awt.BorderLayout;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Chunk;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 
 class NDistribute extends NBase {
 	private short facID = 0;
@@ -219,6 +243,88 @@ class NDistribute extends NBase {
 		}
 	}
 
+	@Override
+	void pdf() {
+		String fileName = pj.getFilePdf("distribution.pdf").trim();
+		if (fileName.length() == 0)
+			return;
+		final float[] widths = new float[headers.size() + 1];
+		String str = "Distribution - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME);
+		LPdf pdfLib = new LPdf();
+		HashMap<String, Font> fonts = pdfLib.getFonts();
+		Document document = new Document(PageSize.LETTER.rotate(), 36, 18, 18, 18);
+		Paragraph paragraph = new Paragraph();
+		PdfPCell cell = new PdfPCell();
+		PdfPTable table = new PdfPTable(headers.size() + 1);
+		for (int col = 0; col <= headers.size(); col++) {
+			widths[col] = 1;
+		}
+		try {
+			FileOutputStream fos = new FileOutputStream(fileName);
+			PdfWriter.getInstance(document, fos);
+			document.open();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.add(new Chunk(pj.setup.getString(LSetup.VAR_LAB_NAME)));
+			document.add(paragraph);
+			paragraph = new Paragraph();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.setAlignment(Element.ALIGN_CENTER);
+			paragraph.add(new Chunk(str));
+			document.add(paragraph);
+			document.add(Chunk.NEWLINE);
+			table.setWidthPercentage(100);
+			table.setWidths(widths);
+			for (int col = 0; col <= headers.size(); col++) {
+				paragraph = new Paragraph();
+				paragraph.setFont(fonts.get("Font10b"));
+				paragraph.setAlignment(Element.ALIGN_CENTER);
+				if (col == 0) {
+					paragraph.add(new Chunk("Staff"));
+				} else {
+					paragraph.add(new Chunk(headers.get(col - 1).subName));
+				}
+				cell = new PdfPCell();
+				cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+				cell.setBackgroundColor(BaseColor.YELLOW);
+				cell.addElement(paragraph);
+				table.addCell(cell);
+			}
+			table.setHeaderRows(1);
+			// data rows
+			int i = 0;
+			for (int row = 0; row <= tblList.getRowCount(); row++) {
+				i = tblList.convertRowIndexToModel(row);
+				for (int col = 0; col <= headers.size(); col++) {
+					paragraph = new Paragraph();
+					paragraph.setFont(fonts.get("Font10n"));
+					cell = new PdfPCell();
+					if (col == 0) {
+						paragraph.add(new Chunk(rows.get(i).prsName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+					} else if (col < headers.size()) {
+						paragraph.add(new Chunk(
+								pj.numbers.formatDouble(2, rows.get(i).subspecs.get(headers.get(col - 1).subID))));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					} else {
+						paragraph.add(new Chunk(pj.numbers.formatDouble(2, rows.get(i).fte)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					}
+					cell.addElement(paragraph);
+					table.addCell(cell);
+				}
+			}
+			document.add(table);
+			document.close();
+		} catch (DocumentException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
+		}
+	}
+
 	void setFilter() {
 		DataPerson rowTotal = new DataPerson();
 		headers.clear();
@@ -299,30 +405,68 @@ class NDistribute extends NBase {
 		}
 	}
 
-	private class DataFacility {
-		HashMap<Byte, DataSubspec> subspecs = new HashMap<Byte, DataSubspec>();
-	}
-
-	private class DataHeader {
-		byte subID = 0;
-		String subName = "";
-		String subDescr = "";
-	}
-
-	private class DataPerson {
-		short prsID = 0;
-		double fte = 0;
-		String prsName = "";
-		String prsFull = "";
-		private HashMap<Byte, Double> subspecs = new HashMap<Byte, Double>();
-	}
-
-	private class DataSubspec {
-		byte subID = 0;
-		double fte = 0;
-		String subName = "";
-		String subDescr = "";
-		private HashMap<Short, DataPerson> persons = new HashMap<Short, DataPerson>();
+	@Override
+	void xls() {
+		String fileName = pj.getFileXls("distribution.xls").trim();
+		if (fileName.length() == 0)
+			return;
+		try {
+			Workbook wb = new HSSFWorkbook();
+			LExcel xlsLib = new LExcel(wb);
+			HashMap<String, CellStyle> styles = xlsLib.getStyles();
+			Sheet sheet = wb.createSheet("Distribution");
+			// title row
+			Row xlsRow = sheet.createRow(0);
+			xlsRow.setHeightInPoints(45);
+			Cell xlsCell = xlsRow.createCell(0);
+			xlsCell.setCellValue(
+					"Distribution - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME));
+			xlsCell.setCellStyle(styles.get("title"));
+			sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$O$1"));
+			// header row
+			xlsRow = sheet.createRow(1);
+			xlsRow.setHeightInPoints(30);
+			for (int col = 0; col <= headers.size(); col++) {
+				xlsCell = xlsRow.createCell(col);
+				xlsCell.setCellStyle(styles.get("header"));
+				if (col == 0) {
+					xlsCell.setCellValue("Staff");
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+				} else {
+					xlsCell.setCellValue(headers.get(col).subName);
+					sheet.setDefaultColumnStyle(col, styles.get("data_double"));
+				}
+				sheet.setColumnWidth(col, 5 * 256); // 5 characters
+			}
+			// data rows
+			int rownum = 2;
+			int i = 0;
+			for (int row = 0; row < tblList.getRowCount(); row++) {
+				i = tblList.convertRowIndexToModel(row);
+				xlsRow = sheet.createRow(rownum++);
+				for (int col = 0; col <= headers.size(); col++) {
+					xlsCell = xlsRow.createCell(col);
+					if (col == 0) {
+						xlsCell.setCellValue(rows.get(i).prsName);
+					} else if (col < headers.size()) {
+						xlsCell.setCellValue(rows.get(i).subspecs.get(headers.get(col - 1).subID));
+					} else {
+						xlsCell.setCellValue(rows.get(i).fte);
+					}
+				}
+			}
+			sheet.createFreezePane(1, 2);
+			// Write the output to a file
+			FileOutputStream out = new FileOutputStream(fileName);
+			wb.write(out);
+			out.close();
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
+		} catch (IOException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (Exception e) {
+			pj.log(LConstants.ERROR_UNEXPECTED, getName(), e);
+		}
 	}
 
 	private class ModelFTE extends ITableModel {
@@ -356,7 +500,7 @@ class NDistribute extends NBase {
 
 		@Override
 		public Object getValueAt(int row, int col) {
-			if (col <= 0) {
+			if (col == 0) {
 				return rows.get(row).prsName;
 			} else if (col < headers.size()) {
 				return rows.get(row).subspecs.get(headers.get(col - 1).subID);
@@ -364,5 +508,31 @@ class NDistribute extends NBase {
 				return rows.get(row).fte;
 			}
 		}
+	}
+
+	private class DataFacility {
+		HashMap<Byte, DataSubspec> subspecs = new HashMap<Byte, DataSubspec>();
+	}
+
+	private class DataHeader {
+		byte subID = 0;
+		String subName = "";
+		String subDescr = "";
+	}
+
+	private class DataPerson {
+		short prsID = 0;
+		double fte = 0;
+		String prsName = "";
+		String prsFull = "";
+		private HashMap<Byte, Double> subspecs = new HashMap<Byte, Double>();
+	}
+
+	private class DataSubspec {
+		byte subID = 0;
+		double fte = 0;
+		String subName = "";
+		String subDescr = "";
+		private HashMap<Short, DataPerson> persons = new HashMap<Short, DataPerson>();
 	}
 }

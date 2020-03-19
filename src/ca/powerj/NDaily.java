@@ -4,6 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -17,6 +20,26 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.SwingWorker;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Chunk;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 
 class NDaily extends NBase {
 	private final byte CASE_ROW = 0;
@@ -37,8 +60,11 @@ class NDaily extends NBase {
 	private final byte CASE_PASSED = 15;
 	private final byte CASE_DELAY = 16;
 	private int routeTime = 0;
+	private final String[] columns = { "NO", "CASE", "SPY", "SUB", "PROC", "SPEC", "SPECS", "BLKS", "SLDS",
+			pj.setup.getString(LSetup.VAR_V5_NAME).toUpperCase(), "ACCESS", "ROUTE", "BY", "TO", "CUTOFF", "SPENT",
+			"PRCNT" };
 	private HashMap<Byte, OTurnaround> turnarounds = new HashMap<Byte, OTurnaround>();
-	private ArrayList<OCasePending> list = new ArrayList<OCasePending>();
+	private ArrayList<OCasePending> pendings = new ArrayList<OCasePending>();
 	private ModelCases modelCases;
 	private ITable tblCases;
 	private IChartBar2Y chartBar;
@@ -57,7 +83,7 @@ class NDaily extends NBase {
 	@Override
 	boolean close() {
 		super.close();
-		list.clear();
+		pendings.clear();
 		turnarounds.clear();
 		if (chartBar != null) {
 			chartBar.close();
@@ -77,9 +103,9 @@ class NDaily extends NBase {
 					int m = t.convertRowIndexToModel(v);
 					switch (columnAtPoint(p)) {
 					case CASE_ROBY:
-						return list.get(m).routeFull;
+						return pendings.get(m).routeFull;
 					case CASE_FIBY:
-						return list.get(m).finalFull;
+						return pendings.get(m).finalFull;
 					default:
 						return null;
 					}
@@ -133,15 +159,300 @@ class NDaily extends NBase {
 	}
 
 	@Override
+	void pdf() {
+		String fileName = pj.getFilePdf("daily.pdf").trim();
+		if (fileName.length() == 0)
+			return;
+		final float[] widths = { 1, 2, 1.5f, 1.5f, 1.5f, 2, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1 };
+		String str = "Daily - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME);
+		LPdf pdfLib = new LPdf();
+		HashMap<String, Font> fonts = pdfLib.getFonts();
+		Document document = new Document(PageSize.LETTER.rotate(), 36, 18, 18, 18);
+		Paragraph paragraph = new Paragraph();
+		PdfPCell cell = new PdfPCell();
+		PdfPTable table = new PdfPTable(columns.length);
+		try {
+			FileOutputStream fos = new FileOutputStream(fileName);
+			PdfWriter.getInstance(document, fos);
+			document.open();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.add(new Chunk(pj.setup.getString(LSetup.VAR_LAB_NAME)));
+			document.add(paragraph);
+			paragraph = new Paragraph();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.setAlignment(Element.ALIGN_CENTER);
+			paragraph.add(new Chunk(str));
+			document.add(paragraph);
+			document.add(Chunk.NEWLINE);
+			table.setWidthPercentage(100);
+			table.setWidths(widths);
+			for (int col = 0; col < columns.length; col++) {
+				paragraph = new Paragraph();
+				paragraph.setFont(fonts.get("Font10b"));
+				paragraph.setAlignment(Element.ALIGN_CENTER);
+				paragraph.add(new Chunk(columns[col]));
+				cell = new PdfPCell();
+				cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+				cell.setBackgroundColor(BaseColor.YELLOW);
+				cell.addElement(paragraph);
+				table.addCell(cell);
+			}
+			table.setHeaderRows(1);
+			// data rows
+			int i = 0;
+			for (int row = 0; row < tblCases.getRowCount(); row++) {
+				i = tblCases.convertRowIndexToModel(row);
+				for (int col = 0; col < columns.length; col++) {
+					paragraph = new Paragraph();
+					paragraph.setFont(fonts.get("Font10n"));
+					cell = new PdfPCell();
+					switch (col) {
+					case CASE_ROW:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(row + 1)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NO:
+						paragraph.add(new Chunk(pendings.get(i).caseNo));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_SPY:
+						paragraph.add(new Chunk(pendings.get(i).specialty));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_SUB:
+						paragraph.add(new Chunk(pendings.get(i).subspecial));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_PROC:
+						paragraph.add(new Chunk(pendings.get(i).procedure));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_SPEC:
+						paragraph.add(new Chunk(pendings.get(i).specimen));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_NOSP:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).noSpec)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOBL:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).noBlocks)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOSL:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).noSlides)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_VAL5:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).value5 / 60)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_ACED:
+						paragraph.add(new Chunk(pj.dates.formatter(pendings.get(i).accessed, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_ROED:
+						paragraph.add(new Chunk(pj.dates.formatter(pendings.get(i).routed, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_ROBY:
+						paragraph.add(new Chunk(pendings.get(i).routeName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_FIBY:
+						paragraph.add(new Chunk(pendings.get(i).finalName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_CUTOFF:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).cutoff)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_PASSED:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).passed)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_DELAY:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).delay)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					default:
+					}
+					cell.addElement(paragraph);
+					table.addCell(cell);
+				}
+			}
+			document.add(table);
+			document.close();
+		} catch (DocumentException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
+		}
+	}
+
+	@Override
 	void refresh() {
 		// Must initialize a new instance each time
 		WorkerList worker = new WorkerList();
 		worker.execute();
 	}
 
+	@Override
+	void xls() {
+		String fileName = pj.getFileXls("daily.xls").trim();
+		if (fileName.length() == 0)
+			return;
+		try {
+			Workbook wb = new HSSFWorkbook();
+			LExcel xlsLib = new LExcel(wb);
+			HashMap<String, CellStyle> styles = xlsLib.getStyles();
+			Sheet sheet = wb.createSheet("Daily");
+			// title row
+			Row xlsRow = sheet.createRow(0);
+			xlsRow.setHeightInPoints(45);
+			Cell xlsCell = xlsRow.createCell(0);
+			xlsCell.setCellValue("Daily - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME));
+			xlsCell.setCellStyle(styles.get("title"));
+			sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$Q$1"));
+			// header row
+			xlsRow = sheet.createRow(1);
+			xlsRow.setHeightInPoints(30);
+			for (int col = 0; col < columns.length - 1; col++) {
+				xlsCell = xlsRow.createCell(col);
+				xlsCell.setCellValue(columns[col + 1]);
+				xlsCell.setCellStyle(styles.get("header"));
+				switch (col + 1) {
+				case CASE_ACED:
+				case CASE_ROED:
+					sheet.setColumnWidth(col, 18 * 256); // 18 characters
+					sheet.setDefaultColumnStyle(col, styles.get("datetime"));
+					break;
+				case CASE_NOSP:
+				case CASE_NOBL:
+				case CASE_NOSL:
+				case CASE_CUTOFF:
+				case CASE_PASSED:
+				case CASE_DELAY:
+				case CASE_VAL5:
+					sheet.setColumnWidth(col, 10 * 256); // 10 characters
+					sheet.setDefaultColumnStyle(col, styles.get("data_int"));
+					break;
+				case CASE_SUB:
+				case CASE_ROBY:
+				case CASE_FIBY:
+					sheet.setColumnWidth(col, 5 * 256); // 5 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				case CASE_SPY:
+					sheet.setColumnWidth(col, 10 * 256);
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				case CASE_PROC:
+					sheet.setColumnWidth(col, 8 * 256); // 5 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				case CASE_SPEC:
+					sheet.setColumnWidth(col, 12 * 256);
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				default:
+					sheet.setColumnWidth(col, 18 * 256); // 18 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+				}
+			}
+			// data rows
+			int rownum = 2;
+			int i = 0;
+			for (int row = 0; row < tblCases.getRowCount(); row++) {
+				i = tblCases.convertRowIndexToModel(row);
+				xlsRow = sheet.createRow(rownum++);
+				for (int col = 0; col < columns.length - 1; col++) {
+					xlsCell = xlsRow.createCell(col);
+					switch (col + 1) {
+					case CASE_NO:
+						xlsCell.setCellValue(pendings.get(i).caseNo);
+						break;
+					case CASE_SPY:
+						xlsCell.setCellValue(pendings.get(i).specialty);
+						break;
+					case CASE_SUB:
+						xlsCell.setCellValue(pendings.get(i).subspecial);
+						break;
+					case CASE_PROC:
+						xlsCell.setCellValue(pendings.get(i).procedure);
+						break;
+					case CASE_SPEC:
+						xlsCell.setCellValue(pendings.get(i).specimen);
+						break;
+					case CASE_NOSP:
+						xlsCell.setCellValue(pendings.get(i).noSpec);
+						break;
+					case CASE_NOBL:
+						xlsCell.setCellValue(pendings.get(i).noBlocks);
+						break;
+					case CASE_NOSL:
+						xlsCell.setCellValue(pendings.get(i).noSlides);
+						break;
+					case CASE_VAL5:
+						xlsCell.setCellValue(pendings.get(i).value5 / 60);
+						break;
+					case CASE_ACED:
+						xlsCell.setCellValue(pendings.get(i).accessed);
+						break;
+					case CASE_ROED:
+						xlsCell.setCellValue(pendings.get(i).routed);
+						break;
+					case CASE_ROBY:
+						xlsCell.setCellValue(pendings.get(i).routeName);
+						break;
+					case CASE_FIBY:
+						xlsCell.setCellValue(pendings.get(i).finalName);
+						break;
+					case CASE_CUTOFF:
+						xlsCell.setCellValue(pendings.get(i).cutoff);
+						break;
+					case CASE_PASSED:
+						xlsCell.setCellValue(pendings.get(i).passed);
+						break;
+					case CASE_DELAY:
+						xlsCell.setCellValue(pendings.get(i).delay);
+						break;
+					default:
+					}
+				}
+			}
+			sheet.createFreezePane(1, 2);
+			// Write the output to a file
+			FileOutputStream out = new FileOutputStream(fileName);
+			wb.write(out);
+			out.close();
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
+		} catch (IOException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (Exception e) {
+			pj.log(LConstants.ERROR_UNEXPECTED, getName(), e);
+		}
+	}
+
 	private class ModelCases extends ITableModel {
-		private final String[] columns = { "NO", "CASE", "SPY", "SUB", "PROC", "SPEC", "SPECS", "BLKS", "SLDS",
-				pj.setup.getString(LSetup.VAR_V5_NAME).toUpperCase(), "ACCESS", "ROUTE", "BY", "TO", "CUTOFF", "SPENT", "PRCNT" };
 
 		@Override
 		public Class<?> getColumnClass(int col) {
@@ -177,7 +488,7 @@ class NDaily extends NBase {
 
 		@Override
 		public int getRowCount() {
-			return list.size();
+			return pendings.size();
 		}
 
 		@Override
@@ -188,52 +499,52 @@ class NDaily extends NBase {
 				value = tblCases.convertRowIndexToView(row) + 1;
 				break;
 			case CASE_NO:
-				value = list.get(row).caseNo;
+				value = pendings.get(row).caseNo;
 				break;
 			case CASE_SPY:
-				value = list.get(row).specialty;
+				value = pendings.get(row).specialty;
 				break;
 			case CASE_SUB:
-				value = list.get(row).subspecial;
+				value = pendings.get(row).subspecial;
 				break;
 			case CASE_PROC:
-				value = list.get(row).procedure;
+				value = pendings.get(row).procedure;
 				break;
 			case CASE_SPEC:
-				value = list.get(row).specimen;
+				value = pendings.get(row).specimen;
 				break;
 			case CASE_NOSP:
-				value = list.get(row).noSpec;
+				value = pendings.get(row).noSpec;
 				break;
 			case CASE_NOBL:
-				value = list.get(row).noBlocks;
+				value = pendings.get(row).noBlocks;
 				break;
 			case CASE_NOSL:
-				value = list.get(row).noSlides;
+				value = pendings.get(row).noSlides;
 				break;
 			case CASE_VAL5:
-				value = list.get(row).value5 / 60;
+				value = pendings.get(row).value5 / 60;
 				break;
 			case CASE_CUTOFF:
-				value = list.get(row).cutoff;
+				value = pendings.get(row).cutoff;
 				break;
 			case CASE_PASSED:
-				value = list.get(row).passed;
+				value = pendings.get(row).passed;
 				break;
 			case CASE_DELAY:
-				value = list.get(row).delay;
+				value = pendings.get(row).delay;
 				break;
 			case CASE_ACED:
-				value = list.get(row).accessed;
+				value = pendings.get(row).accessed;
 				break;
 			case CASE_ROED:
-				value = list.get(row).routed;
+				value = pendings.get(row).routed;
 				break;
 			case CASE_ROBY:
-				value = list.get(row).routeName;
+				value = pendings.get(row).routeName;
 				break;
 			case CASE_FIBY:
-				value = list.get(row).finalName;
+				value = pendings.get(row).finalName;
 				break;
 			default:
 			}
@@ -260,7 +571,7 @@ class NDaily extends NBase {
 			HashMap<Short, OWorkflow> mapPersons = new HashMap<Short, OWorkflow>();
 			ResultSet rst = null;
 			try {
-				list.clear();
+				pendings.clear();
 				mapPersons.clear();
 				// Cases routed from yesterday till today at cutoff time
 				endRoute.set(Calendar.HOUR, hours);
@@ -306,7 +617,7 @@ class NDaily extends NBase {
 							if (pending.cutoff > 0) {
 								pending.delay = (short) ((100 * pending.passed) / pending.cutoff);
 							}
-							list.add(pending);
+							pendings.add(pending);
 						}
 						if (person.prsID != finalID) {
 							person = mapPersons.get(finalID);
@@ -369,7 +680,7 @@ class NDaily extends NBase {
 						return (o1.noPending > o2.noPending ? -1 : (o1.noPending == o2.noPending ? 0 : 1));
 					}
 				});
-				Collections.sort(list, new Comparator<OCasePending>() {
+				Collections.sort(pendings, new Comparator<OCasePending>() {
 					@Override
 					public int compare(OCasePending o1, OCasePending o2) {
 						return (o1.delay > o2.delay ? -1 : (o1.delay == o2.delay ? 0 : 1));
