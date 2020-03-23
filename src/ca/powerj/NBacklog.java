@@ -63,8 +63,8 @@ class NBacklog extends NBase {
 	private final byte FILTER_PRO = 3;
 	private final byte FILTER_STA = 4;
 	private short[] filters = { 0, 0, 0, 0, 8 };
-	private final String[] columns = { "NO", "CASE", "ACCESS", "FAC", "SPY", "SUB", "PROC", "STATUS", "SPEC", "SPECS",
-			"BLKS", "SLDS", pj.setup.getString(LSetup.VAR_V5_NAME).toUpperCase(), "CUTOFF", "SPENT", "PRCNT" };
+	private String[] columns = { "NO", "CASE", "ACCESS", "FAC", "SPY", "SUB", "PROC", "STATUS", "SPEC", "SPECS", "BLKS",
+			"SLDS", "", "CUTOFF", "SPENT", "PRCNT" };
 	private ModelBacklog model = null;
 	private OTurnaround turnaround = new OTurnaround();
 	private HashMap<Byte, OTurnaround> turnarounds = new HashMap<Byte, OTurnaround>();
@@ -78,6 +78,7 @@ class NBacklog extends NBase {
 		super(parent);
 		setName("Backlog");
 		pj.dbPowerJ.prepareBacklog();
+		columns[12] = pj.setup.getString(LSetup.VAR_V5_NAME);
 		getTats();
 		createPanel();
 		refresh();

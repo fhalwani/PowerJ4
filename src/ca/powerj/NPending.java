@@ -3,6 +3,9 @@ package ca.powerj;
 import java.awt.BorderLayout;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -15,6 +18,26 @@ import javax.swing.RowFilter;
 import javax.swing.SwingWorker;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableRowSorter;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Chunk;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 
 class NPending extends NBase {
 	private final byte CASE_ROW = 0;
@@ -54,6 +77,9 @@ class NPending extends NBase {
 	private final byte FILTER_PRO = 3;
 	private final byte FILTER_STA = 4;
 	private short[] filters = { 0, 0, 0, 0, 8 };
+	private String[] columns = { "NO", "CASE", "FAC", "SPY", "SUB", "PROC", "SPEC", "STATUS", "", "SPECS", "BLKS",
+			"SLDS", "CUTOFF", "SPENT", "%", "ACCESS", "GROSS", "EMBED", "MICRO", "ROUTE", "FINAL", "GRNM", "EMNM",
+			"MINM", "RONM", "FINM", "GRTA", "EMTA", "MITA", "ROTA", "FITA" };
 	private ModelPending model;
 	private OTurnaround turnaround = new OTurnaround();
 	private HashMap<Byte, OTurnaround> turnarounds = new HashMap<Byte, OTurnaround>();
@@ -65,6 +91,7 @@ class NPending extends NBase {
 		super(parent);
 		setName("Pending");
 		parent.dbPowerJ.preparePending();
+		columns[8] = pj.setup.getString(LSetup.VAR_V5_NAME);
 		getTats();
 		createPanel();
 		refresh();
@@ -147,6 +174,224 @@ class NPending extends NBase {
 			return pendings.get(row).finalFull;
 		default:
 			return null;
+		}
+	}
+
+	@Override
+	void pdf() {
+		String fileName = pj.getFilePdf("pending.pdf").trim();
+		if (fileName.length() == 0)
+			return;
+		final float[] widths = { 1, 1.5f, 1, 1.5f, 1, 1.5f, 1.5f, 1, 1, 1, 1, 1, 1, 1, 1, 1.5f, 1.5f, 1.5f, 1.5f, 1.5f,
+				1.5f, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+		String str = "Pending - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME);
+		LPdf pdfLib = new LPdf();
+		HashMap<String, Font> fonts = pdfLib.getFonts();
+		Document document = new Document(PageSize._11X17.rotate(), 36, 18, 18, 18);
+		Paragraph paragraph = new Paragraph();
+		PdfPCell cell = new PdfPCell();
+		PdfPTable table = new PdfPTable(columns.length);
+		try {
+			FileOutputStream fos = new FileOutputStream(fileName);
+			PdfWriter.getInstance(document, fos);
+			document.open();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.add(new Chunk(pj.setup.getString(LSetup.VAR_LAB_NAME)));
+			document.add(paragraph);
+			paragraph = new Paragraph();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.setAlignment(Element.ALIGN_CENTER);
+			paragraph.add(new Chunk(str));
+			document.add(paragraph);
+			document.add(Chunk.NEWLINE);
+			table.setWidthPercentage(100);
+			table.setWidths(widths);
+			for (int col = 0; col < columns.length; col++) {
+				paragraph = new Paragraph();
+				paragraph.setFont(fonts.get("Font10b"));
+				paragraph.setAlignment(Element.ALIGN_CENTER);
+				paragraph.add(new Chunk(columns[col]));
+				cell = new PdfPCell();
+				cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+				cell.setBackgroundColor(BaseColor.YELLOW);
+				cell.addElement(paragraph);
+				table.addCell(cell);
+			}
+			table.setHeaderRows(1);
+			// data rows
+			int i = 0;
+			for (int row = 0; row < tbl.getRowCount(); row++) {
+				i = tbl.convertRowIndexToModel(row);
+				for (int col = 0; col < columns.length; col++) {
+					paragraph = new Paragraph();
+					paragraph.setFont(fonts.get("Font10n"));
+					cell = new PdfPCell();
+					switch (col) {
+					case CASE_ROW:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(row + 1)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NO:
+						paragraph.add(new Chunk(pendings.get(i).caseNo));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_FAC:
+						paragraph.add(new Chunk(pendings.get(i).facility));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_SPY:
+						paragraph.add(new Chunk(pendings.get(i).specialty));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_SUB:
+						paragraph.add(new Chunk(pendings.get(i).subspecial));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_PROC:
+						paragraph.add(new Chunk(pendings.get(i).procedure));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_SPEC:
+						paragraph.add(new Chunk(pendings.get(i).specimen));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_STAT:
+						paragraph.add(new Chunk(pendings.get(i).status));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_VAL5:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).value5 / 60)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOSP:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).noSpec)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOBL:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).noBlocks)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOSL:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).noSlides)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_CUTOFF:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).cutoff)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_PASSED:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).passed)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_DELAY:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).delay)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_ACED:
+						paragraph.add(new Chunk(pj.dates.formatter(pendings.get(i).accessed, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_GRED:
+						paragraph.add(new Chunk(pj.dates.formatter(pendings.get(i).grossed, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_EMED:
+						paragraph.add(new Chunk(pj.dates.formatter(pendings.get(i).embeded, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_MIED:
+						paragraph.add(new Chunk(pj.dates.formatter(pendings.get(i).microed, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_ROED:
+						paragraph.add(new Chunk(pj.dates.formatter(pendings.get(i).routed, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_FIED:
+						paragraph.add(new Chunk(pj.dates.formatter(pendings.get(i).finaled, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_GRBY:
+						paragraph.add(new Chunk(pendings.get(i).grossName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_EMBY:
+						paragraph.add(new Chunk(pendings.get(i).embedName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_MIBY:
+						paragraph.add(new Chunk(pendings.get(i).microName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_ROBY:
+						paragraph.add(new Chunk(pendings.get(i).routeName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_FIBY:
+						paragraph.add(new Chunk(pendings.get(i).finalName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_GRTA:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).grossTAT)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_EMTA:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).embedTAT)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_MITA:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).microTAT)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_ROTA:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).routeTAT)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					default:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(pendings.get(i).finalTAT)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					}
+					cell.addElement(paragraph);
+					table.addCell(cell);
+				}
+			}
+			document.add(table);
+			document.close();
+		} catch (DocumentException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
 		}
 	}
 
@@ -242,11 +487,203 @@ class NPending extends NBase {
 		pj.statusBar.setMessage("No Rows: " + pj.numbers.formatNumber(tbl.getRowCount()));
 	}
 
+	@Override
+	void xls() {
+		String fileName = pj.getFileXls("pending.xls").trim();
+		if (fileName.length() == 0)
+			return;
+		try {
+			Workbook wb = new HSSFWorkbook();
+			LExcel xlsLib = new LExcel(wb);
+			HashMap<String, CellStyle> styles = xlsLib.getStyles();
+			Sheet sheet = wb.createSheet("Pending");
+			// title row
+			Row xlsRow = sheet.createRow(0);
+			xlsRow.setHeightInPoints(45);
+			Cell xlsCell = xlsRow.createCell(0);
+			xlsCell.setCellValue("Pending - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME));
+			xlsCell.setCellStyle(styles.get("title"));
+			sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$AE$1"));
+			// header row
+			xlsRow = sheet.createRow(1);
+			xlsRow.setHeightInPoints(30);
+			for (int col = 0; col < columns.length; col++) {
+				xlsCell = xlsRow.createCell(col);
+				xlsCell.setCellValue(columns[col]);
+				xlsCell.setCellStyle(styles.get("header"));
+				switch (col) {
+				case CASE_ACED:
+				case CASE_GRED:
+				case CASE_EMED:
+				case CASE_MIED:
+				case CASE_ROED:
+				case CASE_FIED:
+					sheet.setColumnWidth(col, 18 * 256); // 18 characters
+					sheet.setDefaultColumnStyle(col, styles.get("datetime"));
+					break;
+				case CASE_ROW:
+				case CASE_NOSP:
+				case CASE_NOBL:
+				case CASE_NOSL:
+				case CASE_CUTOFF:
+				case CASE_PASSED:
+				case CASE_DELAY:
+				case CASE_VAL5:
+				case CASE_GRTA:
+				case CASE_EMTA:
+				case CASE_MITA:
+				case CASE_ROTA:
+				case CASE_FITA:
+					sheet.setColumnWidth(col, 5 * 256); // 10 characters
+					sheet.setDefaultColumnStyle(col, styles.get("data_int"));
+					break;
+				case CASE_FAC:
+				case CASE_SUB:
+				case CASE_STAT:
+				case CASE_GRBY:
+				case CASE_EMBY:
+				case CASE_MIBY:
+				case CASE_ROBY:
+				case CASE_FIBY:
+					sheet.setColumnWidth(col, 5 * 256); // 5 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				case CASE_SPY:
+					sheet.setColumnWidth(col, 10 * 256);
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				case CASE_PROC:
+					sheet.setColumnWidth(col, 8 * 256); // 5 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				case CASE_SPEC:
+					sheet.setColumnWidth(col, 12 * 256);
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				default:
+					sheet.setColumnWidth(col, 18 * 256); // 18 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+				}
+			}
+			// data rows
+			int rownum = 2;
+			int i = 0;
+			for (int row = 0; row < tbl.getRowCount(); row++) {
+				i = tbl.convertRowIndexToModel(row);
+				xlsRow = sheet.createRow(rownum++);
+				for (int col = 0; col < columns.length; col++) {
+					xlsCell = xlsRow.createCell(col);
+					switch (col) {
+					case CASE_ROW:
+						xlsCell.setCellValue(row + 1);
+						break;
+					case CASE_NO:
+						xlsCell.setCellValue(pendings.get(i).caseNo);
+						break;
+					case CASE_FAC:
+						xlsCell.setCellValue(pendings.get(i).facility);
+						break;
+					case CASE_SPY:
+						xlsCell.setCellValue(pendings.get(i).specialty);
+						break;
+					case CASE_SUB:
+						xlsCell.setCellValue(pendings.get(i).subspecial);
+						break;
+					case CASE_PROC:
+						xlsCell.setCellValue(pendings.get(i).procedure);
+						break;
+					case CASE_SPEC:
+						xlsCell.setCellValue(pendings.get(i).specimen);
+						break;
+					case CASE_STAT:
+						xlsCell.setCellValue(pendings.get(i).status);
+						break;
+					case CASE_VAL5:
+						xlsCell.setCellValue(pendings.get(i).value5 / 60);
+						break;
+					case CASE_NOSP:
+						xlsCell.setCellValue(pendings.get(i).noSpec);
+						break;
+					case CASE_NOBL:
+						xlsCell.setCellValue(pendings.get(i).noBlocks);
+						break;
+					case CASE_NOSL:
+						xlsCell.setCellValue(pendings.get(i).noSlides);
+						break;
+					case CASE_CUTOFF:
+						xlsCell.setCellValue(pendings.get(i).cutoff);
+						break;
+					case CASE_PASSED:
+						xlsCell.setCellValue(pendings.get(i).passed);
+						break;
+					case CASE_DELAY:
+						xlsCell.setCellValue(pendings.get(i).delay);
+						break;
+					case CASE_ACED:
+						xlsCell.setCellValue(pendings.get(i).accessed);
+						break;
+					case CASE_GRED:
+						xlsCell.setCellValue(pendings.get(i).grossed);
+						break;
+					case CASE_EMED:
+						xlsCell.setCellValue(pendings.get(i).embeded);
+						break;
+					case CASE_MIED:
+						xlsCell.setCellValue(pendings.get(i).microed);
+						break;
+					case CASE_ROED:
+						xlsCell.setCellValue(pendings.get(i).routed);
+						break;
+					case CASE_FIED:
+						xlsCell.setCellValue(pendings.get(i).finaled);
+						break;
+					case CASE_GRBY:
+						xlsCell.setCellValue(pendings.get(i).grossName);
+						break;
+					case CASE_EMBY:
+						xlsCell.setCellValue(pendings.get(i).embedName);
+						break;
+					case CASE_MIBY:
+						xlsCell.setCellValue(pendings.get(i).microName);
+						break;
+					case CASE_ROBY:
+						xlsCell.setCellValue(pendings.get(i).routeName);
+						break;
+					case CASE_FIBY:
+						xlsCell.setCellValue(pendings.get(i).finalName);
+						break;
+					case CASE_GRTA:
+						xlsCell.setCellValue(pendings.get(i).grossTAT);
+						break;
+					case CASE_EMTA:
+						xlsCell.setCellValue(pendings.get(i).embedTAT);
+						break;
+					case CASE_MITA:
+						xlsCell.setCellValue(pendings.get(i).microTAT);
+						break;
+					case CASE_ROTA:
+						xlsCell.setCellValue(pendings.get(i).routeTAT);
+						break;
+					default:
+						xlsCell.setCellValue(pendings.get(i).finalTAT);
+					}
+				}
+			}
+			sheet.createFreezePane(1, 2);
+			// Write the output to a file
+			FileOutputStream out = new FileOutputStream(fileName);
+			wb.write(out);
+			out.close();
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
+		} catch (IOException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (Exception e) {
+			pj.log(LConstants.ERROR_UNEXPECTED, getName(), e);
+		}
+	}
+
 	private class ModelPending extends ITableModel {
-		private final String[] columns = { "NO", "CASE", "FAC", "SPY", "SUB", "PROC", "SPEC", "STATUS",
-				pj.setup.getString(LSetup.VAR_V5_NAME), "SPECS", "BLKS", "SLDS", "CUTOFF", "SPENT", "%", "ACCESS",
-				"GROSS", "EMBED", "MICRO", "ROUTE", "FINAL", "GRNM", "EMNM", "MINM", "RONM", "FINM", "GRTA", "EMTA",
-				"MITA", "ROTA", "FITA" };
 
 		@Override
 		public Class<?> getColumnClass(int col) {

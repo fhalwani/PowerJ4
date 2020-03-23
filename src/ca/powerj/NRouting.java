@@ -4,6 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -23,6 +26,26 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableRowSorter;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Chunk;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 
 class NRouting extends NBase {
 	private final byte CASE_ROW = 0;
@@ -55,6 +78,9 @@ class NRouting extends NBase {
 	private int routeTime = 0;
 	private int rowIndex = 0;
 	private double v5FTE = 0.0;
+	private String[] colCases = { "NO", "CASE", "FAC", "SPY", "SUB", "PROC", "SPEC", "SPECS", "BLKS", "SLDS", "",
+			"ACCESS", "ROUTE", "BY", "TO" };
+	private String[] colSum = { "NO", "INIT", "NAME", "CASES", "SPECS", "SLIDES", "", "FTE" };
 	private OCasePending pending = new OCasePending();
 	private ArrayList<Calendar> dates = new ArrayList<Calendar>();
 	private ArrayList<OCasePending> cases = new ArrayList<OCasePending>();
@@ -70,6 +96,8 @@ class NRouting extends NBase {
 		setName("Routing");
 		parent.dbPowerJ.prepareRoute();
 		routeTime = parent.setup.getInt(LSetup.VAR_ROUTE_TIME);
+		colSum[6] = pj.setup.getString(LSetup.VAR_V5_NAME);
+		colCases[10] = colSum[6];
 		v5FTE = Double.parseDouble(parent.setup.getString(LSetup.VAR_V5_FTE)) / 215;
 		if (v5FTE < 1.00) {
 			v5FTE = 1.00;
@@ -213,6 +241,227 @@ class NRouting extends NBase {
 	}
 
 	@Override
+	void pdf() {
+		String fileName = pj.getFilePdf("routing.pdf").trim();
+		if (fileName.length() == 0)
+			return;
+		final float[] widthSum = { 1, 1, 3, 1, 1, 1, 1, 1 };
+		String str = "Routing Summary - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME);
+		LPdf pdfLib = new LPdf();
+		HashMap<String, Font> fonts = pdfLib.getFonts();
+		Document document = new Document(PageSize.LETTER, 36, 18, 18, 18);
+		Paragraph paragraph = new Paragraph();
+		PdfPCell cell = new PdfPCell();
+		PdfPTable table = new PdfPTable(colSum.length);
+		try {
+			FileOutputStream fos = new FileOutputStream(fileName);
+			PdfWriter.getInstance(document, fos);
+			document.open();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.add(new Chunk(pj.setup.getString(LSetup.VAR_LAB_NAME)));
+			document.add(paragraph);
+			paragraph = new Paragraph();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.setAlignment(Element.ALIGN_CENTER);
+			paragraph.add(new Chunk(str));
+			document.add(paragraph);
+			document.add(Chunk.NEWLINE);
+			table.setWidthPercentage(100);
+			table.setWidths(widthSum);
+			for (int col = 0; col < colSum.length; col++) {
+				paragraph = new Paragraph();
+				paragraph.setFont(fonts.get("Font10b"));
+				paragraph.setAlignment(Element.ALIGN_CENTER);
+				paragraph.add(new Chunk(colSum[col]));
+				cell = new PdfPCell();
+				cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+				cell.setBackgroundColor(BaseColor.YELLOW);
+				cell.addElement(paragraph);
+				table.addCell(cell);
+			}
+			table.setHeaderRows(1);
+			// data rows
+			int i = 0;
+			for (int row = 0; row < tblSummary.getRowCount(); row++) {
+				i = tblSummary.convertRowIndexToModel(row);
+				for (int col = 0; col < colSum.length; col++) {
+					paragraph = new Paragraph();
+					paragraph.setFont(fonts.get("Font10n"));
+					cell = new PdfPCell();
+					switch (col) {
+					case SUM_ROW:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(row + 1)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case SUM_INIT:
+						paragraph.add(new Chunk(summary.get(i).name));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case SUM_NAME:
+						paragraph.add(new Chunk(summary.get(i).full));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case SUM_CASES:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(summary.get(i).noSpecs)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case SUM_SPECS:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(summary.get(i).noSpecs)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case SUM_SLIDES:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(summary.get(i).noSldes)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case SUM_V5:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(summary.get(i).value5 / 60)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					default:
+						paragraph.add(new Chunk(pj.numbers.formatDouble(2, summary.get(i).ftIn)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					}
+					cell.addElement(paragraph);
+					table.addCell(cell);
+				}
+			}
+			document.add(table);
+			// Second page
+			document.setPageSize(PageSize.LETTER.rotate());
+			document.setMargins(36, 18, 18, 18);
+			document.newPage();
+			final float[] widthCases = { 1, 1.5f, 1, 1.5f, 1, 1.5f, 1.5f, 1, 1, 1, 1, 1.5f, 1.5f, 1, 1 };
+			str = "Routing Cases - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME);
+			paragraph = new Paragraph();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.add(new Chunk(pj.setup.getString(LSetup.VAR_LAB_NAME)));
+			document.add(paragraph);
+			paragraph = new Paragraph();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.setAlignment(Element.ALIGN_CENTER);
+			paragraph.add(new Chunk(str));
+			document.add(paragraph);
+			document.add(Chunk.NEWLINE);
+			table = new PdfPTable(colCases.length);
+			table.setWidthPercentage(100);
+			table.setWidths(widthCases);
+			for (int col = 0; col < colCases.length; col++) {
+				paragraph = new Paragraph();
+				paragraph.setFont(fonts.get("Font10b"));
+				paragraph.setAlignment(Element.ALIGN_CENTER);
+				paragraph.add(new Chunk(colCases[col]));
+				cell = new PdfPCell();
+				cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+				cell.setBackgroundColor(BaseColor.YELLOW);
+				cell.addElement(paragraph);
+				table.addCell(cell);
+			}
+			table.setHeaderRows(1);
+			// data rows
+			for (int row = 0; row < tblCases.getRowCount(); row++) {
+				i = tblCases.convertRowIndexToModel(row);
+				for (int col = 0; col < colCases.length; col++) {
+					paragraph = new Paragraph();
+					paragraph.setFont(fonts.get("Font10n"));
+					cell = new PdfPCell();
+					switch (col) {
+					case CASE_ROW:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(row + 1)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NO:
+						paragraph.add(new Chunk(cases.get(i).caseNo));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_FAC:
+						paragraph.add(new Chunk(cases.get(i).facility));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_SPY:
+						paragraph.add(new Chunk(cases.get(i).specialty));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_SUB:
+						paragraph.add(new Chunk(cases.get(i).subspecial));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_PROC:
+						paragraph.add(new Chunk(cases.get(i).procedure));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_SPEC:
+						paragraph.add(new Chunk(cases.get(i).specimen));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case CASE_NOSP:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).noSpec)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOBL:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).noBlocks)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_NOSL:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).noSlides)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_V5:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(cases.get(i).value5 / 60)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_ACED:
+						paragraph.add(new Chunk(pj.dates.formatter(cases.get(i).accessed, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_ROED:
+						paragraph.add(new Chunk(pj.dates.formatter(cases.get(i).routed, LDates.FORMAT_DATETIME)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case CASE_ROBY:
+						paragraph.add(new Chunk(cases.get(i).routeName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					default:
+						paragraph.add(new Chunk(cases.get(i).finalName));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+					}
+					cell.addElement(paragraph);
+					table.addCell(cell);
+				}
+			}
+			document.add(table);
+			document.close();
+		} catch (DocumentException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
+		}
+	}
+
+	@Override
 	void refresh() {
 		if (pj.isBusy())
 			return;
@@ -292,6 +541,211 @@ class NRouting extends NBase {
 		}
 	}
 
+	@Override
+	void xls() {
+		String fileName = pj.getFileXls("routing.xls").trim();
+		if (fileName.length() == 0)
+			return;
+		try {
+			Workbook wb = new HSSFWorkbook();
+			LExcel xlsLib = new LExcel(wb);
+			HashMap<String, CellStyle> styles = xlsLib.getStyles();
+			Sheet sheet = wb.createSheet("Summary");
+			// title row
+			Row xlsRow = sheet.createRow(0);
+			xlsRow.setHeightInPoints(45);
+			Cell xlsCell = xlsRow.createCell(0);
+			xlsCell.setCellValue("Routing - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME));
+			xlsCell.setCellStyle(styles.get("title"));
+			sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$H$1"));
+			// header row
+			xlsRow = sheet.createRow(1);
+			xlsRow.setHeightInPoints(30);
+			for (int col = 0; col < colSum.length; col++) {
+				xlsCell = xlsRow.createCell(col);
+				xlsCell.setCellValue(colSum[col]);
+				xlsCell.setCellStyle(styles.get("header"));
+				switch (col) {
+				case SUM_ROW:
+				case SUM_CASES:
+				case SUM_SPECS:
+				case SUM_SLIDES:
+				case SUM_V5:
+					sheet.setColumnWidth(col, 5 * 256); // 5 characters
+					sheet.setDefaultColumnStyle(col, styles.get("data_int"));
+					break;
+				case SUM_FTE:
+					sheet.setColumnWidth(col, 6 * 256); // 6 characters
+					sheet.setDefaultColumnStyle(col, styles.get("data_float"));
+					break;
+				case SUM_NAME:
+					sheet.setColumnWidth(col, 20 * 256);
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				default:
+					sheet.setColumnWidth(col, 5 * 256);
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+				}
+			}
+			// data rows
+			int rownum = 2;
+			int i = 0;
+			for (int row = 0; row < tblSummary.getRowCount(); row++) {
+				i = tblSummary.convertRowIndexToModel(row);
+				xlsRow = sheet.createRow(rownum++);
+				for (int col = 0; col < colSum.length; col++) {
+					xlsCell = xlsRow.createCell(col);
+					switch (col) {
+					case SUM_ROW:
+						xlsCell.setCellValue(row + 1);
+						break;
+					case SUM_INIT:
+						xlsCell.setCellValue(summary.get(i).name);
+						break;
+					case SUM_NAME:
+						xlsCell.setCellValue(summary.get(i).full);
+						break;
+					case SUM_CASES:
+						xlsCell.setCellValue(summary.get(i).noCases);
+						break;
+					case SUM_SPECS:
+						xlsCell.setCellValue(summary.get(i).noSpecs);
+						break;
+					case SUM_SLIDES:
+						xlsCell.setCellValue(summary.get(i).noSldes);
+						break;
+					case SUM_V5:
+						xlsCell.setCellValue(summary.get(i).value5 / 60);
+						break;
+					default:
+						xlsCell.setCellValue(summary.get(i).ftIn);
+					}
+				}
+			}
+			sheet.createFreezePane(1, 2);
+			// Second sheet
+			sheet = wb.createSheet("Cases");
+			// title row
+			xlsRow = sheet.createRow(0);
+			xlsRow.setHeightInPoints(45);
+			xlsCell = xlsRow.createCell(0);
+			xlsCell.setCellValue("Routing - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME));
+			xlsCell.setCellStyle(styles.get("title"));
+			sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$O$1"));
+			// header row
+			xlsRow = sheet.createRow(1);
+			xlsRow.setHeightInPoints(30);
+			for (int col = 0; col < colCases.length; col++) {
+				xlsCell = xlsRow.createCell(col);
+				xlsCell.setCellValue(colCases[col]);
+				xlsCell.setCellStyle(styles.get("header"));
+				switch (col) {
+				case CASE_ACED:
+				case CASE_ROED:
+					sheet.setColumnWidth(col, 18 * 256); // 18 characters
+					sheet.setDefaultColumnStyle(col, styles.get("datetime"));
+					break;
+				case CASE_ROW:
+				case CASE_NOSP:
+				case CASE_NOBL:
+				case CASE_NOSL:
+				case CASE_V5:
+					sheet.setColumnWidth(col, 5 * 256); // 5 characters
+					sheet.setDefaultColumnStyle(col, styles.get("data_int"));
+					break;
+				case CASE_FAC:
+				case CASE_SUB:
+				case CASE_ROBY:
+				case CASE_FIBY:
+					sheet.setColumnWidth(col, 5 * 256); // 5 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				case CASE_SPY:
+					sheet.setColumnWidth(col, 10 * 256);
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				case CASE_PROC:
+					sheet.setColumnWidth(col, 8 * 256); // 5 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				case CASE_SPEC:
+					sheet.setColumnWidth(col, 12 * 256);
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				default:
+					sheet.setColumnWidth(col, 18 * 256); // 18 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+				}
+			}
+			// data rows
+			rownum = 2;
+			for (int row = 0; row < tblCases.getRowCount(); row++) {
+				i = tblCases.convertRowIndexToModel(row);
+				xlsRow = sheet.createRow(rownum++);
+				for (int col = 0; col < colCases.length; col++) {
+					xlsCell = xlsRow.createCell(col);
+					switch (col) {
+					case CASE_ROW:
+						xlsCell.setCellValue(row + 1);
+						break;
+					case CASE_NO:
+						xlsCell.setCellValue(cases.get(i).caseNo);
+						break;
+					case CASE_FAC:
+						xlsCell.setCellValue(cases.get(i).facility);
+						break;
+					case CASE_SPY:
+						xlsCell.setCellValue(cases.get(i).specialty);
+						break;
+					case CASE_SUB:
+						xlsCell.setCellValue(cases.get(i).subspecial);
+						break;
+					case CASE_PROC:
+						xlsCell.setCellValue(cases.get(i).procedure);
+						break;
+					case CASE_SPEC:
+						xlsCell.setCellValue(cases.get(i).specimen);
+						break;
+					case CASE_NOSP:
+						xlsCell.setCellValue(cases.get(i).noSpec);
+						break;
+					case CASE_NOBL:
+						xlsCell.setCellValue(cases.get(i).noBlocks);
+						break;
+					case CASE_NOSL:
+						xlsCell.setCellValue(cases.get(i).noSlides);
+						break;
+					case CASE_V5:
+						xlsCell.setCellValue(cases.get(i).value5 / 60);
+						break;
+					case CASE_ACED:
+						xlsCell.setCellValue(cases.get(i).accessed);
+						break;
+					case CASE_ROED:
+						xlsCell.setCellValue(cases.get(i).routed);
+						break;
+					case CASE_ROBY:
+						xlsCell.setCellValue(cases.get(i).routeName);
+						break;
+					default:
+						xlsCell.setCellValue(cases.get(i).finalName);
+					}
+				}
+			}
+			sheet.createFreezePane(1, 2);
+			// Write the output to a file
+			FileOutputStream out = new FileOutputStream(fileName);
+			wb.write(out);
+			out.close();
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
+		} catch (IOException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (Exception e) {
+			pj.log(LConstants.ERROR_UNEXPECTED, getName(), e);
+		}
+	}
+
 	private class ModelDate extends ITableModel {
 
 		@Override
@@ -316,8 +770,6 @@ class NRouting extends NBase {
 	}
 
 	private class ModelCases extends ITableModel {
-		private final String[] columns = { "NO", "CASE", "FAC", "SPY", "SUB", "PROC", "SPEC", "SPECS", "BLKS", "SLDS",
-				pj.setup.getString(LSetup.VAR_V5_NAME).toUpperCase(), "ACCESS", "ROUTE", "BY", "TO" };
 
 		@Override
 		public Class<?> getColumnClass(int col) {
@@ -340,12 +792,12 @@ class NRouting extends NBase {
 
 		@Override
 		public int getColumnCount() {
-			return columns.length;
+			return colCases.length;
 		}
 
 		@Override
 		public String getColumnName(int col) {
-			return columns[col];
+			return colCases[col];
 		}
 
 		@Override
@@ -411,8 +863,6 @@ class NRouting extends NBase {
 	}
 
 	private class ModelSummary extends ITableModel {
-		private final String[] columns = { "NO", "INIT", "NAME", "CASES", "SPECS", "SLIDES",
-				pj.setup.getString(LSetup.VAR_V5_NAME).toUpperCase(), "FTE" };
 
 		@Override
 		public Class<?> getColumnClass(int col) {
@@ -433,12 +883,12 @@ class NRouting extends NBase {
 
 		@Override
 		public int getColumnCount() {
-			return columns.length;
+			return colSum.length;
 		}
 
 		@Override
 		public String getColumnName(int col) {
-			return columns[col];
+			return colSum[col];
 		}
 
 		@Override

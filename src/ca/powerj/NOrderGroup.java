@@ -10,9 +10,13 @@ import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 
 import javax.swing.BorderFactory;
@@ -30,10 +34,40 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableRowSorter;
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Chunk;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
+
 class NOrderGroup extends NBase {
+	private final byte ORG_NO = 0;
+	private final byte ORG_NAME = 1;
+	private final byte ORG_DESCR = 2;
+	private final byte ORG_TYPE = 3;
+	private final byte ORG_VAL1 = 4;
+	private final byte ORG_VAL2 = 5;
+	private final byte ORG_VAL3 = 6;
+	private final byte ORG_VAL4 = 7;
+	private final byte ORG_VAL5 = 8;
 	private short newID = 0;
 	private int rowIndex = 0;
 	private String[] coders = new String[5];
+	private String[] columns = { "NO", "NAME", "DESCR", "TYPE", "", "", "", "", "" };
 	private OOrderGroup ordergroup = new OOrderGroup();
 	private ArrayList<OOrderGroup> list = new ArrayList<OOrderGroup>();
 	private HashMap<Short, String> mapCoder1 = new HashMap<Short, String>();
@@ -55,6 +89,11 @@ class NOrderGroup extends NBase {
 		coders[2] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
 		coders[3] = pj.setup.getString(LSetup.VAR_CODER4_NAME);
 		coders[4] = pj.setup.getString(LSetup.VAR_V5_NAME);
+		columns[4] = coders[0];
+		columns[5] = coders[1];
+		columns[6] = coders[2];
+		columns[7] = coders[3];
+		columns[8] = coders[4];
 		pj.dbPowerJ.prepareStpOrdGroup();
 		getData();
 		createPanel();
@@ -351,6 +390,113 @@ class NOrderGroup extends NBase {
 	}
 
 	@Override
+	void pdf() {
+		String fileName = pj.getFilePdf("ordergroups.pdf").trim();
+		if (fileName.length() == 0)
+			return;
+		final float[] widths = { 1, 1.5f, 4, 1, 1, 1, 1, 1, 1 };
+		String str = "Orders Groups - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME);
+		LPdf pdfLib = new LPdf();
+		HashMap<String, Font> fonts = pdfLib.getFonts();
+		Document document = new Document(PageSize.LETTER, 36, 18, 18, 18);
+		Paragraph paragraph = new Paragraph();
+		PdfPCell cell = new PdfPCell();
+		PdfPTable table = new PdfPTable(columns.length);
+		try {
+			FileOutputStream fos = new FileOutputStream(fileName);
+			PdfWriter.getInstance(document, fos);
+			document.open();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.add(new Chunk(pj.setup.getString(LSetup.VAR_LAB_NAME)));
+			document.add(paragraph);
+			paragraph = new Paragraph();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.setAlignment(Element.ALIGN_CENTER);
+			paragraph.add(new Chunk(str));
+			document.add(paragraph);
+			document.add(Chunk.NEWLINE);
+			table.setWidthPercentage(100);
+			table.setWidths(widths);
+			for (int col = 0; col < columns.length; col++) {
+				paragraph = new Paragraph();
+				paragraph.setFont(fonts.get("Font10b"));
+				paragraph.setAlignment(Element.ALIGN_CENTER);
+				paragraph.add(new Chunk(columns[col]));
+				cell = new PdfPCell();
+				cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+				cell.setBackgroundColor(BaseColor.YELLOW);
+				cell.addElement(paragraph);
+				table.addCell(cell);
+			}
+			table.setHeaderRows(1);
+			// data rows
+			int i = 0;
+			for (int row = 0; row < tbl.getRowCount(); row++) {
+				i = tbl.convertRowIndexToModel(row);
+				for (int col = 0; col < columns.length; col++) {
+					paragraph = new Paragraph();
+					paragraph.setFont(fonts.get("Font10n"));
+					cell = new PdfPCell();
+					switch (col) {
+					case ORG_NO:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(list.get(i).grpID)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+						break;
+					case ORG_NAME:
+						paragraph.add(new Chunk(list.get(i).name));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case ORG_DESCR:
+						paragraph.add(new Chunk(list.get(i).descr));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case ORG_TYPE:
+						paragraph.add(new Chunk(cboTypes.getItemName(list.get(i).typID)));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case ORG_VAL1:
+						paragraph.add(new Chunk(cboCoder1.getItemName(list.get(i).value1)));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case ORG_VAL2:
+						paragraph.add(new Chunk(cboCoder2.getItemName(list.get(i).value2)));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case ORG_VAL3:
+						paragraph.add(new Chunk(cboCoder3.getItemName(list.get(i).value3)));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					case ORG_VAL4:
+						paragraph.add(new Chunk(cboCoder4.getItemName(list.get(i).value4)));
+						paragraph.setAlignment(Element.ALIGN_LEFT);
+						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+						break;
+					default:
+						paragraph.add(new Chunk(pj.numbers.formatNumber(list.get(i).value5)));
+						paragraph.setAlignment(Element.ALIGN_RIGHT);
+						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					}
+					cell.addElement(paragraph);
+					table.addCell(cell);
+				}
+			}
+			document.add(table);
+			document.close();
+		} catch (DocumentException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
+		}
+	}
+
+	@Override
 	void save() {
 		byte index = DPowerJ.STM_ORG_UPDATE;
 		if (ordergroup.newRow) {
@@ -442,6 +588,102 @@ class NOrderGroup extends NBase {
 			break;
 		default:
 			txtToolTip.setText(null);
+		}
+	}
+
+	@Override
+	void xls() {
+		String fileName = pj.getFileXls("ordergroups.xls").trim();
+		if (fileName.length() == 0)
+			return;
+		try {
+			Workbook wb = new HSSFWorkbook();
+			LExcel xlsLib = new LExcel(wb);
+			HashMap<String, CellStyle> styles = xlsLib.getStyles();
+			Sheet sheet = wb.createSheet("Orders Groups");
+			// title row
+			Row xlsRow = sheet.createRow(0);
+			xlsRow.setHeightInPoints(45);
+			Cell xlsCell = xlsRow.createCell(0);
+			xlsCell.setCellValue(
+					"Orders Groups - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME));
+			xlsCell.setCellStyle(styles.get("title"));
+			sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$I$1"));
+			// header row
+			xlsRow = sheet.createRow(1);
+			xlsRow.setHeightInPoints(30);
+			for (int col = 0; col < columns.length; col++) {
+				xlsCell = xlsRow.createCell(col);
+				xlsCell.setCellValue(columns[col]);
+				xlsCell.setCellStyle(styles.get("header"));
+				switch (col) {
+				case ORG_NO:
+				case ORG_VAL5:
+					sheet.setColumnWidth(col, 5 * 256);
+					sheet.setDefaultColumnStyle(col, styles.get("data_int"));
+					break;
+				case ORG_NAME:
+					sheet.setColumnWidth(col, 15 * 256); // 15 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				case ORG_DESCR:
+					sheet.setColumnWidth(col, 30 * 256); // 30 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				default:
+					sheet.setColumnWidth(col, 8 * 256);
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+				}
+			}
+			// data rows
+			int rownum = 2;
+			int i = 0;
+			for (int row = 0; row < tbl.getRowCount(); row++) {
+				i = tbl.convertRowIndexToModel(row);
+				xlsRow = sheet.createRow(rownum++);
+				for (int col = 0; col < columns.length; col++) {
+					xlsCell = xlsRow.createCell(col);
+					switch (col) {
+					case ORG_NO:
+						xlsCell.setCellValue(list.get(i).grpID);
+						break;
+					case ORG_NAME:
+						xlsCell.setCellValue(list.get(i).name);
+						break;
+					case ORG_DESCR:
+						xlsCell.setCellValue(list.get(i).descr);
+						break;
+					case ORG_TYPE:
+						xlsCell.setCellValue(cboTypes.getItemName(list.get(i).typID));
+						break;
+					case ORG_VAL1:
+						xlsCell.setCellValue(cboCoder1.getItemName(list.get(i).value1));
+						break;
+					case ORG_VAL2:
+						xlsCell.setCellValue(cboCoder2.getItemName(list.get(i).value2));
+						break;
+					case ORG_VAL3:
+						xlsCell.setCellValue(cboCoder3.getItemName(list.get(i).value3));
+						break;
+					case ORG_VAL4:
+						xlsCell.setCellValue(cboCoder4.getItemName(list.get(i).value4));
+						break;
+					default:
+						xlsCell.setCellValue(list.get(i).value5);
+					}
+				}
+			}
+			sheet.createFreezePane(1, 2);
+			// Write the output to a file
+			FileOutputStream out = new FileOutputStream(fileName);
+			wb.write(out);
+			out.close();
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
+		} catch (IOException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (Exception e) {
+			pj.log(LConstants.ERROR_UNEXPECTED, getName(), e);
 		}
 	}
 

@@ -1,5 +1,7 @@
 package ca.powerj;
+
 import java.awt.Dimension;
+
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -12,10 +14,10 @@ class IComboBox extends JComboBox<OItem> {
 		setPreferredSize(dim);
 		setMaximumSize(dim);
 		setFont(LConstants.APP_FONT);
-        // has to be editable
-        setEditable(true);
-        // change the editor's document
-        // new IComboMatch(this);
+		// has to be editable
+		// setEditable(true);
+		// change the editor's document
+		// new IComboMatch(this);
 	}
 
 	short getIndex() {
@@ -28,6 +30,16 @@ class IComboBox extends JComboBox<OItem> {
 	OItem getItem() {
 		if (getSelectedItem() != null) {
 			return (OItem) getSelectedItem();
+		}
+		return null;
+	}
+
+	String getItemName(short index) {
+		for (int i = 0; i < getItemCount(); i++) {
+			OItem item = getItemAt(index);
+			if (item.id == index) {
+				return item.name;
+			}
 		}
 		return null;
 	}
@@ -45,7 +57,7 @@ class IComboBox extends JComboBox<OItem> {
 
 	void setIndex(int index) {
 		setSelectedIndex(-1);
-	    ComboBoxModel model = getModel();
+		ComboBoxModel model = getModel();
 		for (int i = 0; i < getItemCount(); i++) {
 			Object o = model.getElementAt(i);
 			if (o != null) {

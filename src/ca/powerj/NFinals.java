@@ -121,9 +121,9 @@ class NFinals extends NBase {
 	private final byte FILTER_PRO = 3;
 	private short[] filters = { 0, 0, 0, 0 };
 	private String[] coders = new String[5];
-	private String[] columns = { "NO", "FAC", "SPY", "SUB", "PROC", "SPEC", coders[0], coders[1], coders[2], coders[3],
-			coders[4], "SPECS", "BLKS", "SLDS", "H&E", "SS", "IHC", "MOL", "SYNP", "FS", "ACCESS", "GROSS", "EMBED",
-			"MICRO", "ROUTE", "FINAL", "GRNM", "EMNM", "MINM", "RONM", "FINM", "GRTA", "EMTA", "MITA", "ROTA", "FITA" };
+	private String[] columns = { "NO", "FAC", "SPY", "SUB", "PROC", "SPEC", "", "", "", "", "", "SPECS", "BLKS", "SLDS",
+			"H&E", "SS", "IHC", "MOL", "SYNP", "FS", "ACCESS", "GROSS", "EMBED", "MICRO", "ROUTE", "FINAL", "GRNM",
+			"EMNM", "MINM", "RONM", "FINM", "GRTA", "EMTA", "MITA", "ROTA", "FITA" };
 	private long caseID = 0;
 	private long specID = 0;
 	private ArrayList<OCaseFinal> cases = new ArrayList<OCaseFinal>();
@@ -642,16 +642,16 @@ class NFinals extends NBase {
 			while (rst.next()) {
 				// deleted after a year
 				if (rst.getString("COM1") != null && rst.getString("COM1").length() > 2) {
-					comment = rst.getString("COM1") + "\n----------------\n";
+					comment = rst.getString("COM1");
 				}
 				if (rst.getString("COM2") != null && rst.getString("COM2").length() > 2) {
-					comment += rst.getString("COM2") + "\n----------------\n";
+					comment += rst.getString("COM2");
 				}
 				if (rst.getString("COM3") != null && rst.getString("COM3").length() > 2) {
-					comment += rst.getString("COM3") + "\n----------------\n";
+					comment += rst.getString("COM3");
 				}
 				if (rst.getString("COM4") != null && rst.getString("COM4").length() > 2) {
-					comment += rst.getString("COM4") + "\n----------------\n";
+					comment += rst.getString("COM4");
 				}
 			}
 			pj.dbPowerJ.closeRst(rst);
@@ -818,9 +818,9 @@ class NFinals extends NBase {
 			// header row
 			xlsRow = sheet.createRow(1);
 			xlsRow.setHeightInPoints(30);
-			for (int col = 0; col < columns.length - 1; col++) {
+			for (int col = 0; col < columns.length; col++) {
 				xlsCell = xlsRow.createCell(col);
-				xlsCell.setCellValue(columns[col + 1]);
+				xlsCell.setCellValue(columns[col]);
 				xlsCell.setCellStyle(styles.get("header"));
 				switch (col) {
 				case CASE_ACED:
@@ -831,6 +831,13 @@ class NFinals extends NBase {
 				case CASE_FIED:
 					sheet.setColumnWidth(col, 18 * 256); // 18 characters
 					sheet.setDefaultColumnStyle(col, styles.get("datetime"));
+					break;
+				case CASE_VAL1:
+				case CASE_VAL2:
+				case CASE_VAL3:
+				case CASE_VAL4:
+					sheet.setColumnWidth(col, 6 * 256); // 6 characters
+					sheet.setDefaultColumnStyle(col, styles.get("data_float"));
 					break;
 				case CASE_NOSP:
 				case CASE_NOBL:
@@ -883,7 +890,7 @@ class NFinals extends NBase {
 			for (int row = 0; row < tblCase.getRowCount(); row++) {
 				i = tblCase.convertRowIndexToModel(row);
 				xlsRow = sheet.createRow(rownum++);
-				for (int col = 0; col < columns.length - 1; col++) {
+				for (int col = 0; col < columns.length; col++) {
 					xlsCell = xlsRow.createCell(col);
 					switch (col) {
 					case CASE_NO:
@@ -1151,53 +1158,20 @@ class NFinals extends NBase {
 			case CASE_SPEC:
 				value = thisRow.specName;
 				break;
-			case CASE_ACED:
-				value = thisRow.accessed;
+			case CASE_VAL1:
+				value = thisRow.value1;
 				break;
-			case CASE_GRED:
-				value = thisRow.grossed;
+			case CASE_VAL2:
+				value = thisRow.value2;
 				break;
-			case CASE_GRBY:
-				value = thisRow.grossName;
+			case CASE_VAL3:
+				value = thisRow.value3;
 				break;
-			case CASE_GRTA:
-				value = thisRow.grossTAT;
+			case CASE_VAL4:
+				value = thisRow.value4;
 				break;
-			case CASE_EMED:
-				value = thisRow.embeded;
-				break;
-			case CASE_EMBY:
-				value = thisRow.embedName;
-				break;
-			case CASE_EMTA:
-				value = thisRow.embedTAT;
-				break;
-			case CASE_MIED:
-				value = thisRow.microed;
-				break;
-			case CASE_MIBY:
-				value = thisRow.microName;
-				break;
-			case CASE_MITA:
-				value = thisRow.microTAT;
-				break;
-			case CASE_ROED:
-				value = thisRow.routed;
-				break;
-			case CASE_ROBY:
-				value = thisRow.routeName;
-				break;
-			case CASE_ROTA:
-				value = thisRow.routeTAT;
-				break;
-			case CASE_FIED:
-				value = thisRow.finaled;
-				break;
-			case CASE_FIBY:
-				value = thisRow.finalName;
-				break;
-			case CASE_FITA:
-				value = thisRow.finalTAT;
+			case CASE_VAL5:
+				value = thisRow.value5 / 60;
 				break;
 			case CASE_NOSP:
 				value = thisRow.noSpec;
@@ -1207,12 +1181,6 @@ class NFinals extends NBase {
 				break;
 			case CASE_NOSL:
 				value = thisRow.noSlides;
-				break;
-			case CASE_NOSY:
-				value = thisRow.noSynop;
-				break;
-			case CASE_NOFS:
-				value = thisRow.noFSSpec;
 				break;
 			case CASE_NOHE:
 				value = thisRow.noHE;
@@ -1226,20 +1194,59 @@ class NFinals extends NBase {
 			case CASE_NOMO:
 				value = thisRow.noMol;
 				break;
-			case CASE_VAL1:
-				value = thisRow.value1;
+			case CASE_NOSY:
+				value = thisRow.noSynop;
 				break;
-			case CASE_VAL2:
-				value = thisRow.value2;
+			case CASE_NOFS:
+				value = thisRow.noFSSpec;
 				break;
-			case CASE_VAL3:
-				value = thisRow.value3;
+			case CASE_ACED:
+				value = thisRow.accessed;
 				break;
-			case CASE_VAL4:
-				value = thisRow.value4;
+			case CASE_GRED:
+				value = thisRow.grossed;
+				break;
+			case CASE_EMED:
+				value = thisRow.embeded;
+				break;
+			case CASE_MIED:
+				value = thisRow.microed;
+				break;
+			case CASE_ROED:
+				value = thisRow.routed;
+				break;
+			case CASE_FIED:
+				value = thisRow.finaled;
+				break;
+			case CASE_GRBY:
+				value = thisRow.grossName;
+				break;
+			case CASE_EMBY:
+				value = thisRow.embedName;
+				break;
+			case CASE_MIBY:
+				value = thisRow.microName;
+				break;
+			case CASE_ROBY:
+				value = thisRow.routeName;
+				break;
+			case CASE_FIBY:
+				value = thisRow.finalName;
+				break;
+			case CASE_GRTA:
+				value = thisRow.grossTAT;
+				break;
+			case CASE_EMTA:
+				value = thisRow.embedTAT;
+				break;
+			case CASE_MITA:
+				value = thisRow.microTAT;
+				break;
+			case CASE_ROTA:
+				value = thisRow.routeTAT;
 				break;
 			default:
-				value = thisRow.value5 / 60;
+				value = thisRow.finalTAT;
 			}
 			return value;
 		}
