@@ -36,7 +36,7 @@ class IComboBox extends JComboBox<OItem> {
 
 	String getItemName(short index) {
 		for (int i = 0; i < getItemCount(); i++) {
-			OItem item = getItemAt(index);
+			OItem item = getItemAt(i);
 			if (item.id == index) {
 				return item.name;
 			}
