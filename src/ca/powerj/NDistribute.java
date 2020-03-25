@@ -1,6 +1,7 @@
 package ca.powerj;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.io.FileNotFoundException;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -48,6 +50,7 @@ class NDistribute extends NBase {
 	private ArrayList<DataPerson> rows = new ArrayList<DataPerson>();
 	private ModelFTE model;
 	private ITable tblList;
+	private IChartBar chartBar;
 
 	NDistribute(AClient parent) {
 		super(parent);
@@ -78,6 +81,9 @@ class NDistribute extends NBase {
 		subs.clear();
 		headers.clear();
 		rows.clear();
+		if (chartBar != null) {
+			chartBar.close();
+		}
 		return true;
 	}
 
@@ -108,9 +114,20 @@ class NDistribute extends NBase {
 			}
 		};
 		JScrollPane scrollList = IGUI.createJScrollPane(tblList);
+		Dimension dim = new Dimension(1000, 300);
+		chartBar = new IChartBar(dim);
+		JScrollPane scrollChart = IGUI.createJScrollPane(chartBar);
+		scrollChart.setMinimumSize(dim);
+		JSplitPane splitAll = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		splitAll.setTopComponent(scrollChart);
+		splitAll.setBottomComponent(scrollList);
+		splitAll.setOneTouchExpandable(true);
+		splitAll.setDividerLocation(450);
+		splitAll.setPreferredSize(new Dimension(1100, 900));
 		setLayout(new BorderLayout());
+		setOpaque(true);
 		add(new IToolBar(this), BorderLayout.NORTH);
-		add(scrollList, BorderLayout.CENTER);
+		add(splitAll, BorderLayout.CENTER);
 	}
 
 	private void getData() {
@@ -402,6 +419,18 @@ class NDistribute extends NBase {
 				double d = entry2.getValue().doubleValue();
 				entry2.setValue(1.00 * d / annualFte);
 			}
+		}
+		if (rows.size() > 1) {
+			// Chart Data Set
+			String[] x = new String[rows.size() - 1];
+			double[] y = new double[rows.size() - 1];
+			for (int i = 0; i < rows.size(); i++) {
+				if (rows.get(i).prsID > 0) {
+					x[i] = rows.get(i).prsName;
+					y[i] = rows.get(i).fte;
+				}
+			}
+			chartBar.setChart(x, y, "FTE Distribution");
 		}
 	}
 

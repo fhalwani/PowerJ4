@@ -1,9 +1,11 @@
 package ca.powerj;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
+
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -14,24 +16,24 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 
 class NSpecimen extends NBase {
-	private final byte DATA_NAMES  = 0;
-	private final byte DATA_SPECS  = 1;
+	private final byte DATA_NAME = 0;
+	private final byte DATA_COUNT = 1;
 	private final byte DATA_BLOCKS = 2;
 	private final byte DATA_SLIDES = 3;
-	private final byte DATA_HE     = 4;
-	private final byte DATA_SS     = 5;
-	private final byte DATA_IHC    = 6;
+	private final byte DATA_HE = 4;
+	private final byte DATA_SS = 5;
+	private final byte DATA_IHC = 6;
 	private final byte DATA_VALUE1 = 7;
 	private final byte DATA_VALUE2 = 8;
 	private final byte DATA_VALUE3 = 9;
 	private final byte DATA_VALUE4 = 10;
 	private final byte DATA_VALUE5 = 11;
-	private short         facID       = 0;
-	private long          timeFrom    = 0;
-	private long          timeTo      = 0;
-	private String[]      coders      = new String[5];
-	private TreePath      treePath;
-	private ITreeTable    tree;
+	private short facID = 0;
+	private long timeFrom = 0;
+	private long timeTo = 0;
+	private String[] columns = { "Name", "Count", "Blocks", "Slides", "H&E", "SS", "IHC", "", "", "", "", "" };
+	private TreePath treePath;
+	private ITreeTable tree;
 	private ModelSpecimen model;
 	private IChartPie chartCoder1, chartCoder2, chartCoder3, chartCoder4, chartCoder5;
 
@@ -39,6 +41,11 @@ class NSpecimen extends NBase {
 		super(parent);
 		setName("Specimens");
 		parent.dbPowerJ.prepareSpecimen();
+		columns[7] = pj.setup.getString(LSetup.VAR_CODER1_NAME);
+		columns[8] = pj.setup.getString(LSetup.VAR_CODER2_NAME);
+		columns[9] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
+		columns[10] = pj.setup.getString(LSetup.VAR_CODER4_NAME);
+		columns[11] = pj.setup.getString(LSetup.VAR_V5_NAME);
 		createPanel();
 		programmaticChange = false;
 	}
@@ -65,11 +72,6 @@ class NSpecimen extends NBase {
 	}
 
 	private void createPanel() {
-		coders[0] = pj.setup.getString(LSetup.VAR_CODER1_NAME);
-		coders[1] = pj.setup.getString(LSetup.VAR_CODER2_NAME);
-		coders[2] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
-		coders[3] = pj.setup.getString(LSetup.VAR_CODER4_NAME);
-		coders[4] = pj.setup.getString(LSetup.VAR_V5_NAME);
 		OSpecnode root = new OSpecnode("Total");
 		model = new ModelSpecimen(root);
 		tree = new ITreeTable(pj, model);
@@ -148,11 +150,11 @@ class NSpecimen extends NBase {
 					yCoder4[i] = leaf.fte4;
 					yCoder5[i] = leaf.fte5;
 				}
-				chartCoder1.setChart(xTitles, yCoder1, coders[0], IChartPie.COLOR_DEF);
-				chartCoder2.setChart(xTitles, yCoder2, coders[1], IChartPie.COLOR_DEF);
-				chartCoder3.setChart(xTitles, yCoder3, coders[2], IChartPie.COLOR_DEF);
-				chartCoder4.setChart(xTitles, yCoder4, coders[3], IChartPie.COLOR_DEF);
-				chartCoder5.setChart(xTitles, yCoder5, coders[4], IChartPie.COLOR_DEF);
+				chartCoder1.setChart(xTitles, yCoder1, columns[7], IChartPie.COLOR_DEF);
+				chartCoder2.setChart(xTitles, yCoder2, columns[8], IChartPie.COLOR_DEF);
+				chartCoder3.setChart(xTitles, yCoder3, columns[9], IChartPie.COLOR_DEF);
+				chartCoder4.setChart(xTitles, yCoder4, columns[10], IChartPie.COLOR_DEF);
+				chartCoder5.setChart(xTitles, yCoder5, columns[11], IChartPie.COLOR_DEF);
 			}
 		}
 		altered = false;
@@ -186,17 +188,13 @@ class NSpecimen extends NBase {
 	}
 
 	private class ModelSpecimen extends ITreeTableModel implements ITreeModel {
-		private final String[] headers = { "Name", "Specs", "Blocks", "Slides", "H&E",
-				"SS", "IHC", coders[0], coders[1], coders[2], coders[3], coders[4] };
 
-		private final Class<?>[] types = { ITreeModel.class, Integer.class, Integer.class, Integer.class,
-				Integer.class, Integer.class, Integer.class, Double.class, Double.class, Double.class,
-				Double.class, Double.class };
+		private final Class<?>[] types = { ITreeModel.class, Integer.class, Integer.class, Integer.class, Integer.class,
+				Integer.class, Integer.class, Double.class, Double.class, Double.class, Double.class, Double.class };
 
 		public ModelSpecimen(Object nodeRoot) {
 			super(nodeRoot);
 		}
-
 
 		@Override
 		public Object getChild(Object node, int element) {
@@ -216,12 +214,12 @@ class NSpecimen extends NBase {
 
 		@Override
 		public int getColumnCount() {
-			return headers.length;
+			return columns.length;
 		}
 
 		@Override
 		public String getColumnName(int column) {
-			return headers[column];
+			return columns[column];
 		}
 
 		@Override
@@ -233,9 +231,9 @@ class NSpecimen extends NBase {
 		public Object getValueAt(Object node, int column) {
 			OSpecnode data = (OSpecnode) node;
 			switch (column) {
-			case DATA_NAMES:
+			case DATA_NAME:
 				return data.name;
-			case DATA_SPECS:
+			case DATA_COUNT:
 				return data.noSpecs;
 			case DATA_BLOCKS:
 				return data.noBlocks;
@@ -267,23 +265,23 @@ class NSpecimen extends NBase {
 
 		@Override
 		protected Void doInBackground() throws Exception {
-			byte      spyID  = 0;
-			byte      subID  = 0;
-			short     spgID  = 0;
-			short     facID2 = 0;
-			int       noDays = pj.dates.getNoDays(timeFrom, timeTo);
-			double    fte1   = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER1_FTE) / 365;
-			double    fte2   = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER2_FTE) / 365;
-			double    fte3   = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER3_FTE) / 365;
-			double    fte4   = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER4_FTE) / 365;
-			double    fte5   = 1.0 * noDays * pj.setup.getInt(LSetup.VAR_V5_FTE) / 365;
+			byte spyID = 0;
+			byte subID = 0;
+			short spgID = 0;
+			short facID2 = 0;
+			int noDays = pj.dates.getNoDays(timeFrom, timeTo);
+			double fte1 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER1_FTE) / 365;
+			double fte2 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER2_FTE) / 365;
+			double fte3 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER3_FTE) / 365;
+			double fte4 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER4_FTE) / 365;
+			double fte5 = 1.0 * noDays * pj.setup.getInt(LSetup.VAR_V5_FTE) / 365;
 			OSpecimen specTotal = new OSpecimen();
 			OSpecimen specSpeci = new OSpecimen();
 			OSpecimen specSubsp = new OSpecimen();
 			OSpecimen specGroup = new OSpecimen();
 			OSpecimen specFacil = new OSpecimen();
 			OSpecimen specPersn = new OSpecimen();
-			ResultSet rst    = null;
+			ResultSet rst = null;
 			try {
 				setName("SpecWorker");
 				pj.dbPowerJ.setDate(DPowerJ.STM_SPG_SL_SUM, 1, timeFrom);
@@ -296,10 +294,10 @@ class NSpecimen extends NBase {
 							if (specSpeci.children.size() > 0) {
 								specTotal.children.add(specSpeci);
 							}
-							subID  = 0;
-							spgID  = 0;
+							subID = 0;
+							spgID = 0;
 							facID2 = 0;
-							spyID  = rst.getByte("SYID");
+							spyID = rst.getByte("SYID");
 							specSpeci = new OSpecimen();
 							specSpeci.name = rst.getString("SYNM").trim();
 						}
@@ -307,7 +305,7 @@ class NSpecimen extends NBase {
 							if (specSubsp.children.size() > 0) {
 								specSpeci.children.add(specSubsp);
 							}
-							spgID  = 0;
+							spgID = 0;
 							facID2 = 0;
 							subID = rst.getByte("SBID");
 							specSubsp = new OSpecimen();
@@ -330,18 +328,18 @@ class NSpecimen extends NBase {
 							specFacil = new OSpecimen();
 							specFacil.name = rst.getString("FANM").trim();
 						}
-						specPersn          = new OSpecimen();
-						specPersn.noSpecs  = rst.getInt("QTY");
+						specPersn = new OSpecimen();
+						specPersn.noSpecs = rst.getInt("QTY");
 						specPersn.noBlocks = rst.getInt("SPBL");
 						specPersn.noSlides = rst.getInt("SPSL");
-						specPersn.noHE     = rst.getInt("SPHE");
-						specPersn.noSS     = rst.getInt("SPSS");
-						specPersn.noIHC    = rst.getInt("SPIH");
-						specPersn.fte1     = rst.getDouble("SPV1");
-						specPersn.fte2     = rst.getDouble("SPV2");
-						specPersn.fte3     = rst.getDouble("SPV3");
-						specPersn.fte4     = rst.getDouble("SPV4");
-						specPersn.fte5     = rst.getDouble("SPV5");
+						specPersn.noHE = rst.getInt("SPHE");
+						specPersn.noSS = rst.getInt("SPSS");
+						specPersn.noIHC = rst.getInt("SPIH");
+						specPersn.fte1 = rst.getDouble("SPV1");
+						specPersn.fte2 = rst.getDouble("SPV2");
+						specPersn.fte3 = rst.getDouble("SPV3");
+						specPersn.fte4 = rst.getDouble("SPV4");
+						specPersn.fte5 = rst.getDouble("SPV5");
 						if (pj.userAccess[LConstants.ACCESS_NAMES] || pj.userID == rst.getShort("PRID")) {
 							specPersn.name = rst.getString("PRNM").trim();
 						} else if (facID > 0) {
@@ -353,51 +351,51 @@ class NSpecimen extends NBase {
 							specGroup.children.add(specPersn);
 						} else {
 							specFacil.children.add(specPersn);
-							specFacil.noSpecs  += specPersn.noSpecs;
+							specFacil.noSpecs += specPersn.noSpecs;
 							specFacil.noBlocks += specPersn.noBlocks;
 							specFacil.noSlides += specPersn.noSlides;
-							specFacil.noHE     += specPersn.noHE;
-							specFacil.noSS     += specPersn.noSS;
-							specFacil.noIHC    += specPersn.noIHC;
-							specFacil.fte1     += specPersn.fte1;
-							specFacil.fte2     += specPersn.fte2;
-							specFacil.fte3     += specPersn.fte3;
-							specFacil.fte4     += specPersn.fte4;
-							specFacil.fte5     += specPersn.fte5;
+							specFacil.noHE += specPersn.noHE;
+							specFacil.noSS += specPersn.noSS;
+							specFacil.noIHC += specPersn.noIHC;
+							specFacil.fte1 += specPersn.fte1;
+							specFacil.fte2 += specPersn.fte2;
+							specFacil.fte3 += specPersn.fte3;
+							specFacil.fte4 += specPersn.fte4;
+							specFacil.fte5 += specPersn.fte5;
 						}
-						specGroup.noSpecs  += specPersn.noSpecs;
+						specGroup.noSpecs += specPersn.noSpecs;
 						specGroup.noBlocks += specPersn.noBlocks;
 						specGroup.noSlides += specPersn.noSlides;
-						specGroup.noHE     += specPersn.noHE;
-						specGroup.noSS     += specPersn.noSS;
-						specGroup.noIHC    += specPersn.noIHC;
-						specGroup.fte1     += specPersn.fte1;
-						specGroup.fte2     += specPersn.fte2;
-						specGroup.fte3     += specPersn.fte3;
-						specGroup.fte4     += specPersn.fte4;
-						specGroup.fte5     += specPersn.fte5;
-						specSubsp.noSpecs  += specPersn.noSpecs;
+						specGroup.noHE += specPersn.noHE;
+						specGroup.noSS += specPersn.noSS;
+						specGroup.noIHC += specPersn.noIHC;
+						specGroup.fte1 += specPersn.fte1;
+						specGroup.fte2 += specPersn.fte2;
+						specGroup.fte3 += specPersn.fte3;
+						specGroup.fte4 += specPersn.fte4;
+						specGroup.fte5 += specPersn.fte5;
+						specSubsp.noSpecs += specPersn.noSpecs;
 						specSubsp.noBlocks += specPersn.noBlocks;
 						specSubsp.noSlides += specPersn.noSlides;
-						specSubsp.noHE     += specPersn.noHE;
-						specSubsp.noSS     += specPersn.noSS;
-						specSubsp.noIHC    += specPersn.noIHC;
-						specSubsp.fte1     += specPersn.fte1;
-						specSubsp.fte2     += specPersn.fte2;
-						specSubsp.fte3     += specPersn.fte3;
-						specSubsp.fte4     += specPersn.fte4;
-						specSubsp.fte5     += specPersn.fte5;
-						specSpeci.noSpecs  += specPersn.noSpecs;
+						specSubsp.noHE += specPersn.noHE;
+						specSubsp.noSS += specPersn.noSS;
+						specSubsp.noIHC += specPersn.noIHC;
+						specSubsp.fte1 += specPersn.fte1;
+						specSubsp.fte2 += specPersn.fte2;
+						specSubsp.fte3 += specPersn.fte3;
+						specSubsp.fte4 += specPersn.fte4;
+						specSubsp.fte5 += specPersn.fte5;
+						specSpeci.noSpecs += specPersn.noSpecs;
 						specSpeci.noBlocks += specPersn.noBlocks;
 						specSpeci.noSlides += specPersn.noSlides;
-						specSpeci.noHE     += specPersn.noHE;
-						specSpeci.noSS     += specPersn.noSS;
-						specSpeci.noIHC    += specPersn.noIHC;
-						specSpeci.fte1     += specPersn.fte1;
-						specSpeci.fte2     += specPersn.fte2;
-						specSpeci.fte3     += specPersn.fte3;
-						specSpeci.fte4     += specPersn.fte4;
-						specSpeci.fte5     += specPersn.fte5;
+						specSpeci.noHE += specPersn.noHE;
+						specSpeci.noSS += specPersn.noSS;
+						specSpeci.noIHC += specPersn.noIHC;
+						specSpeci.fte1 += specPersn.fte1;
+						specSpeci.fte2 += specPersn.fte2;
+						specSpeci.fte3 += specPersn.fte3;
+						specSpeci.fte4 += specPersn.fte4;
+						specSpeci.fte5 += specPersn.fte5;
 					}
 				}
 				try {
@@ -451,13 +449,13 @@ class NSpecimen extends NBase {
 		}
 
 		private void setNodes(OSpecimen specMaster, OSpecnode nodeMaster) {
-			nodeMaster.name     = specMaster.name;
-			nodeMaster.noSpecs  = specMaster.noSpecs;
+			nodeMaster.name = specMaster.name;
+			nodeMaster.noSpecs = specMaster.noSpecs;
 			nodeMaster.noBlocks = specMaster.noBlocks;
 			nodeMaster.noSlides = specMaster.noSlides;
-			nodeMaster.noHE     = specMaster.noHE;
-			nodeMaster.noSS     = specMaster.noSS;
-			nodeMaster.noIHC    = specMaster.noIHC;
+			nodeMaster.noHE = specMaster.noHE;
+			nodeMaster.noSS = specMaster.noSS;
+			nodeMaster.noIHC = specMaster.noIHC;
 			nodeMaster.children = new OSpecnode[specMaster.children.size()];
 			for (int i = 0; i < specMaster.children.size(); i++) {
 				setNodes(specMaster.children.get(i), (OSpecnode) nodeMaster.children[i]);

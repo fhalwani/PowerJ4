@@ -62,12 +62,12 @@ class AClient extends LBase implements Runnable, WindowListener {
 				frame.setTitle(LConstants.APP_NAME);
 				pnlID = 0;
 				pnlCore = null;
-				dim = new Dimension(defaults.getInt("mainw", 600), defaults.getInt("mainh", 100));
-				if (dim.width >= 600 && dim.height >= 100) {
-					frame.setPreferredSize(dim);
-				}
 				frame.invalidate();
 				frame.pack();
+				dim = new Dimension(defaults.getInt("mainw", 600), defaults.getInt("mainh", 100));
+				if (dim.width > 500 && dim.height > 90) {
+					frame.setSize(dim);
+				}
 			} else {
 				// Error saving
 				return false;
@@ -100,7 +100,7 @@ class AClient extends LBase implements Runnable, WindowListener {
 		defaultSize.width = defaults.getInt("mainw", defaultSize.width);
 		defaultSize.height = defaults.getInt("mainh", defaultSize.height);
 		if (defaultSize.width > 50 && defaultSize.height > 50) {
-			frame.setPreferredSize(defaultSize);
+			frame.setSize(defaultSize);
 		}
 	}
 
@@ -989,14 +989,12 @@ class AClient extends LBase implements Runnable, WindowListener {
 			if (errorID == LConstants.ERROR_NONE) {
 				frame.setTitle(LConstants.APP_NAME + " - " + pnlCore.getName());
 				frame.add(pnlCore, BorderLayout.CENTER);
-				Dimension dim = new Dimension(950, 900);
-				dim.width = defaults.getInt("pw" + pnlID, dim.width);
-				dim.height = defaults.getInt("ph" + pnlID, dim.height);
-				if (dim.width > 50 && dim.height > 50) {
-					frame.setPreferredSize(dim);
-				}
 				frame.invalidate();
 				frame.pack();
+				Dimension dim = new Dimension(defaults.getInt("pw" + pnlID, 900), defaults.getInt("ph" + pnlID, 900));
+				if (dim.width > 500 && dim.height > 90) {
+					frame.setSize(dim);
+				}
 			}
 		} catch (Exception e) {
 			log(LConstants.ERROR_UNEXPECTED, "PJClient", e);

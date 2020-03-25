@@ -66,7 +66,6 @@ class NOrderGroup extends NBase {
 	private final byte ORG_VAL5 = 8;
 	private short newID = 0;
 	private int rowIndex = 0;
-	private String[] coders = new String[5];
 	private String[] columns = { "NO", "NAME", "DESCR", "TYPE", "", "", "", "", "" };
 	private OOrderGroup ordergroup = new OOrderGroup();
 	private ArrayList<OOrderGroup> list = new ArrayList<OOrderGroup>();
@@ -84,16 +83,11 @@ class NOrderGroup extends NBase {
 	NOrderGroup(AClient pj) {
 		super(pj);
 		setName("Orders");
-		coders[0] = pj.setup.getString(LSetup.VAR_CODER1_NAME);
-		coders[1] = pj.setup.getString(LSetup.VAR_CODER2_NAME);
-		coders[2] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
-		coders[3] = pj.setup.getString(LSetup.VAR_CODER4_NAME);
-		coders[4] = pj.setup.getString(LSetup.VAR_V5_NAME);
-		columns[4] = coders[0];
-		columns[5] = coders[1];
-		columns[6] = coders[2];
-		columns[7] = coders[3];
-		columns[8] = coders[4];
+		columns[4] = pj.setup.getString(LSetup.VAR_CODER1_NAME);
+		columns[5] = pj.setup.getString(LSetup.VAR_CODER2_NAME);
+		columns[6] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
+		columns[7] = pj.setup.getString(LSetup.VAR_CODER4_NAME);
+		columns[8] = pj.setup.getString(LSetup.VAR_V5_NAME);
 		pj.dbPowerJ.prepareStpOrdGroup();
 		getData();
 		createPanel();
@@ -201,7 +195,7 @@ class NOrderGroup extends NBase {
 				}
 			}
 		});
-		label = IGUI.createJLabel(SwingConstants.LEFT, 0, coders[0]);
+		label = IGUI.createJLabel(SwingConstants.LEFT, 0, columns[4]);
 		label.setLabelFor(cboCoder1);
 		IGUI.addComponent(label, 0, 3, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
 		IGUI.addComponent(cboCoder1, 1, 3, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
@@ -224,7 +218,7 @@ class NOrderGroup extends NBase {
 				}
 			}
 		});
-		label = IGUI.createJLabel(SwingConstants.LEFT, 0, coders[1]);
+		label = IGUI.createJLabel(SwingConstants.LEFT, 0, columns[5]);
 		label.setLabelFor(cboCoder2);
 		IGUI.addComponent(label, 0, 4, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
 		IGUI.addComponent(cboCoder2, 1, 4, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
@@ -247,7 +241,7 @@ class NOrderGroup extends NBase {
 				}
 			}
 		});
-		label = IGUI.createJLabel(SwingConstants.LEFT, 0, coders[2]);
+		label = IGUI.createJLabel(SwingConstants.LEFT, 0, columns[6]);
 		label.setLabelFor(cboCoder3);
 		IGUI.addComponent(label, 0, 5, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
 		IGUI.addComponent(cboCoder3, 1, 5, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
@@ -270,12 +264,12 @@ class NOrderGroup extends NBase {
 				}
 			}
 		});
-		label = IGUI.createJLabel(SwingConstants.LEFT, 0, coders[3]);
+		label = IGUI.createJLabel(SwingConstants.LEFT, 0, columns[7]);
 		label.setLabelFor(cboCoder4);
 		IGUI.addComponent(label, 0, 6, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
 		IGUI.addComponent(cboCoder4, 1, 6, 2, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
 				pnlData);
-		label = IGUI.createJLabel(SwingConstants.LEFT, 0, coders[4]);
+		label = IGUI.createJLabel(SwingConstants.LEFT, 0, columns[8]);
 		IGUI.addComponent(label, 0, 7, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
 		lblValue5 = IGUI.createJLabel(SwingConstants.LEFT, 0, "   0");
 		IGUI.addComponent(lblValue5, 1, 7, 2, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,

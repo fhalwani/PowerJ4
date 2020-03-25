@@ -120,7 +120,6 @@ class NFinals extends NBase {
 	private final byte FILTER_SUB = 2;
 	private final byte FILTER_PRO = 3;
 	private short[] filters = { 0, 0, 0, 0 };
-	private String[] coders = new String[5];
 	private String[] columns = { "NO", "FAC", "SPY", "SUB", "PROC", "SPEC", "", "", "", "", "", "SPECS", "BLKS", "SLDS",
 			"H&E", "SS", "IHC", "MOL", "SYNP", "FS", "ACCESS", "GROSS", "EMBED", "MICRO", "ROUTE", "FINAL", "GRNM",
 			"EMNM", "MINM", "RONM", "FINM", "GRTA", "EMTA", "MITA", "ROTA", "FITA" };
@@ -143,16 +142,11 @@ class NFinals extends NBase {
 		super(parent);
 		setName("Finals");
 		parent.dbPowerJ.prepareFinals();
-		coders[0] = pj.setup.getString(LSetup.VAR_CODER1_NAME);
-		coders[1] = pj.setup.getString(LSetup.VAR_CODER2_NAME);
-		coders[2] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
-		coders[3] = pj.setup.getString(LSetup.VAR_CODER4_NAME);
-		coders[4] = pj.setup.getString(LSetup.VAR_V5_NAME);
-		columns[6] = coders[0];
-		columns[7] = coders[1];
-		columns[8] = coders[2];
-		columns[9] = coders[3];
-		columns[10] = coders[4];
+		columns[6] = pj.setup.getString(LSetup.VAR_CODER1_NAME);
+		columns[7] = pj.setup.getString(LSetup.VAR_CODER2_NAME);
+		columns[8] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
+		columns[9] = pj.setup.getString(LSetup.VAR_CODER4_NAME);
+		columns[10] = pj.setup.getString(LSetup.VAR_V5_NAME);
 		createPanel();
 		WorkerData worker = new WorkerData();
 		worker.execute();
@@ -1018,7 +1012,7 @@ class NFinals extends NBase {
 	}
 
 	private class ModelAdditional extends ITableModel {
-		private final String[] columns = { "ADDL", coders[0], coders[1], coders[2], coders[3], coders[4], "STAFF",
+		private String[] headers = { "ADDL", columns[6], columns[7], columns[8], columns[9], columns[10], "STAFF",
 				"DATE" };
 
 		@Override
@@ -1040,12 +1034,12 @@ class NFinals extends NBase {
 
 		@Override
 		public int getColumnCount() {
-			return columns.length;
+			return headers.length;
 		}
 
 		@Override
 		public String getColumnName(int col) {
-			return columns[col];
+			return headers[col];
 		}
 
 		@Override
@@ -1253,7 +1247,7 @@ class NFinals extends NBase {
 	}
 
 	private class ModelFrozen extends ITableModel {
-		private final String[] columns = { "FSEC", coders[0], coders[1], coders[2], coders[3], coders[4], "BLKS",
+		private final String[] headers = { "FSEC", columns[6], columns[7], columns[8], columns[9], columns[10], "BLKS",
 				"SLDS" };
 
 		@Override
@@ -1276,12 +1270,12 @@ class NFinals extends NBase {
 
 		@Override
 		public int getColumnCount() {
-			return columns.length;
+			return headers.length;
 		}
 
 		@Override
 		public String getColumnName(int col) {
-			return columns[col];
+			return headers[col];
 		}
 
 		@Override
@@ -1323,7 +1317,7 @@ class NFinals extends NBase {
 	}
 
 	private class ModelOrder extends ITableModel {
-		private final String[] columns = { "ORDER", "QTY", coders[0], coders[1], coders[2], coders[3] };
+		private final String[] headers = { "ORDER", "QTY", columns[6], columns[7], columns[8], columns[9] };
 
 		@Override
 		public Class<?> getColumnClass(int col) {
@@ -1342,12 +1336,12 @@ class NFinals extends NBase {
 
 		@Override
 		public int getColumnCount() {
-			return columns.length;
+			return headers.length;
 		}
 
 		@Override
 		public String getColumnName(int col) {
-			return columns[col];
+			return headers[col];
 		}
 
 		@Override
@@ -1384,7 +1378,7 @@ class NFinals extends NBase {
 	}
 
 	private class ModelSpecimen extends ITableModel {
-		private final String[] columns = { "SPEC", coders[0], coders[1], coders[2], coders[3], coders[4], "BLKS",
+		private final String[] headers = { "SPEC", columns[6], columns[7], columns[8], columns[9], columns[10], "BLKS",
 				"SLDS", "FRAG", "H&E", "SS", "IHC", "MOL" };
 
 		@Override
@@ -1412,12 +1406,12 @@ class NFinals extends NBase {
 
 		@Override
 		public int getColumnCount() {
-			return columns.length;
+			return headers.length;
 		}
 
 		@Override
 		public String getColumnName(int col) {
-			return columns[col];
+			return headers[col];
 		}
 
 		@Override

@@ -1,8 +1,12 @@
 package ca.powerj;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -11,6 +15,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+
 import javax.swing.DefaultCellEditor;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -20,6 +25,26 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Chunk;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 
 class NSchedule extends NBase {
 	private boolean byService = true;
@@ -96,11 +121,10 @@ class NSchedule extends NBase {
 					int c = columnAtPoint(p);
 					int m = t.convertRowIndexToModel(v);
 					if (c == 0) {
-						return (byService ? services.get(m).descr:
-							persons.get(scheduleStaff.get(m).prsID));
+						return (byService ? services.get(m).descr : persons.get(scheduleStaff.get(m).prsID));
 					} else {
-						return (byService ? persons.get(scheduleServices.get(m).get(c -1).person.id) :
-							scheduleStaff.get(m).services[c -1]);
+						return (byService ? persons.get(scheduleServices.get(m).get(c - 1).person.id)
+								: scheduleStaff.get(m).services[c - 1]);
 					}
 				} catch (IndexOutOfBoundsException ignore) {
 					return null;
@@ -140,7 +164,7 @@ class NSchedule extends NBase {
 				calStart.setTimeInMillis(rst.getDate("WDDT").getTime());
 				workday.date.setTime(calStart.getTimeInMillis());
 				workday.name = pj.dates.formatter(workday.date, LDates.FORMAT_SCHED);
-				workday.dow  = calStart.get(Calendar.DAY_OF_WEEK);
+				workday.dow = calStart.get(Calendar.DAY_OF_WEEK);
 				workday.wdID = rst.getInt("WDID");
 				workday.isOn = (rst.getString("WDTP").equalsIgnoreCase("D"));
 				workdays.add(workday);
@@ -190,12 +214,12 @@ class NSchedule extends NBase {
 				service = services.get(row);
 				cols = new ArrayList<OScheduleService>();
 				for (int col = 0; col < workdays.size(); col++) {
-					workday         = workdays.get(col);
-					schedule        = new OScheduleService();
-					schedule.isNew  = true;
-					schedule.wdID   = workday.wdID;
-					schedule.date   = workday.name;
-					schedule.srvID  = service.srvID;
+					workday = workdays.get(col);
+					schedule = new OScheduleService();
+					schedule.isNew = true;
+					schedule.wdID = workday.wdID;
+					schedule.date = workday.name;
+					schedule.srvID = service.srvID;
 					schedule.servce = service.name;
 					// On call or (regular work day and on that specific day)
 					schedule.isOn = (service.codes[0] || (workday.isOn && service.codes[workday.dow]));
@@ -234,7 +258,8 @@ class NSchedule extends NBase {
 				}
 				if (rowID > -1 && colID > -1) {
 					scheduleServices.get(rowID).get(colID).isNew = false;
-					scheduleServices.get(rowID).get(colID).person = new OItem(rst.getShort("PRID"), rst.getString("PRNM"));
+					scheduleServices.get(rowID).get(colID).person = new OItem(rst.getShort("PRID"),
+							rst.getString("PRNM"));
 				}
 			}
 		} catch (SQLException e) {
@@ -245,13 +270,13 @@ class NSchedule extends NBase {
 	}
 
 	private void getScheduleStaff() {
-		short    prsID       = -1;
-		short    dateID      = -1;
-		short    rowID       = -1;
-		short    colID       = -1;
-		Calendar calMonday   = Calendar.getInstance();
+		short prsID = -1;
+		short dateID = -1;
+		short rowID = -1;
+		short colID = -1;
+		Calendar calMonday = Calendar.getInstance();
 		OScheduleStaff staff = new OScheduleStaff();
-		ResultSet      rst   = null;
+		ResultSet rst = null;
 		try {
 			scheduleServices.clear();
 			scheduleStaff.clear();
@@ -262,10 +287,10 @@ class NSchedule extends NBase {
 			rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SCH_SL_STA);
 			while (rst.next()) {
 				if (prsID != rst.getShort("PRID")) {
-					prsID  = rst.getShort("PRID");
-					rowID  = -1;
+					prsID = rst.getShort("PRID");
+					rowID = -1;
 					dateID = -1;
-					colID  = -1;
+					colID = -1;
 					for (short row = 0; row < scheduleStaff.size(); row++) {
 						if (prsID == scheduleStaff.get(row).prsID) {
 							staff = scheduleStaff.get(row);
@@ -276,17 +301,17 @@ class NSchedule extends NBase {
 					if (rowID == -1) {
 						staff = new OScheduleStaff();
 						staff.prsID = prsID;
-						staff.name  = rst.getString("PRNM");
+						staff.name = rst.getString("PRNM");
 						for (int i = 0; i < 7; i++) {
 							staff.services[i] = "";
 						}
 						scheduleStaff.add(staff);
-						rowID = (short) (scheduleStaff.size() -1);
+						rowID = (short) (scheduleStaff.size() - 1);
 					}
 				}
 				if (dateID != rst.getShort("WDID")) {
 					dateID = rst.getShort("WDID");
-					colID  = -1;
+					colID = -1;
 					for (short col = 0; col < workdays.size(); col++) {
 						if (dateID == workdays.get(col).wdID) {
 							colID = col;
@@ -324,7 +349,7 @@ class NSchedule extends NBase {
 				if (facID == rst.getShort("FAID") || facID == 0) {
 					service = new OService();
 					service.srvID = rst.getByte("SRID");
-					service.name  = rst.getString("SRNM");
+					service.name = rst.getString("SRNM");
 					service.descr = rst.getString("SRDC");
 					service.codes = pj.numbers.shortToBoolean(rst.getShort("SRCD"));
 					services.add(service);
@@ -350,17 +375,110 @@ class NSchedule extends NBase {
 				}
 			}
 			Collections.sort(dates, new Comparator<Date>() {
+				@Override
 				public int compare(Date o1, Date o2) {
 					return (o1.getTime() > o2.getTime() ? -1 : (o1.getTime() == o2.getTime() ? 0 : 1));
 				}
 			});
-			for (int i = dates.size() -1 ; dates.size() > 52; i--) {
+			for (int i = dates.size() - 1; dates.size() > 52; i--) {
 				dates.remove(i);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
 			pj.dbPowerJ.closeRst(rst);
+		}
+	}
+
+	@Override
+	void pdf() {
+		String fileName = pj.getFilePdf("schedule.pdf").trim();
+		if (fileName.length() == 0)
+			return;
+		float[] widths = new float[workdays.size() + 1];
+		for (int col = 0; col < workdays.size() + 1; col++) {
+			widths[col] = 1;
+		}
+		String str = "Schedule - " + pj.dates.formatter(dates.get(rowIndex).getTime(), LDates.FORMAT_DATELONG);
+		LPdf pdfLib = new LPdf();
+		HashMap<String, Font> fonts = pdfLib.getFonts();
+		Document document = new Document(PageSize.LETTER, 36, 18, 18, 18);
+		Paragraph paragraph = new Paragraph();
+		PdfPCell cell = new PdfPCell();
+		PdfPTable table = new PdfPTable(widths.length);
+		try {
+			FileOutputStream fos = new FileOutputStream(fileName);
+			PdfWriter.getInstance(document, fos);
+			document.open();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.add(new Chunk(pj.setup.getString(LSetup.VAR_LAB_NAME)));
+			document.add(paragraph);
+			paragraph = new Paragraph();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.setAlignment(Element.ALIGN_CENTER);
+			paragraph.add(new Chunk(str));
+			document.add(paragraph);
+			document.add(Chunk.NEWLINE);
+			table.setWidthPercentage(100);
+			table.setWidths(widths);
+			for (int col = 0; col < widths.length; col++) {
+				paragraph = new Paragraph();
+				paragraph.setFont(fonts.get("Font10b"));
+				paragraph.setAlignment(Element.ALIGN_CENTER);
+				if (col == 0) {
+					str = (byService ? "Service" : "Staff");
+				} else {
+					str = workdays.get(col - 1).name;
+				}
+				paragraph.add(new Chunk(str));
+				cell = new PdfPCell();
+				cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+				cell.setBackgroundColor(BaseColor.YELLOW);
+				cell.addElement(paragraph);
+				table.addCell(cell);
+			}
+			table.setHeaderRows(1);
+			// data rows
+			int i = 0;
+			for (int row = 0; row < tblSchedule.getRowCount(); row++) {
+				i = tblSchedule.convertRowIndexToModel(row);
+				for (int col = 0; col < widths.length; col++) {
+					paragraph = new Paragraph();
+					paragraph.setFont(fonts.get("Font10n"));
+					cell = new PdfPCell();
+					str = "";
+					if (byService) {
+						if (scheduleServices.size() > i) {
+							if (col > 0) {
+								if (scheduleServices.get(i).size() > col) {
+									str = scheduleServices.get(i).get(col - 1).person.name;
+								}
+							} else {
+								str = services.get(i).name;
+							}
+						}
+					} else {
+						if (scheduleStaff.size() > i) {
+							if (col > 0) {
+								str = scheduleStaff.get(i).services[col - 1];
+							} else {
+								str = scheduleStaff.get(i).name;
+							}
+						}
+					}
+					paragraph.add(new Chunk(str));
+					paragraph.setAlignment(Element.ALIGN_LEFT);
+					cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+					cell.addElement(paragraph);
+					table.addCell(cell);
+				}
+			}
+			document.add(table);
+			document.close();
+		} catch (DocumentException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
 		}
 	}
 
@@ -429,6 +547,85 @@ class NSchedule extends NBase {
 		}
 	}
 
+	@Override
+	void xls() {
+		String fileName = pj.getFileXls("schedule.xls").trim();
+		if (fileName.length() == 0)
+			return;
+		try {
+			Workbook wb = new HSSFWorkbook();
+			LExcel xlsLib = new LExcel(wb);
+			HashMap<String, CellStyle> styles = xlsLib.getStyles();
+			Sheet sheet = wb.createSheet("Schedule");
+			// title row
+			Row xlsRow = sheet.createRow(0);
+			xlsRow.setHeightInPoints(45);
+			Cell xlsCell = xlsRow.createCell(0);
+			xlsCell.setCellValue(
+					"Schedule - " + pj.dates.formatter(dates.get(rowIndex).getTime(), LDates.FORMAT_DATELONG));
+			xlsCell.setCellStyle(styles.get("title"));
+			sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$H$1"));
+			// header row
+			xlsRow = sheet.createRow(1);
+			xlsRow.setHeightInPoints(30);
+			String str = "";
+			for (int col = 0; col < workdays.size() + 1; col++) {
+				xlsCell = xlsRow.createCell(col);
+				if (col == 0) {
+					str = (byService ? "Service" : "Staff");
+				} else {
+					str = workdays.get(col - 1).name;
+				}
+				xlsCell.setCellValue(str);
+				xlsCell.setCellStyle(styles.get("header"));
+				sheet.setColumnWidth(col, 15 * 256); // 15 characters
+				sheet.setDefaultColumnStyle(col, styles.get("text"));
+			}
+			// data rows
+			int rownum = 2;
+			int i = 0;
+			for (int row = 0; row < tblSchedule.getRowCount(); row++) {
+				i = tblSchedule.convertRowIndexToModel(row);
+				xlsRow = sheet.createRow(rownum++);
+				for (int col = 0; col < workdays.size() + 1; col++) {
+					xlsCell = xlsRow.createCell(col);
+					str = "";
+					if (byService) {
+						if (scheduleServices.size() > i) {
+							if (col > 0) {
+								if (scheduleServices.get(i).size() > col) {
+									str = scheduleServices.get(i).get(col - 1).person.name;
+								}
+							} else {
+								str = services.get(i).name;
+							}
+						}
+					} else {
+						if (scheduleStaff.size() > i) {
+							if (col > 0) {
+								str = scheduleStaff.get(i).services[col - 1];
+							} else {
+								str = scheduleStaff.get(i).name;
+							}
+						}
+					}
+					xlsCell.setCellValue(str);
+				}
+			}
+			sheet.createFreezePane(1, 2);
+			// Write the output to a file
+			FileOutputStream out = new FileOutputStream(fileName);
+			wb.write(out);
+			out.close();
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
+		} catch (IOException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (Exception e) {
+			pj.log(LConstants.ERROR_UNEXPECTED, getName(), e);
+		}
+	}
+
 	private class ModelDates extends ITableModel {
 
 		@Override
@@ -470,7 +667,7 @@ class NSchedule extends NBase {
 		@Override
 		public String getColumnName(int col) {
 			if (col == 0) {
-				return (byService ? "Service": "Staff");
+				return (byService ? "Service" : "Staff");
 			} else {
 				return workdays.get(col - 1).name;
 			}
@@ -478,7 +675,7 @@ class NSchedule extends NBase {
 
 		@Override
 		public int getRowCount() {
-			return (byService ? services.size(): scheduleStaff.size());
+			return (byService ? services.size() : scheduleStaff.size());
 		}
 
 		@Override
@@ -508,8 +705,7 @@ class NSchedule extends NBase {
 		@Override
 		public boolean isCellEditable(int row, int col) {
 			// Only if view is byService is editable
-			return (byService && col > 0
-					&& pj.userAccess[LConstants.ACCESS_STP_SC]
+			return (byService && col > 0 && pj.userAccess[LConstants.ACCESS_STP_SC]
 					&& scheduleServices.get(row).get(col - 1).isOn);
 		}
 

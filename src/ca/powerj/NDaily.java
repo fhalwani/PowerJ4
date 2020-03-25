@@ -62,7 +62,7 @@ class NDaily extends NBase {
 	private int routeTime = 0;
 	private final String[] columns = { "NO", "CASE", "SPY", "SUB", "PROC", "SPEC", "SPECS", "BLKS", "SLDS",
 			pj.setup.getString(LSetup.VAR_V5_NAME).toUpperCase(), "ACCESS", "ROUTE", "BY", "TO", "CUTOFF", "SPENT",
-			"PRCNT" };
+			"DELAY" };
 	private HashMap<Byte, OTurnaround> turnarounds = new HashMap<Byte, OTurnaround>();
 	private ArrayList<OCasePending> pendings = new ArrayList<OCasePending>();
 	private ModelCases modelCases;
@@ -127,8 +127,8 @@ class NDaily extends NBase {
 		JScrollPane scrollChart = IGUI.createJScrollPane(chartBar);
 		scrollChart.setMinimumSize(dim);
 		JSplitPane splitAll = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-		splitAll.setTopComponent(scrollTable);
-		splitAll.setBottomComponent(scrollChart);
+		splitAll.setTopComponent(scrollChart);
+		splitAll.setBottomComponent(scrollTable);
 		splitAll.setOneTouchExpandable(true);
 		splitAll.setDividerLocation(450);
 		splitAll.setPreferredSize(new Dimension(1100, 900));
