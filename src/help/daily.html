@@ -7,7 +7,14 @@
 </head>
 <body>
 <h1>Daily Workflow</h1>
-<p>Under Construction.</p>
+<p>The daily report gives the pathologists a snapshot of today's workflow and workload.</p>
+<BR>
+<h2>Data Table:</h2>
+<p>The table shows the backlog cases that belong to the person logged in, if you are a pathologist. It lists the case number, specialty, subspecialty, procedure, main (or only) specimen description, number of specimens, number of blocks, number of slides, (<a href="code5.html">workload value</a>), date received, date routed, the route technologist, the receiving pathologist, the time alloted to this case, the time spent so far calculated in (<a href="businesshours.html">business hours</a>), and the percent of time (%) that has passed.  The table is initially sorted by the % column, but you can change the sort order by clicking on the column header of your choice.</p>
+<p>A case is tagged by a red background if the time passed since accession has exceeded the time alloted in the <a href="turnmaster.html">turnaround time</a> setup table. Amber background indicates the case has reached 70-99% of its alloted time, and a green background indicates 0-69% of the alloted time has passed.  The elapsed time is calculated in <a href="businesshours.html">business hours</a>.</p>
+<BR>
+<h2>Cases Workflow:</h2>
+<p>The bar and line chart at the bottom shows today's distribution of cases among all the pathologists by <a href="code5.html">workload value</a>. The units of both Y-axis' are minutes, whereby a full-day load is equivalent to 360 minutes.  The left-side Y-axis shows the new cases routed today in the amber bar, and the finalized cases are in the green bar. The right-side Y-axis shows the backlog (line with red circles) also in number of minutes required to complete the cases. The pathologists are sorted by their backlog volume.</p>
 <BR>
 <p><a href="backlog.html">Previous</a> | <a href="index.html">TOC</a> | <a href="distro.html">Next</a></p>
 </body>

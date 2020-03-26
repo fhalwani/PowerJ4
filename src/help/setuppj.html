@@ -4,11 +4,46 @@
 	<title>Setup</title>
 	<meta name="GENERATOR" content="PowerJ">
 	<meta name="KEYWORDS" content="Help">
-	<link href="screen.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-<p class="h1">Setup</p>
-<p>Setup is divided into 4 groups:</p>
+<h1>Setup</h1>
+<p>This screen is used to change the variables required by PowerJ. It is divided into 3 groups:</p>
+<BR>
+<ul>
+<li><p>Server: the variables required to login to your institution pathology system (PowerPath, Copath):</p>
+  <ul>
+    <li><p>Server Name: the url for the database server</p></li>
+    <li><p>Database Name: the name of the database in the server</p></li>
+    <li><p>Port no: the TCP port to use to connect to the server</p></li>
+    <li><p>Login Name: the user name that PowerJ uses to login automatically to the server</p></li>
+    <li><p>Password: the password of the above user name that PowerJ uses</p></li>
+  </ul>
+</li>
+<li><p>Workflow: the variables required for backlog and turnaround time analysis:</p>
+  <ul>
+    <li><p>Update every: the frequency of workflow daily updates in minutes (range 10-120 minutes)<sup>1</sup></p></li>
+    <li><p>Wakeup every: the frequency the computer clock is checked (range 1-15 minutes)<sup>1</sup></p></li>
+    <li><p>Opening Hour: the hour to start counting business hours</p></li>
+    <li><p>Closing Hour: the hour to end counting business hours</p></li>
+    <li><p>Saturday closed: is Saturday a work day or holiday?</p></li>
+    <li><p>Sunday closed: is Sunday a work day or holiday?</p></li>
+    <li><p>Routing cutoff: The cutoff time for routing a case to be considered today vs tomorrow's work</p></li>
+  </ul>
+</li>
+<li><p>Workload: the variables required for the workload analysis</p>
+  <ul>
+    <li><p>Coder 1-4</p>
+  <ul>
+    <li><p>Name: CAP vs L4E</p></li>
+    <li><p>Active: to include or exclude from the workload calculations</p></li>
+    <li><p>FTE: Total annual points for one full time equivalent</p></li>
+  </ul>
+    </li>
+    <li><p>Minimum date: earliest date to calculate workload</p></li>
+    <li><p>Business days: total number of workdays per year</p></li>
+</ul>
+<BR>
+<h4>It is recommended that if you are using the desktop version of PowerJ that you set these 2 variables at maximum range. But if you are using the client/server version of PowerJ with a dedicated powerful server to set it at the minimum range.</h4>
 <BR>
 <p class="ft">
 <a href="pending.html">Previous</a> | 
