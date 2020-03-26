@@ -564,7 +564,7 @@ class NSchedule extends NBase {
 			xlsCell.setCellValue(
 					"Schedule - " + pj.dates.formatter(dates.get(rowIndex).getTime(), LDates.FORMAT_DATELONG));
 			xlsCell.setCellStyle(styles.get("title"));
-			sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$H$1"));
+			sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, workdays.size()));
 			// header row
 			xlsRow = sheet.createRow(1);
 			xlsRow.setHeightInPoints(30);

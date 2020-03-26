@@ -262,6 +262,8 @@ class NDistribute extends NBase {
 
 	@Override
 	void pdf() {
+		if (headers.size() == 0)
+			return;
 		String fileName = pj.getFilePdf("distribution.pdf").trim();
 		if (fileName.length() == 0)
 			return;
@@ -269,7 +271,7 @@ class NDistribute extends NBase {
 		String str = "Distribution - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME);
 		LPdf pdfLib = new LPdf();
 		HashMap<String, Font> fonts = pdfLib.getFonts();
-		Document document = new Document(PageSize.LETTER.rotate(), 36, 18, 18, 18);
+		Document document = new Document(PageSize._11X17.rotate(), 36, 18, 18, 18);
 		Paragraph paragraph = new Paragraph();
 		PdfPCell cell = new PdfPCell();
 		PdfPTable table = new PdfPTable(headers.size() + 1);
@@ -309,7 +311,7 @@ class NDistribute extends NBase {
 			table.setHeaderRows(1);
 			// data rows
 			int i = 0;
-			for (int row = 0; row <= tblList.getRowCount(); row++) {
+			for (int row = 0; row < tblList.getRowCount(); row++) {
 				i = tblList.convertRowIndexToModel(row);
 				for (int col = 0; col <= headers.size(); col++) {
 					paragraph = new Paragraph();
@@ -436,6 +438,8 @@ class NDistribute extends NBase {
 
 	@Override
 	void xls() {
+		if (headers.size() == 0)
+			return;
 		String fileName = pj.getFileXls("distribution.xls").trim();
 		if (fileName.length() == 0)
 			return;
@@ -451,7 +455,7 @@ class NDistribute extends NBase {
 			xlsCell.setCellValue(
 					"Distribution - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME));
 			xlsCell.setCellStyle(styles.get("title"));
-			sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$O$1"));
+			sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, headers.size() - 1));
 			// header row
 			xlsRow = sheet.createRow(1);
 			xlsRow.setHeightInPoints(30);

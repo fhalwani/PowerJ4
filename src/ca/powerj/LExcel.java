@@ -59,7 +59,7 @@ class LExcel {
 		style.setAlignment(HorizontalAlignment.RIGHT);
 		style.setVerticalAlignment(VerticalAlignment.CENTER);
 		style.setWrapText(false);
-		style.setDataFormat(creationHelper.createDataFormat().getFormat("#,##0"));
+		style.setDataFormat(creationHelper.createDataFormat().getFormat("#,###"));
 		styles.put("data_int", style);
 		style = wb.createCellStyle();
 		style.setWrapText(false);

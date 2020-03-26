@@ -306,7 +306,7 @@ class NError extends NBase {
 			Cell xlsCell = xlsRow.createCell(0);
 			xlsCell.setCellValue("Errors - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME));
 			xlsCell.setCellStyle(styles.get("title"));
-			sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$C$1"));
+			sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, columns.length - 1));
 			// header row
 			xlsRow = sheet.createRow(1);
 			xlsRow.setHeightInPoints(30);

@@ -470,7 +470,7 @@ class NSpecimenMaster extends NBase {
 			xlsCell.setCellValue(
 					"Specimens Master - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME));
 			xlsCell.setCellStyle(styles.get("title"));
-			sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$H$1"));
+			sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, columns.length - 1));
 			// header row
 			xlsRow = sheet.createRow(1);
 			xlsRow.setHeightInPoints(30);
