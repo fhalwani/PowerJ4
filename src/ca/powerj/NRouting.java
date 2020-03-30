@@ -765,7 +765,11 @@ class NRouting extends NBase {
 
 		@Override
 		public Object getValueAt(int row, int col) {
-			return dates.get(row);
+			Object value = Object.class;
+			if (dates.size() > 0 && row < dates.size()) {
+				value = dates.get(row);
+			}
+			return value;
 		}
 	}
 
@@ -808,7 +812,7 @@ class NRouting extends NBase {
 		@Override
 		public Object getValueAt(int row, int col) {
 			Object value = Object.class;
-			if (row >= 0 && row < cases.size()) {
+			if (cases.size() > 0 && row < cases.size()) {
 				switch (col) {
 				case CASE_ROW:
 					value = tblCases.convertRowIndexToView(row) + 1;
@@ -899,7 +903,7 @@ class NRouting extends NBase {
 		@Override
 		public Object getValueAt(int row, int col) {
 			Object value = Object.class;
-			if (row >= 0 && row < summary.size()) {
+			if (summary.size() > 0 && row < summary.size()) {
 				switch (col) {
 				case SUM_ROW:
 					value = tblSummary.convertRowIndexToView(row) + 1;

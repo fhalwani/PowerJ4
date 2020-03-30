@@ -734,101 +734,101 @@ class NPending extends NBase {
 		@Override
 		public Object getValueAt(int row, int col) {
 			Object value = Object.class;
-			switch (col) {
-			case CASE_ROW:
-				value = tbl.convertRowIndexToView(row) + 1;
-				break;
-			case CASE_NO:
-				value = pendings.get(row).caseNo;
-				break;
-			case CASE_FAC:
-				value = pendings.get(row).facility;
-				break;
-			case CASE_SPY:
-				value = pendings.get(row).specialty;
-				break;
-			case CASE_SUB:
-				value = pendings.get(row).subspecial;
-				break;
-			case CASE_PROC:
-				value = pendings.get(row).procedure;
-				break;
-			case CASE_STAT:
-				value = pendings.get(row).status;
-				break;
-			case CASE_SPEC:
-				value = pendings.get(row).specimen;
-				break;
-			case CASE_NOSP:
-				value = pendings.get(row).noSpec;
-				break;
-			case CASE_NOBL:
-				value = pendings.get(row).noBlocks;
-				break;
-			case CASE_NOSL:
-				value = pendings.get(row).noSlides;
-				break;
-			case CASE_VAL5:
-				value = pendings.get(row).value5 / 60;
-				break;
-			case CASE_CUTOFF:
-				value = pendings.get(row).cutoff;
-				break;
-			case CASE_PASSED:
-				value = pendings.get(row).passed;
-				break;
-			case CASE_DELAY:
-				value = pendings.get(row).delay;
-				break;
-			case CASE_ACED:
-				value = pendings.get(row).accessed;
-				break;
-			case CASE_GRED:
-				value = pendings.get(row).grossed;
-				break;
-			case CASE_GRBY:
-				value = pendings.get(row).grossName;
-				break;
-			case CASE_GRTA:
-				value = pendings.get(row).grossTAT;
-				break;
-			case CASE_EMED:
-				value = pendings.get(row).embeded;
-				break;
-			case CASE_EMBY:
-				value = pendings.get(row).embedName;
-				break;
-			case CASE_EMTA:
-				value = pendings.get(row).embedTAT;
-				break;
-			case CASE_MIED:
-				value = pendings.get(row).microed;
-				break;
-			case CASE_MIBY:
-				value = pendings.get(row).microName;
-				break;
-			case CASE_MITA:
-				value = pendings.get(row).microTAT;
-				break;
-			case CASE_ROED:
-				value = pendings.get(row).routed;
-				break;
-			case CASE_ROBY:
-				value = pendings.get(row).routeName;
-				break;
-			case CASE_ROTA:
-				value = pendings.get(row).routeTAT;
-				break;
-			case CASE_FIED:
-				value = pendings.get(row).finaled;
-				break;
-			case CASE_FIBY:
-				value = pendings.get(row).finalName;
-				break;
-			case CASE_FITA:
-				value = pendings.get(row).finalTAT;
-				break;
-			default:
+			if (pendings.size() > 0 && row < pendings.size()) {
+				switch (col) {
+				case CASE_ROW:
+					value = tbl.convertRowIndexToView(row) + 1;
+					break;
+				case CASE_NO:
+					value = pendings.get(row).caseNo;
+					break;
+				case CASE_FAC:
+					value = pendings.get(row).facility;
+					break;
+				case CASE_SPY:
+					value = pendings.get(row).specialty;
+					break;
+				case CASE_SUB:
+					value = pendings.get(row).subspecial;
+					break;
+				case CASE_PROC:
+					value = pendings.get(row).procedure;
+					break;
+				case CASE_STAT:
+					value = pendings.get(row).status;
+					break;
+				case CASE_SPEC:
+					value = pendings.get(row).specimen;
+					break;
+				case CASE_NOSP:
+					value = pendings.get(row).noSpec;
+					break;
+				case CASE_NOBL:
+					value = pendings.get(row).noBlocks;
+					break;
+				case CASE_NOSL:
+					value = pendings.get(row).noSlides;
+					break;
+				case CASE_VAL5:
+					value = pendings.get(row).value5 / 60;
+					break;
+				case CASE_CUTOFF:
+					value = pendings.get(row).cutoff;
+					break;
+				case CASE_PASSED:
+					value = pendings.get(row).passed;
+					break;
+				case CASE_DELAY:
+					value = pendings.get(row).delay;
+					break;
+				case CASE_ACED:
+					value = pendings.get(row).accessed;
+					break;
+				case CASE_GRED:
+					value = pendings.get(row).grossed;
+					break;
+				case CASE_GRBY:
+					value = pendings.get(row).grossName;
+					break;
+				case CASE_GRTA:
+					value = pendings.get(row).grossTAT;
+					break;
+				case CASE_EMED:
+					value = pendings.get(row).embeded;
+					break;
+				case CASE_EMBY:
+					value = pendings.get(row).embedName;
+					break;
+				case CASE_EMTA:
+					value = pendings.get(row).embedTAT;
+					break;
+				case CASE_MIED:
+					value = pendings.get(row).microed;
+					break;
+				case CASE_MIBY:
+					value = pendings.get(row).microName;
+					break;
+				case CASE_MITA:
+					value = pendings.get(row).microTAT;
+					break;
+				case CASE_ROED:
+					value = pendings.get(row).routed;
+					break;
+				case CASE_ROBY:
+					value = pendings.get(row).routeName;
+					break;
+				case CASE_ROTA:
+					value = pendings.get(row).routeTAT;
+					break;
+				case CASE_FIED:
+					value = pendings.get(row).finaled;
+					break;
+				case CASE_FIBY:
+					value = pendings.get(row).finalName;
+					break;
+				default:
+					value = pendings.get(row).finalTAT;
+				}
 			}
 			return value;
 		}

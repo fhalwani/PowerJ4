@@ -645,7 +645,11 @@ class NSchedule extends NBase {
 
 		@Override
 		public Object getValueAt(int row, int col) {
-			return dates.get(row);
+			Object value = Object.class;
+			if (dates.size() > 0 && row < dates.size()) {
+				value = dates.get(row);
+			}
+			return value;
 		}
 	}
 
@@ -680,26 +684,26 @@ class NSchedule extends NBase {
 
 		@Override
 		public Object getValueAt(int row, int col) {
+			Object value = Object.class;
+			if (dates.size() > 0 && row < dates.size()) {
+				value = dates.get(row);
+			}
 			if (byService) {
-				if (scheduleServices.size() > row) {
-					if (col > 0) {
-						if (scheduleServices.get(row).size() > col) {
-							return scheduleServices.get(row).get(col - 1).person;
-						}
-					} else {
-						return services.get(row).name;
+				if (col > 0 && scheduleServices.size() > 0 && row < scheduleServices.size()) {
+					if (scheduleServices.get(row).size() > col) {
+						value = scheduleServices.get(row).get(col - 1).person;
 					}
+				} else if (services.size() > 0 && row < services.size()) {
+					value = services.get(row).name;
 				}
 			} else {
-				if (scheduleStaff.size() > row) {
-					if (col > 0) {
-						return scheduleStaff.get(row).services[col - 1];
-					} else {
-						return scheduleStaff.get(row).name;
-					}
+				if (col > 0 && scheduleStaff.size() > 0 && row < scheduleStaff.size()) {
+					return scheduleStaff.get(row).services[col - 1];
+				} else if (scheduleStaff.size() > 0 && row < scheduleStaff.size()) {
+					return scheduleStaff.get(row).name;
 				}
 			}
-			return null;
+			return value;
 		}
 
 		@Override

@@ -1050,31 +1050,32 @@ class NFinals extends NBase {
 		@Override
 		public Object getValueAt(int row, int col) {
 			Object value = Object.class;
-			OAdditional thisRow = additionals.get(row);
-			switch (col) {
-			case ADDL_CODE:
-				value = thisRow.code;
-				break;
-			case ADDL_STAF:
-				value = thisRow.finalName;
-				break;
-			case ADDL_DATE:
-				value = thisRow.finaled;
-				break;
-			case ADDL_VAL1:
-				value = thisRow.value1;
-				break;
-			case ADDL_VAL2:
-				value = thisRow.value2;
-				break;
-			case ADDL_VAL3:
-				value = thisRow.value3;
-				break;
-			case ADDL_VAL4:
-				value = thisRow.value4;
-				break;
-			default:
-				value = thisRow.value5 / 60;
+			if (additionals.size() > 0 && row < additionals.size()) {
+				switch (col) {
+				case ADDL_CODE:
+					value = additionals.get(row).code;
+					break;
+				case ADDL_STAF:
+					value = additionals.get(row).finalName;
+					break;
+				case ADDL_DATE:
+					value = additionals.get(row).finaled;
+					break;
+				case ADDL_VAL1:
+					value = additionals.get(row).value1;
+					break;
+				case ADDL_VAL2:
+					value = additionals.get(row).value2;
+					break;
+				case ADDL_VAL3:
+					value = additionals.get(row).value3;
+					break;
+				case ADDL_VAL4:
+					value = additionals.get(row).value4;
+					break;
+				default:
+					value = additionals.get(row).value5 / 60;
+				}
 			}
 			return value;
 		}
@@ -1132,115 +1133,116 @@ class NFinals extends NBase {
 		@Override
 		public Object getValueAt(int row, int col) {
 			Object value = Object.class;
-			OCaseFinal thisRow = cases.get(row);
-			switch (col) {
-			case CASE_NO:
-				value = thisRow.caseNo;
-				break;
-			case CASE_FAC:
-				value = thisRow.facName;
-				break;
-			case CASE_SPY:
-				value = thisRow.spyName;
-				break;
-			case CASE_SUB:
-				value = thisRow.subName;
-				break;
-			case CASE_PROC:
-				value = thisRow.procName;
-				break;
-			case CASE_SPEC:
-				value = thisRow.specName;
-				break;
-			case CASE_VAL1:
-				value = thisRow.value1;
-				break;
-			case CASE_VAL2:
-				value = thisRow.value2;
-				break;
-			case CASE_VAL3:
-				value = thisRow.value3;
-				break;
-			case CASE_VAL4:
-				value = thisRow.value4;
-				break;
-			case CASE_VAL5:
-				value = thisRow.value5 / 60;
-				break;
-			case CASE_NOSP:
-				value = thisRow.noSpec;
-				break;
-			case CASE_NOBL:
-				value = thisRow.noBlocks;
-				break;
-			case CASE_NOSL:
-				value = thisRow.noSlides;
-				break;
-			case CASE_NOHE:
-				value = thisRow.noHE;
-				break;
-			case CASE_NOSS:
-				value = thisRow.noSS;
-				break;
-			case CASE_NOIH:
-				value = thisRow.noIHC;
-				break;
-			case CASE_NOMO:
-				value = thisRow.noMol;
-				break;
-			case CASE_NOSY:
-				value = thisRow.noSynop;
-				break;
-			case CASE_NOFS:
-				value = thisRow.noFSSpec;
-				break;
-			case CASE_ACED:
-				value = thisRow.accessed;
-				break;
-			case CASE_GRED:
-				value = thisRow.grossed;
-				break;
-			case CASE_EMED:
-				value = thisRow.embeded;
-				break;
-			case CASE_MIED:
-				value = thisRow.microed;
-				break;
-			case CASE_ROED:
-				value = thisRow.routed;
-				break;
-			case CASE_FIED:
-				value = thisRow.finaled;
-				break;
-			case CASE_GRBY:
-				value = thisRow.grossName;
-				break;
-			case CASE_EMBY:
-				value = thisRow.embedName;
-				break;
-			case CASE_MIBY:
-				value = thisRow.microName;
-				break;
-			case CASE_ROBY:
-				value = thisRow.routeName;
-				break;
-			case CASE_FIBY:
-				value = thisRow.finalName;
-				break;
-			case CASE_GRTA:
-				value = thisRow.grossTAT;
-				break;
-			case CASE_EMTA:
-				value = thisRow.embedTAT;
-				break;
-			case CASE_MITA:
-				value = thisRow.microTAT;
-				break;
-			case CASE_ROTA:
-				value = thisRow.routeTAT;
-				break;
-			default:
-				value = thisRow.finalTAT;
+			if (cases.size() > 0 && row < cases.size()) {
+				switch (col) {
+				case CASE_NO:
+					value = cases.get(row).caseNo;
+					break;
+				case CASE_FAC:
+					value = cases.get(row).facName;
+					break;
+				case CASE_SPY:
+					value = cases.get(row).spyName;
+					break;
+				case CASE_SUB:
+					value = cases.get(row).subName;
+					break;
+				case CASE_PROC:
+					value = cases.get(row).procName;
+					break;
+				case CASE_SPEC:
+					value = cases.get(row).specName;
+					break;
+				case CASE_VAL1:
+					value = cases.get(row).value1;
+					break;
+				case CASE_VAL2:
+					value = cases.get(row).value2;
+					break;
+				case CASE_VAL3:
+					value = cases.get(row).value3;
+					break;
+				case CASE_VAL4:
+					value = cases.get(row).value4;
+					break;
+				case CASE_VAL5:
+					value = cases.get(row).value5 / 60;
+					break;
+				case CASE_NOSP:
+					value = cases.get(row).noSpec;
+					break;
+				case CASE_NOBL:
+					value = cases.get(row).noBlocks;
+					break;
+				case CASE_NOSL:
+					value = cases.get(row).noSlides;
+					break;
+				case CASE_NOHE:
+					value = cases.get(row).noHE;
+					break;
+				case CASE_NOSS:
+					value = cases.get(row).noSS;
+					break;
+				case CASE_NOIH:
+					value = cases.get(row).noIHC;
+					break;
+				case CASE_NOMO:
+					value = cases.get(row).noMol;
+					break;
+				case CASE_NOSY:
+					value = cases.get(row).noSynop;
+					break;
+				case CASE_NOFS:
+					value = cases.get(row).noFSSpec;
+					break;
+				case CASE_ACED:
+					value = cases.get(row).accessed;
+					break;
+				case CASE_GRED:
+					value = cases.get(row).grossed;
+					break;
+				case CASE_EMED:
+					value = cases.get(row).embeded;
+					break;
+				case CASE_MIED:
+					value = cases.get(row).microed;
+					break;
+				case CASE_ROED:
+					value = cases.get(row).routed;
+					break;
+				case CASE_FIED:
+					value = cases.get(row).finaled;
+					break;
+				case CASE_GRBY:
+					value = cases.get(row).grossName;
+					break;
+				case CASE_EMBY:
+					value = cases.get(row).embedName;
+					break;
+				case CASE_MIBY:
+					value = cases.get(row).microName;
+					break;
+				case CASE_ROBY:
+					value = cases.get(row).routeName;
+					break;
+				case CASE_FIBY:
+					value = cases.get(row).finalName;
+					break;
+				case CASE_GRTA:
+					value = cases.get(row).grossTAT;
+					break;
+				case CASE_EMTA:
+					value = cases.get(row).embedTAT;
+					break;
+				case CASE_MITA:
+					value = cases.get(row).microTAT;
+					break;
+				case CASE_ROTA:
+					value = cases.get(row).routeTAT;
+					break;
+				default:
+					value = cases.get(row).finalTAT;
+				}
 			}
 			return value;
 		}
@@ -1286,31 +1288,32 @@ class NFinals extends NBase {
 		@Override
 		public Object getValueAt(int row, int col) {
 			Object value = Object.class;
-			OFrozen thisRow = frozens.get(row);
-			switch (col) {
-			case FRZN_STAF:
-				value = thisRow.finalBy;
-				break;
-			case FRZN_NOBL:
-				value = thisRow.noBlocks;
-				break;
-			case FRZN_NOSL:
-				value = thisRow.noSlides;
-				break;
-			case ADDL_VAL1:
-				value = thisRow.value1;
-				break;
-			case ADDL_VAL2:
-				value = thisRow.value2;
-				break;
-			case ADDL_VAL3:
-				value = thisRow.value3;
-				break;
-			case ADDL_VAL4:
-				value = thisRow.value4;
-				break;
-			default:
-				value = thisRow.value5 / 60;
+			if (frozens.size() > 0 && row < frozens.size()) {
+				switch (col) {
+				case FRZN_STAF:
+					value = frozens.get(row).finalBy;
+					break;
+				case FRZN_NOBL:
+					value = frozens.get(row).noBlocks;
+					break;
+				case FRZN_NOSL:
+					value = frozens.get(row).noSlides;
+					break;
+				case ADDL_VAL1:
+					value = frozens.get(row).value1;
+					break;
+				case ADDL_VAL2:
+					value = frozens.get(row).value2;
+					break;
+				case ADDL_VAL3:
+					value = frozens.get(row).value3;
+					break;
+				case ADDL_VAL4:
+					value = frozens.get(row).value4;
+					break;
+				default:
+					value = frozens.get(row).value5 / 60;
+				}
 			}
 			return value;
 		}
@@ -1352,26 +1355,28 @@ class NFinals extends NBase {
 		@Override
 		public Object getValueAt(int row, int col) {
 			Object value = Object.class;
-			switch (col) {
-			case ORDER_NAME:
-				value = orders.get(row).name;
-				break;
-			case ORDER_QTY:
-				value = orders.get(row).qty;
-				break;
-			case ORDER_VAL1:
-				value = orders.get(row).value1;
-				break;
-			case ORDER_VAL2:
-				value = orders.get(row).value2;
-				break;
-			case ORDER_VAL3:
-				value = orders.get(row).value3;
-				break;
-			case ORDER_VAL4:
-				value = orders.get(row).value4;
-				break;
-			default:
+			if (orders.size() > 0 && row < orders.size()) {
+				switch (col) {
+				case ORDER_NAME:
+					value = orders.get(row).name;
+					break;
+				case ORDER_QTY:
+					value = orders.get(row).qty;
+					break;
+				case ORDER_VAL1:
+					value = orders.get(row).value1;
+					break;
+				case ORDER_VAL2:
+					value = orders.get(row).value2;
+					break;
+				case ORDER_VAL3:
+					value = orders.get(row).value3;
+					break;
+				case ORDER_VAL4:
+					value = orders.get(row).value4;
+					break;
+				default:
+				}
 			}
 			return value;
 		}
@@ -1422,46 +1427,47 @@ class NFinals extends NBase {
 		@Override
 		public Object getValueAt(int row, int col) {
 			Object value = Object.class;
-			OSpecFinal thisRow = specimens.get(row);
-			switch (col) {
-			case SPEC_NAME:
-				value = thisRow.name;
-				break;
-			case SPEC_NOBL:
-				value = thisRow.noBlocks;
-				break;
-			case SPEC_NOSL:
-				value = thisRow.noSlides;
-				break;
-			case SPEC_NOHE:
-				value = thisRow.noHE;
-				break;
-			case SPEC_NOSS:
-				value = thisRow.noSS;
-				break;
-			case SPEC_NOIH:
-				value = thisRow.noIHC;
-				break;
-			case SPEC_NOMO:
-				value = thisRow.noMOL;
-				break;
-			case SPEC_NOFR:
-				value = thisRow.noFrags;
-				break;
-			case SPEC_VAL1:
-				value = thisRow.value1;
-				break;
-			case SPEC_VAL2:
-				value = thisRow.value2;
-				break;
-			case SPEC_VAL3:
-				value = thisRow.value3;
-				break;
-			case SPEC_VAL4:
-				value = thisRow.value4;
-				break;
-			default:
-				value = thisRow.value5 / 60;
+			if (specimens.size() > 0 && row < specimens.size()) {
+				switch (col) {
+				case SPEC_NAME:
+					value = specimens.get(row).name;
+					break;
+				case SPEC_NOBL:
+					value = specimens.get(row).noBlocks;
+					break;
+				case SPEC_NOSL:
+					value = specimens.get(row).noSlides;
+					break;
+				case SPEC_NOHE:
+					value = specimens.get(row).noHE;
+					break;
+				case SPEC_NOSS:
+					value = specimens.get(row).noSS;
+					break;
+				case SPEC_NOIH:
+					value = specimens.get(row).noIHC;
+					break;
+				case SPEC_NOMO:
+					value = specimens.get(row).noMOL;
+					break;
+				case SPEC_NOFR:
+					value = specimens.get(row).noFrags;
+					break;
+				case SPEC_VAL1:
+					value = specimens.get(row).value1;
+					break;
+				case SPEC_VAL2:
+					value = specimens.get(row).value2;
+					break;
+				case SPEC_VAL3:
+					value = specimens.get(row).value3;
+					break;
+				case SPEC_VAL4:
+					value = specimens.get(row).value4;
+					break;
+				default:
+					value = specimens.get(row).value5 / 60;
+				}
 			}
 			return value;
 		}

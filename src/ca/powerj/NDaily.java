@@ -494,59 +494,61 @@ class NDaily extends NBase {
 		@Override
 		public Object getValueAt(int row, int col) {
 			Object value = Object.class;
-			switch (col) {
-			case CASE_ROW:
-				value = tblCases.convertRowIndexToView(row) + 1;
-				break;
-			case CASE_NO:
-				value = pendings.get(row).caseNo;
-				break;
-			case CASE_SPY:
-				value = pendings.get(row).specialty;
-				break;
-			case CASE_SUB:
-				value = pendings.get(row).subspecial;
-				break;
-			case CASE_PROC:
-				value = pendings.get(row).procedure;
-				break;
-			case CASE_SPEC:
-				value = pendings.get(row).specimen;
-				break;
-			case CASE_NOSP:
-				value = pendings.get(row).noSpec;
-				break;
-			case CASE_NOBL:
-				value = pendings.get(row).noBlocks;
-				break;
-			case CASE_NOSL:
-				value = pendings.get(row).noSlides;
-				break;
-			case CASE_VAL5:
-				value = pendings.get(row).value5 / 60;
-				break;
-			case CASE_CUTOFF:
-				value = pendings.get(row).cutoff;
-				break;
-			case CASE_PASSED:
-				value = pendings.get(row).passed;
-				break;
-			case CASE_DELAY:
-				value = pendings.get(row).delay;
-				break;
-			case CASE_ACED:
-				value = pendings.get(row).accessed;
-				break;
-			case CASE_ROED:
-				value = pendings.get(row).routed;
-				break;
-			case CASE_ROBY:
-				value = pendings.get(row).routeName;
-				break;
-			case CASE_FIBY:
-				value = pendings.get(row).finalName;
-				break;
-			default:
+			if (pendings.size() > 0 && row < pendings.size()) {
+				switch (col) {
+				case CASE_ROW:
+					value = tblCases.convertRowIndexToView(row) + 1;
+					break;
+				case CASE_NO:
+					value = pendings.get(row).caseNo;
+					break;
+				case CASE_SPY:
+					value = pendings.get(row).specialty;
+					break;
+				case CASE_SUB:
+					value = pendings.get(row).subspecial;
+					break;
+				case CASE_PROC:
+					value = pendings.get(row).procedure;
+					break;
+				case CASE_SPEC:
+					value = pendings.get(row).specimen;
+					break;
+				case CASE_NOSP:
+					value = pendings.get(row).noSpec;
+					break;
+				case CASE_NOBL:
+					value = pendings.get(row).noBlocks;
+					break;
+				case CASE_NOSL:
+					value = pendings.get(row).noSlides;
+					break;
+				case CASE_VAL5:
+					value = pendings.get(row).value5 / 60;
+					break;
+				case CASE_CUTOFF:
+					value = pendings.get(row).cutoff;
+					break;
+				case CASE_PASSED:
+					value = pendings.get(row).passed;
+					break;
+				case CASE_DELAY:
+					value = pendings.get(row).delay;
+					break;
+				case CASE_ACED:
+					value = pendings.get(row).accessed;
+					break;
+				case CASE_ROED:
+					value = pendings.get(row).routed;
+					break;
+				case CASE_ROBY:
+					value = pendings.get(row).routeName;
+					break;
+				case CASE_FIBY:
+					value = pendings.get(row).finalName;
+					break;
+				default:
+				}
 			}
 			return value;
 		}

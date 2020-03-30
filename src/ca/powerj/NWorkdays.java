@@ -47,7 +47,7 @@ class NWorkdays extends NBase {
 	private long timeFrom = 0;
 	private long timeTo = 0;
 	volatile ArrayList<DataHeader> headers = new ArrayList<DataHeader>();
-	volatile ArrayList<DataRow> rows = new ArrayList<DataRow>();
+	volatile ArrayList<DataRow> list = new ArrayList<DataRow>();
 	private ModelWorkdays model;
 	private ITable tblList;
 	private IChartBar chartBar;
@@ -64,7 +64,7 @@ class NWorkdays extends NBase {
 	boolean close() {
 		super.close();
 		headers.clear();
-		rows.clear();
+		list.clear();
 		if (chartBar != null) {
 			chartBar.close();
 		}
@@ -82,8 +82,8 @@ class NWorkdays extends NBase {
 					int v = rowAtPoint(p);
 					int m = t.convertRowIndexToModel(v);
 					String s = "";
-					if (m >= 0 && m < rows.size()) {
-						s = rows.get(m).full;
+					if (m >= 0 && m < list.size()) {
+						s = list.get(m).full;
 					}
 					return s;
 				} catch (IndexOutOfBoundsException ignore) {
@@ -173,15 +173,15 @@ class NWorkdays extends NBase {
 					paragraph.setFont(fonts.get("Font10n"));
 					cell = new PdfPCell();
 					if (col == 0) {
-						paragraph.add(new Chunk(rows.get(i).name));
+						paragraph.add(new Chunk(list.get(i).name));
 						paragraph.setAlignment(Element.ALIGN_LEFT);
 						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
 					} else if (col > 1) {
-						paragraph.add(new Chunk(pj.numbers.formatNumber(rows.get(i).services[col - 2])));
+						paragraph.add(new Chunk(pj.numbers.formatNumber(list.get(i).services[col - 2])));
 						paragraph.setAlignment(Element.ALIGN_RIGHT);
 						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
 					} else {
-						paragraph.add(new Chunk(pj.numbers.formatNumber(rows.get(i).noDays)));
+						paragraph.add(new Chunk(pj.numbers.formatNumber(list.get(i).noDays)));
 						paragraph.setAlignment(Element.ALIGN_RIGHT);
 						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
 					}
@@ -273,11 +273,11 @@ class NWorkdays extends NBase {
 				for (int col = 0; col < headers.size(); col++) {
 					xlsCell = xlsRow.createCell(col);
 					if (col == 0) {
-						xlsCell.setCellValue(rows.get(i).name);
+						xlsCell.setCellValue(list.get(i).name);
 					} else if (col > 1) {
-						xlsCell.setCellValue(rows.get(i).services[col - 2]);
+						xlsCell.setCellValue(list.get(i).services[col - 2]);
 					} else {
-						xlsCell.setCellValue(rows.get(i).noDays);
+						xlsCell.setCellValue(list.get(i).noDays);
 					}
 				}
 			}
@@ -317,18 +317,22 @@ class NWorkdays extends NBase {
 
 		@Override
 		public int getRowCount() {
-			return rows.size();
+			return list.size();
 		}
 
 		@Override
 		public Object getValueAt(int row, int col) {
-			if (col == 0) {
-				return rows.get(row).name;
-			} else if (col > 1) {
-				return rows.get(row).services[col - 2];
-			} else {
-				return rows.get(row).noDays;
+			Object value = Object.class;
+			if (list.size() > 0 && row < list.size()) {
+				if (col == 0) {
+					value = list.get(row).name;
+				} else if (col > 1) {
+					value = list.get(row).services[col - 2];
+				} else {
+					value = list.get(row).noDays;
+				}
 			}
+			return value;
 		}
 	}
 
@@ -349,7 +353,7 @@ class NWorkdays extends NBase {
 			HashMap<Short, String> services = new HashMap<Short, String>();
 			try {
 				headers.clear();
-				rows.clear();
+				list.clear();
 				pj.dbPowerJ.setDate(DPowerJ.STM_SCH_SL_SUM, 1, timeFrom);
 				pj.dbPowerJ.setDate(DPowerJ.STM_SCH_SL_SUM, 2, timeTo);
 				rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SCH_SL_SUM);
@@ -450,9 +454,9 @@ class NWorkdays extends NBase {
 							row.services[i] = 0;
 						}
 					}
-					rows.add(row);
+					list.add(row);
 				}
-				Collections.sort(rows, new Comparator<DataRow>() {
+				Collections.sort(list, new Comparator<DataRow>() {
 					@Override
 					public int compare(DataRow o1, DataRow o2) {
 						return (o1.noDays > o2.noDays ? -1 : (o1.noDays < o2.noDays ? 1 : o1.name.compareTo(o2.name)));
@@ -462,13 +466,13 @@ class NWorkdays extends NBase {
 				total.name = "Ztotal";
 				total.full = "Ztotal";
 				total.services = new short[noServices];
-				for (int i = 0; i < rows.size() - 1; i++) {
-					total.noDays += rows.get(i).noDays;
+				for (int i = 0; i < list.size() - 1; i++) {
+					total.noDays += list.get(i).noDays;
 					for (int j = 0; j < noServices; j++) {
-						total.services[j] += rows.get(i).services[j];
+						total.services[j] += list.get(i).services[j];
 					}
 				}
-				rows.add(total);
+				list.add(total);
 				persons.clear();
 			} catch (SQLException e) {
 				pj.log(LConstants.ERROR_SQL, getName(), e);
@@ -481,14 +485,14 @@ class NWorkdays extends NBase {
 		@Override
 		public void done() {
 			model.fireTableStructureChanged();
-			if (rows.size() > 1) {
+			if (list.size() > 1) {
 				// Chart Data Set
-				String[] x = new String[rows.size() - 1];
-				double[] y = new double[rows.size() - 1];
-				for (int i = 0; i < rows.size(); i++) {
-					if (rows.get(i).prsID > 0) {
-						x[i] = rows.get(i).name;
-						y[i] = rows.get(i).noDays;
+				String[] x = new String[list.size() - 1];
+				double[] y = new double[list.size() - 1];
+				for (int i = 0; i < list.size(); i++) {
+					if (list.get(i).prsID > 0) {
+						x[i] = list.get(i).name;
+						y[i] = list.get(i).noDays;
 					}
 				}
 				chartBar.setChart(x, y, "Workdays Distribution");

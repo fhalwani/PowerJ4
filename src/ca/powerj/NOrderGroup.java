@@ -695,7 +695,11 @@ class NOrderGroup extends NBase {
 
 		@Override
 		public Object getValueAt(int row, int col) {
-			return list.get(row).name;
+			Object value = Object.class;
+			if (list.size() > 0 && row < list.size()) {
+				value = list.get(row).name;
+			}
+			return value;
 		}
 	}
 }

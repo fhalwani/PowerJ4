@@ -47,7 +47,7 @@ class NDistribute extends NBase {
 	private HashMap<Byte, DataSubspec> subs = new HashMap<Byte, DataSubspec>();
 	private HashMap<Short, DataFacility> facilities = new HashMap<Short, DataFacility>();
 	private ArrayList<DataHeader> headers = new ArrayList<DataHeader>();
-	private ArrayList<DataPerson> rows = new ArrayList<DataPerson>();
+	private ArrayList<DataPerson> list = new ArrayList<DataPerson>();
 	private ModelFTE model;
 	private ITable tblList;
 	private IChartBar chartBar;
@@ -80,7 +80,7 @@ class NDistribute extends NBase {
 		persons.clear();
 		subs.clear();
 		headers.clear();
-		rows.clear();
+		list.clear();
 		if (chartBar != null) {
 			chartBar.close();
 		}
@@ -100,12 +100,12 @@ class NDistribute extends NBase {
 					int m = t.convertRowIndexToModel(v);
 					String s = "";
 					if (c <= 0) {
-						s = rows.get(m).prsFull;
+						s = list.get(m).prsFull;
 					} else if (c < headers.size()) {
-						s = rows.get(m).prsFull + ": " + headers.get(c - 1).subDescr + ": "
-								+ rows.get(m).subspecs.get(headers.get(c - 1).subID);
+						s = list.get(m).prsFull + ": " + headers.get(c - 1).subDescr + ": "
+								+ list.get(m).subspecs.get(headers.get(c - 1).subID);
 					} else {
-						s = rows.get(m).prsFull + ": " + rows.get(m).fte;
+						s = list.get(m).prsFull + ": " + list.get(m).fte;
 					}
 					return s;
 				} catch (IndexOutOfBoundsException ignore) {
@@ -309,7 +309,7 @@ class NDistribute extends NBase {
 				table.addCell(cell);
 			}
 			table.setHeaderRows(1);
-			// data rows
+			// data list
 			int i = 0;
 			for (int row = 0; row < tblList.getRowCount(); row++) {
 				i = tblList.convertRowIndexToModel(row);
@@ -318,16 +318,16 @@ class NDistribute extends NBase {
 					paragraph.setFont(fonts.get("Font10n"));
 					cell = new PdfPCell();
 					if (col == 0) {
-						paragraph.add(new Chunk(rows.get(i).prsName));
+						paragraph.add(new Chunk(list.get(i).prsName));
 						paragraph.setAlignment(Element.ALIGN_LEFT);
 						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
 					} else if (col < headers.size()) {
 						paragraph.add(new Chunk(
-								pj.numbers.formatDouble(2, rows.get(i).subspecs.get(headers.get(col - 1).subID))));
+								pj.numbers.formatDouble(2, list.get(i).subspecs.get(headers.get(col - 1).subID))));
 						paragraph.setAlignment(Element.ALIGN_RIGHT);
 						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
 					} else {
-						paragraph.add(new Chunk(pj.numbers.formatDouble(2, rows.get(i).fte)));
+						paragraph.add(new Chunk(pj.numbers.formatDouble(2, list.get(i).fte)));
 						paragraph.setAlignment(Element.ALIGN_RIGHT);
 						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
 					}
@@ -347,7 +347,7 @@ class NDistribute extends NBase {
 	void setFilter() {
 		DataPerson rowTotal = new DataPerson();
 		headers.clear();
-		rows.clear();
+		list.clear();
 		for (Entry<Short, DataFacility> entry1 : facilities.entrySet()) {
 			if (facID == 0 || facID == entry1.getKey()) {
 				DataFacility facility = entry1.getValue();
@@ -375,8 +375,8 @@ class NDistribute extends NBase {
 							if (person.fte > 0) {
 								found = false;
 								DataPerson row = new DataPerson();
-								for (int i = 0; i < rows.size(); i++) {
-									row = rows.get(i);
+								for (int i = 0; i < list.size(); i++) {
+									row = list.get(i);
 									if (row.prsID == person.prsID) {
 										found = true;
 										break;
@@ -387,7 +387,7 @@ class NDistribute extends NBase {
 									row.prsID = person.prsID;
 									row.prsName = persons.get(person.prsID).prsName;
 									row.prsFull = persons.get(person.prsID).prsFull;
-									rows.add(row);
+									list.add(row);
 								}
 								row.fte += person.fte;
 								Double fte5 = row.subspecs.get(header.subID);
@@ -411,25 +411,25 @@ class NDistribute extends NBase {
 		}
 		rowTotal.prsName = "SUM";
 		rowTotal.prsFull = "Total";
-		rows.add(rowTotal);
+		list.add(rowTotal);
 		DataHeader colTotal = new DataHeader();
 		colTotal.subName = "SUM";
 		colTotal.subDescr = "Total";
 		headers.add(colTotal);
-		for (DataPerson row : rows) {
+		for (DataPerson row : list) {
 			for (Entry<Byte, Double> entry2 : row.subspecs.entrySet()) {
 				double d = entry2.getValue().doubleValue();
 				entry2.setValue(1.00 * d / annualFte);
 			}
 		}
-		if (rows.size() > 1) {
+		if (list.size() > 1) {
 			// Chart Data Set
-			String[] x = new String[rows.size() - 1];
-			double[] y = new double[rows.size() - 1];
-			for (int i = 0; i < rows.size(); i++) {
-				if (rows.get(i).prsID > 0) {
-					x[i] = rows.get(i).prsName;
-					y[i] = rows.get(i).fte;
+			String[] x = new String[list.size() - 1];
+			double[] y = new double[list.size() - 1];
+			for (int i = 0; i < list.size(); i++) {
+				if (list.get(i).prsID > 0) {
+					x[i] = list.get(i).prsName;
+					y[i] = list.get(i).fte;
 				}
 			}
 			chartBar.setChart(x, y, "FTE Distribution");
@@ -471,7 +471,7 @@ class NDistribute extends NBase {
 				}
 				sheet.setColumnWidth(col, 5 * 256); // 5 characters
 			}
-			// data rows
+			// data list
 			int rownum = 2;
 			int i = 0;
 			for (int row = 0; row < tblList.getRowCount(); row++) {
@@ -480,11 +480,11 @@ class NDistribute extends NBase {
 				for (int col = 0; col <= headers.size(); col++) {
 					xlsCell = xlsRow.createCell(col);
 					if (col == 0) {
-						xlsCell.setCellValue(rows.get(i).prsName);
+						xlsCell.setCellValue(list.get(i).prsName);
 					} else if (col < headers.size()) {
-						xlsCell.setCellValue(rows.get(i).subspecs.get(headers.get(col - 1).subID));
+						xlsCell.setCellValue(list.get(i).subspecs.get(headers.get(col - 1).subID));
 					} else {
-						xlsCell.setCellValue(rows.get(i).fte);
+						xlsCell.setCellValue(list.get(i).fte);
 					}
 				}
 			}
@@ -528,18 +528,22 @@ class NDistribute extends NBase {
 
 		@Override
 		public int getRowCount() {
-			return rows.size();
+			return list.size();
 		}
 
 		@Override
 		public Object getValueAt(int row, int col) {
-			if (col == 0) {
-				return rows.get(row).prsName;
-			} else if (col < headers.size()) {
-				return rows.get(row).subspecs.get(headers.get(col - 1).subID);
-			} else {
-				return rows.get(row).fte;
+			Object value = Object.class;
+			if (list.size() > 0 && row < list.size()) {
+				if (col == 0) {
+					return list.get(row).prsName;
+				} else if (col < headers.size()) {
+					return list.get(row).subspecs.get(headers.get(col - 1).subID);
+				} else {
+					return list.get(row).fte;
+				}
 			}
+			return value;
 		}
 	}
 

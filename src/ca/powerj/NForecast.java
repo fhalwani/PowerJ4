@@ -269,77 +269,79 @@ class NForecast extends NBase {
 
 		@Override
 		public Object getValueAt(int row, int col) {
-			if (col == DATA_NAMES) {
-				return rows[row];
+			Object value = Object.class;
+			if (col == DATA_NAMES && rows.length > 0 && rows.length > row) {
+				value = rows[row];
 			} else if (node.cases == null) {
-				return 0;
+				value = 0;
 			} else if (col < columns.length - 3) {
-				switch (row) {
+				switch (col) {
 				case DATA_CASES:
-					return node.cases[col - 1];
+					value = node.cases[col - 1];
 				case DATA_SPECS:
-					return node.specs[col - 1];
+					value = node.specs[col - 1];
 				case DATA_BLCKS:
-					return node.blocks[col - 1];
+					value = node.blocks[col - 1];
 				case DATA_SLIDE:
-					return node.slides[col - 1];
+					value = node.slides[col - 1];
 				case DATA_SL_HE:
-					return node.he[col - 1];
+					value = node.he[col - 1];
 				case DATA_SL_SS:
-					return node.ss[col - 1];
+					value = node.ss[col - 1];
 				case DATA_SL_IH:
-					return node.ihc[col - 1];
+					value = node.ihc[col - 1];
 				case DATA_SYNOP:
-					return node.synopt[col - 1];
+					value = node.synopt[col - 1];
 				case DATA_FROZN:
-					return node.frozen[col - 1];
+					value = node.frozen[col - 1];
 				case DATA_VALU1:
-					return node.fte1[col - 1];
+					value = node.fte1[col - 1];
 				case DATA_VALU2:
-					return node.fte2[col - 1];
+					value = node.fte2[col - 1];
 				case DATA_VALU3:
-					return node.fte3[col - 1];
+					value = node.fte3[col - 1];
 				case DATA_VALU4:
-					return node.fte4[col - 1];
+					value = node.fte4[col - 1];
 				case DATA_VALU5:
-					return node.fte5[col - 1];
+					value = node.fte5[col - 1];
 				default:
-					return "N/A";
+					value = "N/A";
 				}
 			} else {
-				switch (row) {
+				switch (col) {
 				case DATA_CASES:
-					return node.casesf[col - 1];
+					value = node.casesf[col - 1];
 				case DATA_SPECS:
-					return node.specsf[col - 1];
+					value = node.specsf[col - 1];
 				case DATA_BLCKS:
-					return node.blocksf[col - 1];
+					value = node.blocksf[col - 1];
 				case DATA_SLIDE:
-					return node.slidesf[col - 1];
+					value = node.slidesf[col - 1];
 				case DATA_SL_HE:
-					return node.hef[col - 1];
+					value = node.hef[col - 1];
 				case DATA_SL_SS:
-					return node.ssf[col - 1];
+					value = node.ssf[col - 1];
 				case DATA_SL_IH:
-					return node.ihcf[col - 1];
+					value = node.ihcf[col - 1];
 				case DATA_SYNOP:
-					return node.synoptf[col - 1];
+					value = node.synoptf[col - 1];
 				case DATA_FROZN:
-					return node.frozenf[col - 1];
+					value = node.frozenf[col - 1];
 				case DATA_VALU1:
-					return node.fte1f[col - 1];
+					value = node.fte1f[col - 1];
 				case DATA_VALU2:
-					return node.fte2f[col - 1];
+					value = node.fte2f[col - 1];
 				case DATA_VALU3:
-					return node.fte3f[col - 1];
+					value = node.fte3f[col - 1];
 				case DATA_VALU4:
-					return node.fte4f[col - 1];
+					value = node.fte4f[col - 1];
 				case DATA_VALU5:
-					return node.fte5f[col - 1];
+					value = node.fte5f[col - 1];
 				default:
-					return "N/A";
+					value = "N/A";
 				}
 			}
+			return value;
 		}
 
 		@Override

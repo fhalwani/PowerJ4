@@ -867,7 +867,11 @@ class NSpecimenGroup extends NBase {
 
 		@Override
 		public Object getValueAt(int row, int col) {
-			return specimens.get(row).descr;
+			Object value = Object.class;
+			if (specimens.size() > 0 && row < specimens.size()) {
+				value = specimens.get(row).descr;
+			}
+			return value;
 		}
 	}
 
@@ -894,10 +898,13 @@ class NSpecimenGroup extends NBase {
 
 		@Override
 		public Object getValueAt(int row, int col) {
-			if (col == 0) {
-				return rows[row];
+			Object value = Object.class;
+			if (col == 0 && rows.length > 0 && row < rows.length) {
+				value = rows[row];
+			} else if (col > 0 && specimen.codes.length > 0 && row < specimen.codes.length) {
+				value = specimen.codes[row][col - 1];
 			}
-			return specimen.codes[row][col - 1];
+			return value;
 		}
 
 		@Override

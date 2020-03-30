@@ -46,7 +46,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 class NError extends NBase {
 	private long caseID = 0;
 	private final String[] columns = { "NO", "ERROR", "CASE" };
-	private ArrayList<OError> lstErrors = new ArrayList<OError>();
+	private ArrayList<OError> list = new ArrayList<OError>();
 	private ITableModelEvent modelEvent;
 	private ITableModelSpecimen modelSpec;
 	private ModelError modelError;
@@ -166,13 +166,13 @@ class NError extends NBase {
 				error.caseID = rst.getLong("CAID");
 				error.errID = rst.getByte("ERID");
 				error.caseNo = rst.getString("CANO");
-				lstErrors.add(error);
+				list.add(error);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
 			pj.dbPowerJ.closeRst(rst);
-			pj.statusBar.setMessage("No Rows: " + pj.numbers.formatNumber(lstErrors.size()));
+			pj.statusBar.setMessage("No Rows: " + pj.numbers.formatNumber(list.size()));
 		}
 	}
 
@@ -231,11 +231,11 @@ class NError extends NBase {
 						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
 						break;
 					case 1:
-						paragraph.add(new Chunk(pj.numbers.formatNumber(lstErrors.get(i).errID)));
+						paragraph.add(new Chunk(pj.numbers.formatNumber(list.get(i).errID)));
 						paragraph.setAlignment(Element.ALIGN_RIGHT);
 						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
 					default:
-						paragraph.add(new Chunk(lstErrors.get(i).caseNo));
+						paragraph.add(new Chunk(list.get(i).caseNo));
 						paragraph.setAlignment(Element.ALIGN_LEFT);
 						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
 						break;
@@ -267,7 +267,7 @@ class NError extends NBase {
 	private void setRow(int row) {
 		programmaticChange = true;
 		pj.setBusy(true);
-		caseID = lstErrors.get(row).caseID;
+		caseID = list.get(row).caseID;
 		if (!pj.offLine) {
 			modelSpec.getData(caseID);
 			modelSpec.getData(caseID);
@@ -338,10 +338,10 @@ class NError extends NBase {
 						xlsCell.setCellValue(row + 1);
 						break;
 					case 1:
-						xlsCell.setCellValue(lstErrors.get(i).errID);
+						xlsCell.setCellValue(list.get(i).errID);
 						break;
 					default:
-						xlsCell.setCellValue(lstErrors.get(i).caseNo);
+						xlsCell.setCellValue(list.get(i).caseNo);
 					}
 				}
 			}
@@ -368,12 +368,16 @@ class NError extends NBase {
 
 		@Override
 		public int getRowCount() {
-			return lstErrors.size();
+			return list.size();
 		}
 
 		@Override
 		public Object getValueAt(int row, int col) {
-			return lstErrors.get(row).caseNo;
+			Object value = Object.class;
+			if (list.size() > 0 && row < list.size()) {
+				value = list.get(row).caseNo;
+			}
+			return value;
 		}
 	}
 }
