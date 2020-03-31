@@ -303,9 +303,10 @@ class LBase implements Runnable {
 								}
 								setNextUpdate();
 							} else if (!isUpToDate) {
-								LFinals worker = new LFinals(this);
-								isUpToDate = worker.isUpToDate();
-								worker.close();
+//								LFinals worker = new LFinals(this);
+//								isUpToDate = worker.isUpToDate();
+								isUpToDate = true;
+//								worker.close();
 							} else if (nextUpdate - System.currentTimeMillis() > (updateInterval * 5)) {
 								jobID = JOB_SLEEP;
 							}

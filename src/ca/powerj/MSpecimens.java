@@ -394,43 +394,46 @@ class MSpecimens {
 		groupID = 0;
 		try {
 			while (rst.next()) {
-				if (groupID != rst.getShort("SGID")) {
-					groupID = rst.getShort("SGID");
-					specGroup = specGroups.get(groupID);
-					if (specGroup == null) {
-						specGroup = new OSpecGroup();
-						specGroup.subID = rst.getByte("SBID");
-						specGroup.proID = rst.getByte("POID");
-						specGroup.value5 = rst.getInt("SGV5");
-						specGroup.hasLN = (rst.getString("SGLN").toUpperCase().equals("Y"));
-						specGroup.codes[LConstants.CODER_B - 1][LConstants.CODER_1 - 1] = new OItem(
-								rst.getShort("SG1B"), rst.getString("C1NB"));
-						specGroup.codes[LConstants.CODER_B - 1][LConstants.CODER_2 - 1] = new OItem(
-								rst.getShort("SG2B"), rst.getString("C2NB"));
-						specGroup.codes[LConstants.CODER_B - 1][LConstants.CODER_3 - 1] = new OItem(
-								rst.getShort("SG3B"), rst.getString("C2NB"));
-						specGroup.codes[LConstants.CODER_B - 1][LConstants.CODER_4 - 1] = new OItem(
-								rst.getShort("SG4B"), rst.getString("C4NB"));
-						specGroup.codes[LConstants.CODER_M - 1][LConstants.CODER_1 - 1] = new OItem(
-								rst.getShort("SG1M"), rst.getString("C1NM"));
-						specGroup.codes[LConstants.CODER_M - 1][LConstants.CODER_2 - 1] = new OItem(
-								rst.getShort("SG2M"), rst.getString("C2NM"));
-						specGroup.codes[LConstants.CODER_M - 1][LConstants.CODER_3 - 1] = new OItem(
-								rst.getShort("SG3M"), rst.getString("C3NM"));
-						specGroup.codes[LConstants.CODER_M - 1][LConstants.CODER_4 - 1] = new OItem(
-								rst.getShort("SG4M"), rst.getString("C4NM"));
-						specGroup.codes[LConstants.CODER_R - 1][LConstants.CODER_1 - 1] = new OItem(
-								rst.getShort("SG1R"), rst.getString("C1NR"));
-						specGroup.codes[LConstants.CODER_R - 1][LConstants.CODER_2 - 1] = new OItem(
-								rst.getShort("SG2R"), rst.getString("C2NR"));
-						specGroup.codes[LConstants.CODER_R - 1][LConstants.CODER_3 - 1] = new OItem(
-								rst.getShort("SG3R"), rst.getString("C3NR"));
-						specGroup.codes[LConstants.CODER_R - 1][LConstants.CODER_4 - 1] = new OItem(
-								rst.getShort("SG4R"), rst.getString("C4NR"));
-						specGroups.put(groupID, specGroup);
+				if (rst.getShort("SGID") > 1) {
+					// Skip Ignore & Reject
+					if (groupID != rst.getShort("SGID")) {
+						groupID = rst.getShort("SGID");
+						specGroup = specGroups.get(groupID);
+						if (specGroup == null) {
+							specGroup = new OSpecGroup();
+							specGroup.subID = rst.getByte("SBID");
+							specGroup.proID = rst.getByte("POID");
+							specGroup.value5 = rst.getInt("SGV5");
+							specGroup.hasLN = (rst.getString("SGLN").toUpperCase().equals("Y"));
+							specGroup.codes[LConstants.CODER_B - 1][LConstants.CODER_1 - 1] = new OItem(
+									rst.getShort("SG1B"), rst.getString("C1NB"));
+							specGroup.codes[LConstants.CODER_B - 1][LConstants.CODER_2 - 1] = new OItem(
+									rst.getShort("SG2B"), rst.getString("C2NB"));
+							specGroup.codes[LConstants.CODER_B - 1][LConstants.CODER_3 - 1] = new OItem(
+									rst.getShort("SG3B"), rst.getString("C2NB"));
+							specGroup.codes[LConstants.CODER_B - 1][LConstants.CODER_4 - 1] = new OItem(
+									rst.getShort("SG4B"), rst.getString("C4NB"));
+							specGroup.codes[LConstants.CODER_M - 1][LConstants.CODER_1 - 1] = new OItem(
+									rst.getShort("SG1M"), rst.getString("C1NM"));
+							specGroup.codes[LConstants.CODER_M - 1][LConstants.CODER_2 - 1] = new OItem(
+									rst.getShort("SG2M"), rst.getString("C2NM"));
+							specGroup.codes[LConstants.CODER_M - 1][LConstants.CODER_3 - 1] = new OItem(
+									rst.getShort("SG3M"), rst.getString("C3NM"));
+							specGroup.codes[LConstants.CODER_M - 1][LConstants.CODER_4 - 1] = new OItem(
+									rst.getShort("SG4M"), rst.getString("C4NM"));
+							specGroup.codes[LConstants.CODER_R - 1][LConstants.CODER_1 - 1] = new OItem(
+									rst.getShort("SG1R"), rst.getString("C1NR"));
+							specGroup.codes[LConstants.CODER_R - 1][LConstants.CODER_2 - 1] = new OItem(
+									rst.getShort("SG2R"), rst.getString("C2NR"));
+							specGroup.codes[LConstants.CODER_R - 1][LConstants.CODER_3 - 1] = new OItem(
+									rst.getShort("SG3R"), rst.getString("C3NR"));
+							specGroup.codes[LConstants.CODER_R - 1][LConstants.CODER_4 - 1] = new OItem(
+									rst.getShort("SG4R"), rst.getString("C4NR"));
+							specGroups.put(groupID, specGroup);
+						}
 					}
+					specMaster.put(rst.getShort("SMID"), groupID);
 				}
-				specMaster.put(rst.getShort("SMID"), groupID);
 			}
 			Thread.sleep(LConstants.SLEEP_TIME);
 		} catch (InterruptedException e) {
