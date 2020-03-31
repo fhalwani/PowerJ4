@@ -23,7 +23,6 @@ class DMaria extends DServer {
 				connection = DriverManager.getConnection(url, pj.pjUser, pj.pjPass);
 				stm = connection.createStatement();
 				execute("USE " + pj.pjSchema);
-				prepareBase();
 				pj.log(LConstants.ERROR_NONE, dbName, "Connected to MariaDB.");
 			}
 		} catch (IllegalArgumentException e) {

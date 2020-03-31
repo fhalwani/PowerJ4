@@ -1,4 +1,5 @@
 package ca.powerj;
+
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -8,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -32,12 +34,13 @@ class NRule extends NBase {
 	NRule(AClient parent) {
 		super(parent);
 		setName("Rules");
-		parent.dbPowerJ.prepareStpRules();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_RULES);
 		getData();
 		createPanel();
 		programmaticChange = false;
 	}
 
+	@Override
 	boolean close() {
 		if (super.close()) {
 			list.clear();
@@ -48,22 +51,26 @@ class NRule extends NBase {
 	private void createPanel() {
 		model = new ModelRule();
 		tbl = new ITable(pj, model);
-		//  This class handles the ancestorAdded event and invokes the requestFocusInWindow() method
+		// This class handles the ancestorAdded event and invokes the
+		// requestFocusInWindow() method
 		tbl.addAncestorListener(new IFocusListener());
 		tbl.addFocusListener(this);
-        tbl.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+		tbl.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
 			public void valueChanged(ListSelectionEvent e) {
-		        //Ignore extra messages
-		        if (e.getValueIsAdjusting()) return;
-		        ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-		        if (lsm.isSelectionEmpty()) return;
-		        int index = lsm.getMinSelectionIndex();
-		        if (index > -1) {
+				// Ignore extra messages
+				if (e.getValueIsAdjusting())
+					return;
+				ListSelectionModel lsm = (ListSelectionModel) e.getSource();
+				if (lsm.isSelectionEmpty())
+					return;
+				int index = lsm.getMinSelectionIndex();
+				if (index > -1) {
 					// else, Selection got filtered away.
 					setRow(tbl.convertRowIndexToModel(index));
-		        }
+				}
 			}
-        });
+		});
 		tbl.getColumnModel().getColumn(0).setMinWidth(190);
 		JScrollPane scrollTable = IGUI.createJScrollPane(tbl);
 		scrollTable.setMinimumSize(new Dimension(200, 400));
@@ -89,15 +96,10 @@ class NRule extends NBase {
 		txtDescr.setLineWrap(true);
 		txtDescr.setWrapStyleWord(true);
 		JScrollPane scrollText = IGUI.createJScrollPane(txtDescr);
-		IGUI.addComponent(label, 0, 0, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(txtName, 1, 0, 2, 1, 0.6, 0,
-				GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(lblID, 3, 0, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(scrollText, 0, 1, 4, 4, 1.0, 1.0,
-				GridBagConstraints.BOTH, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(label, 0, 0, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(txtName, 1, 0, 2, 1, 0.6, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(lblID, 3, 0, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(scrollText, 0, 1, 4, 4, 1.0, 1.0, GridBagConstraints.BOTH, GridBagConstraints.EAST, pnlData);
 		JSplitPane pnlSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		pnlSplit.setTopComponent(scrollTable);
 		pnlSplit.setBottomComponent(pnlData);
@@ -108,12 +110,12 @@ class NRule extends NBase {
 	}
 
 	private void getData() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_RUL_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_RUL_SELECT));
 		try {
 			while (rst.next()) {
 				rule = new OItem();
 				rule.id = rst.getShort("RUID");
-				rule.name  = rst.getString("RUNM").trim();
+				rule.name = rst.getString("RUNM").trim();
 				rule.descr = rst.getString("RUDC").trim();
 				list.add(rule);
 			}
@@ -121,10 +123,11 @@ class NRule extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, "Variables", e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
+	@Override
 	void save() {
 		rule.name = txtName.getText().trim();
 		if (rule.name.length() > 16) {
@@ -134,10 +137,10 @@ class NRule extends NBase {
 		if (rule.descr.length() > 256) {
 			rule.descr = rule.descr.substring(0, 256);
 		}
-		pj.dbPowerJ.setString(DPowerJ.STM_RUL_UPDATE, 1, rule.name);
-		pj.dbPowerJ.setString(DPowerJ.STM_RUL_UPDATE, 2, rule.descr);
-		pj.dbPowerJ.setShort(DPowerJ.STM_RUL_UPDATE,  3, rule.id);
-		if (pj.dbPowerJ.execute(DPowerJ.STM_RUL_UPDATE) > 0) {
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_RUL_UPDATE), 1, rule.name);
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_RUL_UPDATE), 2, rule.descr);
+		pj.dbPowerJ.setShort(pjStms.get(DPowerJ.STM_RUL_UPDATE), 3, rule.id);
+		if (pj.dbPowerJ.execute(pjStms.get(DPowerJ.STM_RUL_UPDATE)) > 0) {
 			altered = false;
 			model.fireTableRowsUpdated(rowIndex, rowIndex);
 		}

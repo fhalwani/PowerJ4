@@ -1,4 +1,6 @@
 package ca.powerj;
+
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -22,15 +24,15 @@ class LCoder extends LCoderA {
 	private ArrayList<OSpecCode> specimens = new ArrayList<OSpecCode>();
 	private LBase pj;
 
-	LCoder(LBase pj, int coderID) {
+	LCoder(LBase pj, PreparedStatement pstm, int coderID) {
 		super(pj, coderID);
 		this.pj = pj;
-		readTables(coderID);
+		readTables(pstm);
 	}
 
 	@Override
-	void addOrder(short orderID, short groupID, short codeID, short qty,
-			boolean isRoutine, boolean isAddlBlock, int specimenNo) {
+	void addOrder(short orderID, short groupID, short codeID, short qty, boolean isRoutine, boolean isAddlBlock,
+			int specimenNo) {
 		if (caseCoder.inclusive) {
 			return;
 		}
@@ -38,9 +40,8 @@ class LCoder extends LCoderA {
 		if (wcode == null) {
 			caseCoder.hasError = true;
 			caseCoder.errorID = LConstants.ERROR_ORDER_UNKNOWN;
-			comment = "ERROR: addOrder, " + thisCase.caseNo + ", Specimen " +
-					specimenNo + ", Order " + codeID + ", " +
-					LConstants.ERROR_STRINGS[caseCoder.errorID];
+			comment = "ERROR: addOrder, " + thisCase.caseNo + ", Specimen " + specimenNo + ", Order " + codeID + ", "
+					+ LConstants.ERROR_STRINGS[caseCoder.errorID];
 			caseCoder.comment += comment + "\n";
 			pj.log(caseCoder.errorID, coderName, comment);
 			return;
@@ -59,9 +60,7 @@ class LCoder extends LCoderA {
 		if (specimenCoder.inclusive) {
 			return;
 		}
-		if (isAddlBlock && 
-				(!specimenCoder.codeBlocks ||
-						!caseCoder.codeBlocks)) {
+		if (isAddlBlock && (!specimenCoder.codeBlocks || !caseCoder.codeBlocks)) {
 			return;
 		}
 		ordersCoder = specimenCoder.lstOrders.get(groupID);
@@ -125,7 +124,7 @@ class LCoder extends LCoderA {
 
 	@Override
 	void addSpecimen(byte procedureID, short codeBenign, short codeMalignant, short codeRadical) {
-		thisSpecimen = thisCase.lstSpecimens.get(thisCase.noSpec -1);
+		thisSpecimen = thisCase.lstSpecimens.get(thisCase.noSpec - 1);
 		specimenCoder = new OSpecCode();
 		specimenCoder.procID = procedureID;
 		specimenCoder.coderID = codeBenign;
@@ -143,9 +142,8 @@ class LCoder extends LCoderA {
 		if (wcode == null) {
 			caseCoder.hasError = true;
 			caseCoder.errorID = LConstants.ERROR_SPECIMEN_UNKNOWN;
-			comment = "ERROR: addSpecimen, " + thisCase.caseNo + ", Specimen " +
-					thisCase.noSpec + ", Coder " + specimenCoder.coderID + ", " +
-					LConstants.ERROR_STRINGS[caseCoder.errorID];
+			comment = "ERROR: addSpecimen, " + thisCase.caseNo + ", Specimen " + thisCase.noSpec + ", Coder "
+					+ specimenCoder.coderID + ", " + LConstants.ERROR_STRINGS[caseCoder.errorID];
 			caseCoder.comment += comment + "\n";
 			pj.log(caseCoder.errorID, coderName, comment);
 			return;
@@ -217,11 +215,9 @@ class LCoder extends LCoderA {
 		default:
 			// Nothing for specimen (molecular, Derm IF, Iron Quant)
 		}
-		caseCoder.comment += "Specimen " + thisCase.noSpec + ", Rule " +
-				wcode.ruleID + ", Name: " + wcode.name +
-				", AddlBlk: " + (specimenCoder.codeBlocks ? "T" : "F") +
-				", Frags: " + (specimenCoder.needFrag ? "T" : "F") +
-				"\n";
+		caseCoder.comment += "Specimen " + thisCase.noSpec + ", Rule " + wcode.ruleID + ", Name: " + wcode.name
+				+ ", AddlBlk: " + (specimenCoder.codeBlocks ? "T" : "F") + ", Frags: "
+				+ (specimenCoder.needFrag ? "T" : "F") + "\n";
 	}
 
 	@Override
@@ -239,7 +235,7 @@ class LCoder extends LCoderA {
 							if (wcode.ruleID > ORule.RULE_IGNORE) {
 								// Use this specimen as first choice for coding malignancy
 								caseCoder.mainSpec = thisCase.noSpec;
-								thisCase.procID   = specimenCoder.procID;
+								thisCase.procID = specimenCoder.procID;
 								thisCase.mainSpec = thisSpecimen.spmID;
 								specimenCoder.coderID = specimenCoder.coderRadical;
 								caseCoder.isRadical = true;
@@ -268,9 +264,8 @@ class LCoder extends LCoderA {
 		if (wcode == null) {
 			caseCoder.hasError = true;
 			caseCoder.errorID = LConstants.ERROR_SPECIMEN_UNKNOWN;
-			comment = "ERROR: addSpecimen, " + thisCase.caseNo + ", Specimen " +
-					thisCase.noSpec + ", Coder " + specimenCoder.coderID + ", " +
-					LConstants.ERROR_STRINGS[caseCoder.errorID];
+			comment = "ERROR: addSpecimen, " + thisCase.caseNo + ", Specimen " + thisCase.noSpec + ", Coder "
+					+ specimenCoder.coderID + ", " + LConstants.ERROR_STRINGS[caseCoder.errorID];
 			caseCoder.comment += comment + "\n";
 			pj.log(caseCoder.errorID, coderName, comment);
 			return;
@@ -342,19 +337,15 @@ class LCoder extends LCoderA {
 		default:
 			// Nothing for specimen (molecular, Derm IF, Iron Quant)
 		}
-		caseCoder.comment += "Malignant/Radical Specimen " + thisCase.noSpec + ", Rule " +
-				wcode.ruleID + ", " + ", Name: " + wcode.name +
-				", AddlBlk: " + (specimenCoder.codeBlocks ? "T" : "F") +
-				", Frags: " + (specimenCoder.needFrag ? "T" : "F") +
-				"\n";
+		caseCoder.comment += "Malignant/Radical Specimen " + thisCase.noSpec + ", Rule " + wcode.ruleID + ", "
+				+ ", Name: " + wcode.name + ", AddlBlk: " + (specimenCoder.codeBlocks ? "T" : "F") + ", Frags: "
+				+ (specimenCoder.needFrag ? "T" : "F") + "\n";
 		for (int i = 0; i < thisCase.noSpec; i++) {
 			thisSpecimen = thisCase.lstSpecimens.get(i);
 			specimenCoder = specimens.get(i);
 			for (Entry<Short, OOrderCode> orderEntry : specimenCoder.lstOrders.entrySet()) {
 				ordersCoder = orderEntry.getValue();
-				if (ordersCoder.isAddlBlock && 
-						(!specimenCoder.codeBlocks ||
-								!caseCoder.codeBlocks)) {
+				if (ordersCoder.isAddlBlock && (!specimenCoder.codeBlocks || !caseCoder.codeBlocks)) {
 					ordersCoder.qty = 0;
 				} else if (caseCoder.inclusive || specimenCoder.inclusive) {
 					ordersCoder.qty = 0;
@@ -399,8 +390,7 @@ class LCoder extends LCoderA {
 		if (wcode == null) {
 			caseCoder.hasError = true;
 			caseCoder.errorID = LConstants.ERROR_CODING_RULE_UNKNOWN;
-			comment = "ERROR: codeFrozen, " + thisCase.caseNo + ", " +
-					LConstants.ERROR_STRINGS[caseCoder.errorID];
+			comment = "ERROR: codeFrozen, " + thisCase.caseNo + ", " + LConstants.ERROR_STRINGS[caseCoder.errorID];
 			caseCoder.comment += comment + "\n";
 			pj.log(caseCoder.errorID, coderName, comment);
 			return;
@@ -409,7 +399,8 @@ class LCoder extends LCoderA {
 			return;
 		}
 		for (int i = 0; i < thisCase.noSpec; i++) {
-			if (caseFixed) break;
+			if (caseFixed)
+				break;
 			thisSpecimen = thisCase.lstSpecimens.get(i);
 			if (thisSpecimen.noFSBlks < 1 && thisSpecimen.noFSSlds < 1) {
 				continue;
@@ -464,7 +455,7 @@ class LCoder extends LCoderA {
 					if (noLinks > wcode.count) {
 						specimenCoder.valueFS += wcode.valueC * (noLinks - wcode.count);
 					}
-				} 
+				}
 				break;
 			case ORule.RULE_CASE_BLOCKS_X_MIN_MAX:
 			case ORule.RULE_LINKED_BLOCKS_X_MIN_MAX:
@@ -496,9 +487,9 @@ class LCoder extends LCoderA {
 				specimenCoder.valueFS = wcode.valueA;
 				if (noLinks > 1 && dLinks < wcode.valueA + wcode.valueB) {
 					specimenCoder.valueFS += wcode.valueB;
-					if (noLinks > wcode.count && dLinks < wcode.valueA + wcode.valueB +
-							(wcode.valueC * (noLinks -wcode.count))) {
-						specimenCoder.valueFS += (wcode.valueC * (noLinks -wcode.count));
+					if (noLinks > wcode.count
+							&& dLinks < wcode.valueA + wcode.valueB + (wcode.valueC * (noLinks - wcode.count))) {
+						specimenCoder.valueFS += (wcode.valueC * (noLinks - wcode.count));
 					}
 				}
 				dLinks += specimenCoder.valueFS;
@@ -541,7 +532,7 @@ class LCoder extends LCoderA {
 					if (thisSpecimen.noFSBlks >= 2) {
 						specimenCoder.valueFS += wcode.valueB;
 						if (thisSpecimen.noFSBlks > wcode.count) {
-							specimenCoder.valueFS += (wcode.valueC * (thisSpecimen.noFSBlks -wcode.count));
+							specimenCoder.valueFS += (wcode.valueC * (thisSpecimen.noFSBlks - wcode.count));
 						}
 					}
 				}
@@ -550,8 +541,7 @@ class LCoder extends LCoderA {
 			default:
 				caseCoder.hasError = true;
 				caseCoder.errorID = LConstants.ERROR_CODING_RULE_UNKNOWN;
-				comment = "ERROR: codeFrozen, " + thisCase.caseNo + ", " +
-						LConstants.ERROR_STRINGS[caseCoder.errorID];
+				comment = "ERROR: codeFrozen, " + thisCase.caseNo + ", " + LConstants.ERROR_STRINGS[caseCoder.errorID];
 				caseCoder.comment += comment + "\n";
 				pj.log(caseCoder.errorID, coderName, comment);
 			}
@@ -560,11 +550,9 @@ class LCoder extends LCoderA {
 				codeBlocks = codeFrozenBlocks();
 				wcode = masterCodes.get(RULE_FROZENS);
 			}
-			caseCoder.comment += "Frozen Sections: Specimen " + (i+1) +
-					", Blocks " + thisSpecimen.noFSBlks +
-					", Value: " + pj.numbers.formatDouble(3, specimenCoder.valueFS) +
-					", Case: " + pj.numbers.formatDouble(3, caseCoder.valueFS) +
-					"\n";
+			caseCoder.comment += "Frozen Sections: Specimen " + (i + 1) + ", Blocks " + thisSpecimen.noFSBlks
+					+ ", Value: " + pj.numbers.formatDouble(3, specimenCoder.valueFS) + ", Case: "
+					+ pj.numbers.formatDouble(3, caseCoder.valueFS) + "\n";
 		}
 	}
 
@@ -576,8 +564,8 @@ class LCoder extends LCoderA {
 		if (wcode == null) {
 			caseCoder.hasError = true;
 			caseCoder.errorID = LConstants.ERROR_CODING_RULE_UNKNOWN;
-			comment = "ERROR: codeFrozenBlocks, " + thisCase.caseNo + ", " +
-					LConstants.ERROR_STRINGS[caseCoder.errorID];
+			comment = "ERROR: codeFrozenBlocks, " + thisCase.caseNo + ", "
+					+ LConstants.ERROR_STRINGS[caseCoder.errorID];
 			caseCoder.comment += comment + "\n";
 			pj.log(caseCoder.errorID, coderName, comment);
 			codeBlocks = false;
@@ -616,7 +604,7 @@ class LCoder extends LCoderA {
 					if (thisCase.noFSBlks >= 2) {
 						dValue += wcode.valueB;
 						if (thisCase.noFSBlks > wcode.count) {
-							dValue += (wcode.valueC * (thisCase.noFSBlks -wcode.count));
+							dValue += (wcode.valueC * (thisCase.noFSBlks - wcode.count));
 						}
 					}
 				}
@@ -653,7 +641,7 @@ class LCoder extends LCoderA {
 					if (thisSpecimen.noFSBlks >= 2) {
 						dValue += wcode.valueB;
 						if (thisSpecimen.noFSBlks > wcode.count) {
-							dValue += (wcode.valueC * (thisSpecimen.noFSBlks -wcode.count));
+							dValue += (wcode.valueC * (thisSpecimen.noFSBlks - wcode.count));
 						}
 					}
 				}
@@ -661,25 +649,24 @@ class LCoder extends LCoderA {
 			default:
 				caseCoder.hasError = true;
 				caseCoder.errorID = LConstants.ERROR_CODING_RULE_UNKNOWN;
-				comment = "ERROR: codeFrozenBlocks, " + thisCase.caseNo + ", " +
-						LConstants.ERROR_STRINGS[caseCoder.errorID];
+				comment = "ERROR: codeFrozenBlocks, " + thisCase.caseNo + ", "
+						+ LConstants.ERROR_STRINGS[caseCoder.errorID];
 				caseCoder.comment += comment + "\n";
 				pj.log(caseCoder.errorID, coderName, comment);
 			}
 			if (dValue > 0) {
 				specimenCoder.valueFS += dValue;
 				caseCoder.valueFS += dValue;
-				caseCoder.comment += "Frozen Blocks: " + dValue +
-						", Specimen: " + pj.numbers.formatDouble(3, specimenCoder.valueFS) +
-						", Case: " + pj.numbers.formatDouble(3, caseCoder.valueFS) +
-						"\n";
+				caseCoder.comment += "Frozen Blocks: " + dValue + ", Specimen: "
+						+ pj.numbers.formatDouble(3, specimenCoder.valueFS) + ", Case: "
+						+ pj.numbers.formatDouble(3, caseCoder.valueFS) + "\n";
 			}
 		}
 		return codeBlocks;
 	}
 
 	private void codeMain() {
-		specimenCoder = specimens.get(caseCoder.mainSpec -1);
+		specimenCoder = specimens.get(caseCoder.mainSpec - 1);
 		wcode = masterCodes.get(caseCoder.coderID);
 		switch (wcode.ruleID) {
 		case ORule.RULE_CASE_INCLUSIVE:
@@ -711,7 +698,7 @@ class LCoder extends LCoderA {
 			if (thisCase.noBlocks > 1) {
 				specimenCoder.value += wcode.valueB;
 				if (thisCase.noBlocks > wcode.count) {
-					specimenCoder.value += (wcode.valueC * (thisCase.noBlocks -wcode.count));
+					specimenCoder.value += (wcode.valueC * (thisCase.noBlocks - wcode.count));
 				}
 			}
 			break;
@@ -724,7 +711,8 @@ class LCoder extends LCoderA {
 			switch (wcode.ruleID) {
 			case ORule.RULE_CASE_FRAGS_X_MIN_MAX:
 				specimenCoder.value = wcode.valueA * pj.numbers.ceiling(counter, wcode.count);
-				specimenCoder.value = pj.numbers.minMax(specimenCoder.value, 0d, specimenCoder.value, wcode.valueB, wcode.valueC);
+				specimenCoder.value = pj.numbers.minMax(specimenCoder.value, 0d, specimenCoder.value, wcode.valueB,
+						wcode.valueC);
 				break;
 			case ORule.RULE_CASE_FRAGS_1_2_X:
 				specimenCoder.value = wcode.valueA;
@@ -748,11 +736,8 @@ class LCoder extends LCoderA {
 				// RULE_CASE_FRAGS_BLOCKS
 				specimenCoder.value = wcode.valueA * pj.numbers.ceiling(counter, wcode.count);
 				dValue = wcode.valueB * pj.numbers.ceiling(thisCase.noBlocks, wcode.count);
-				caseCoder.comment += "Fragments: " + counter +
-						" - " + pj.numbers.formatDouble(3, specimenCoder.value) +
-						", Blocks: " + thisCase.noBlocks +
-						" - "+ pj.numbers.formatDouble(3, dValue) +
-						"\n";
+				caseCoder.comment += "Fragments: " + counter + " - " + pj.numbers.formatDouble(3, specimenCoder.value)
+						+ ", Blocks: " + thisCase.noBlocks + " - " + pj.numbers.formatDouble(3, dValue) + "\n";
 				if (specimenCoder.value < dValue) {
 					// Use # blocks to get the higher value
 					specimenCoder.value = dValue;
@@ -760,9 +745,8 @@ class LCoder extends LCoderA {
 			}
 		}
 		caseCoder.value = specimenCoder.value;
-		caseCoder.comment += "Case Rule: " + wcode.ruleID +
-				", Value: " + pj.numbers.formatDouble(3, caseCoder.value) +
-				"\n";
+		caseCoder.comment += "Case Rule: " + wcode.ruleID + ", Value: " + pj.numbers.formatDouble(3, caseCoder.value)
+				+ "\n";
 	}
 
 	private void codeOrders() {
@@ -779,9 +763,7 @@ class LCoder extends LCoderA {
 				if (ordersCoder.qty == 0) {
 					continue;
 				}
-				if (ordersCoder.isAddlBlock && 
-						(!specimenCoder.codeBlocks ||
-								!caseCoder.codeBlocks)) {
+				if (ordersCoder.isAddlBlock && (!specimenCoder.codeBlocks || !caseCoder.codeBlocks)) {
 					continue;
 				}
 				wcode = masterCodes.get(ordersCoder.codeID);
@@ -789,10 +771,8 @@ class LCoder extends LCoderA {
 				case ORule.RULE_AFTER_EVERY_X_MIN_MAX:
 				case ORule.RULE_GROUP_EVERY_X_MIN_MAX:
 				case ORule.RULE_UNIQUE_EVERY_X_MIN_MAX:
-					ordersCoder.value = wcode.valueA *
-					pj.numbers.ceiling(ordersCoder.qty, wcode.count);
-					ordersCoder.value = pj.numbers.minMax(ordersCoder.value,
-							wcode.valueB, wcode.valueC);
+					ordersCoder.value = wcode.valueA * pj.numbers.ceiling(ordersCoder.qty, wcode.count);
+					ordersCoder.value = pj.numbers.minMax(ordersCoder.value, wcode.valueB, wcode.valueC);
 					break;
 				case ORule.RULE_AFTER_1_2_X:
 				case ORule.RULE_GROUP_1_2_X:
@@ -821,11 +801,9 @@ class LCoder extends LCoderA {
 				}
 				specimenCoder.value += ordersCoder.value;
 				caseCoder.value += ordersCoder.value;
-				caseCoder.comment += "codeOrders: Specimen " + (i+1) +
-						", Orders: " + ordersCoder.name + ", Qty: " + ordersCoder.qty +
-						", Value: " + pj.numbers.formatDouble(3, ordersCoder.value) +
-						", Case Value: " + pj.numbers.formatDouble(3, caseCoder.value) +
-						"\n";
+				caseCoder.comment += "codeOrders: Specimen " + (i + 1) + ", Orders: " + ordersCoder.name + ", Qty: "
+						+ ordersCoder.qty + ", Value: " + pj.numbers.formatDouble(3, ordersCoder.value)
+						+ ", Case Value: " + pj.numbers.formatDouble(3, caseCoder.value) + "\n";
 			}
 		}
 	}
@@ -871,7 +849,7 @@ class LCoder extends LCoderA {
 					specimenCoder.value += wcode.valueB;
 					if (noSpecs > wcode.count) {
 						specimenCoder.value += wcode.valueC;
-					}					
+					}
 				}
 				break;
 			case ORule.RULE_SPECIMEN_1_2_PLUSX:
@@ -916,7 +894,7 @@ class LCoder extends LCoderA {
 				if (thisSpecimen.noFrags > 1) {
 					specimenCoder.value += wcode.valueB;
 					if (thisSpecimen.noFrags > wcode.count) {
-						specimenCoder.value += (wcode.valueC * (thisSpecimen.noFrags -wcode.count));
+						specimenCoder.value += (wcode.valueC * (thisSpecimen.noFrags - wcode.count));
 					}
 				}
 				break;
@@ -947,7 +925,7 @@ class LCoder extends LCoderA {
 				if (thisSpecimen.noBlocks > 1) {
 					specimenCoder.value += wcode.valueB;
 					if (thisSpecimen.noBlocks > wcode.count) {
-						specimenCoder.value += (wcode.valueC * (thisSpecimen.noBlocks -wcode.count));
+						specimenCoder.value += (wcode.valueC * (thisSpecimen.noBlocks - wcode.count));
 					}
 				}
 				break;
@@ -982,14 +960,11 @@ class LCoder extends LCoderA {
 					noFrags = 0;
 				}
 				noFrags += thisSpecimen.noFrags;
-				if (noFrags >= 1
-						&& dFrags < wcode.valueA) {
+				if (noFrags >= 1 && dFrags < wcode.valueA) {
 					specimenCoder.value += wcode.valueA;
-					if (noFrags >= 2
-							&& dFrags < wcode.valueA + wcode.valueB) {
+					if (noFrags >= 2 && dFrags < wcode.valueA + wcode.valueB) {
 						specimenCoder.value += wcode.valueB;
-						if (noFrags >= wcode.count
-								&& dFrags < wcode.valueA + wcode.valueB + wcode.valueC) {
+						if (noFrags >= wcode.count && dFrags < wcode.valueA + wcode.valueB + wcode.valueC) {
 							specimenCoder.value += wcode.valueC;
 						}
 					}
@@ -1003,16 +978,13 @@ class LCoder extends LCoderA {
 					noFrags = 0;
 				}
 				noFrags += thisSpecimen.noFrags;
-				if (noFrags >= 1
-						&& dFrags < wcode.valueA) {
+				if (noFrags >= 1 && dFrags < wcode.valueA) {
 					specimenCoder.value += wcode.valueA;
-					if (noFrags >= 2
-							&& dFrags < wcode.valueA + wcode.valueB) {
+					if (noFrags >= 2 && dFrags < wcode.valueA + wcode.valueB) {
 						specimenCoder.value += wcode.valueB;
 						if (noFrags > wcode.count
-								&& dFrags < wcode.valueA + wcode.valueB +
-								(wcode.valueC * (noFrags -wcode.count))) {
-							specimenCoder.value += (wcode.valueC * (noFrags -wcode.count));
+								&& dFrags < wcode.valueA + wcode.valueB + (wcode.valueC * (noFrags - wcode.count))) {
+							specimenCoder.value += (wcode.valueC * (noFrags - wcode.count));
 						}
 					}
 				}
@@ -1028,8 +1000,8 @@ class LCoder extends LCoderA {
 				}
 				noFrags += thisSpecimen.noFrags;
 				noBlocks += thisSpecimen.noBlocks;
-				specimenCoder.value = (wcode.valueA * pj.numbers.ceiling(noFrags, wcode.count)) -dFrags;
-				dValue = (wcode.valueB * pj.numbers.ceiling(noBlocks, wcode.count)) -dBlocks;
+				specimenCoder.value = (wcode.valueA * pj.numbers.ceiling(noFrags, wcode.count)) - dFrags;
+				dValue = (wcode.valueB * pj.numbers.ceiling(noBlocks, wcode.count)) - dBlocks;
 				dFrags += specimenCoder.value;
 				dBlocks += dValue;
 				if (specimenCoder.value < dValue) {
@@ -1058,8 +1030,7 @@ class LCoder extends LCoderA {
 				if (noBlocks >= 1 && dBlocks < wcode.valueA) {
 					specimenCoder.value += wcode.valueA;
 				}
-				if (noBlocks >= 2
-						&& dBlocks < wcode.valueA + wcode.valueB) {
+				if (noBlocks >= 2 && dBlocks < wcode.valueA + wcode.valueB) {
 					specimenCoder.value += wcode.valueB;
 				}
 				if (noBlocks >= wcode.count && dBlocks < wcode.valueA + wcode.valueB + wcode.valueC) {
@@ -1080,9 +1051,9 @@ class LCoder extends LCoderA {
 				if (noBlocks >= 2 && dBlocks < wcode.valueA + wcode.valueB) {
 					specimenCoder.value += wcode.valueB;
 				}
-				if (noBlocks > wcode.count && dBlocks < wcode.valueA + wcode.valueB +
-						(wcode.valueC * (noBlocks -wcode.count))) {
-					specimenCoder.value += (wcode.valueC * (noBlocks -wcode.count));
+				if (noBlocks > wcode.count
+						&& dBlocks < wcode.valueA + wcode.valueB + (wcode.valueC * (noBlocks - wcode.count))) {
+					specimenCoder.value += (wcode.valueC * (noBlocks - wcode.count));
 				}
 				dBlocks += specimenCoder.value;
 				break;
@@ -1122,7 +1093,7 @@ class LCoder extends LCoderA {
 				if (noLinks > 1) {
 					specimenCoder.value += wcode.valueB;
 					if (noLinks > wcode.count) {
-						specimenCoder.value += (wcode.valueC * (noLinks -wcode.count));
+						specimenCoder.value += (wcode.valueC * (noLinks - wcode.count));
 					}
 				}
 				break;
@@ -1131,11 +1102,9 @@ class LCoder extends LCoderA {
 				caseCoder.errorID = LConstants.ERROR_CODING_RULE_UNKNOWN;
 			}
 			caseCoder.value += specimenCoder.value;
-			caseCoder.comment += "Specimen " + (i+1) +
-					": Links " + noLinks + ", Rule " + wcode.ruleID +
-					", Value " + pj.numbers.formatDouble(3, specimenCoder.value) +
-					", Case " + pj.numbers.formatDouble(3, caseCoder.value) +
-					"\n";
+			caseCoder.comment += "Specimen " + (i + 1) + ": Links " + noLinks + ", Rule " + wcode.ruleID + ", Value "
+					+ pj.numbers.formatDouble(3, specimenCoder.value) + ", Case "
+					+ pj.numbers.formatDouble(3, caseCoder.value) + "\n";
 		}
 	}
 
@@ -1210,16 +1179,13 @@ class LCoder extends LCoderA {
 		default:
 			caseCoder.hasError = true;
 			caseCoder.errorID = LConstants.ERROR_CODING_RULE_UNKNOWN;
-			comment = "ERROR: codeSynoptics, " + thisCase.caseNo + ", " +
-					LConstants.ERROR_STRINGS[caseCoder.errorID];
+			comment = "ERROR: codeSynoptics, " + thisCase.caseNo + ", " + LConstants.ERROR_STRINGS[caseCoder.errorID];
 			caseCoder.comment += comment + "\n";
 			pj.log(caseCoder.errorID, coderName, comment);
 		}
 		caseCoder.value += dValue;
-		caseCoder.comment += "Synoptic: Rule " + wcode.ruleID +
-				", Value " + pj.numbers.formatDouble(3, dValue) +
-				", Case " + pj.numbers.formatDouble(3, caseCoder.value) +
-				"\n";
+		caseCoder.comment += "Synoptic: Rule " + wcode.ruleID + ", Value " + pj.numbers.formatDouble(3, dValue)
+				+ ", Case " + pj.numbers.formatDouble(3, caseCoder.value) + "\n";
 	}
 
 	@Override
@@ -1231,8 +1197,7 @@ class LCoder extends LCoderA {
 			dValue = wcode.valueA;
 			break;
 		case ORule.RULE_ADDL_EVERY_X_MIN_MAX:
-			dValue = wcode.valueA *
-			pj.numbers.ceiling(qty, wcode.count);
+			dValue = wcode.valueA * pj.numbers.ceiling(qty, wcode.count);
 			dValue = pj.numbers.minMax(dValue, wcode.valueB, wcode.valueC);
 			break;
 		case ORule.RULE_ADDL_1_2_X:
@@ -1264,8 +1229,7 @@ class LCoder extends LCoderA {
 
 	@Override
 	String getComment() {
-		return (coderName + "\n" +
-				caseCoder.comment + "--------------------------\n");
+		return (coderName + "\n" + caseCoder.comment + "--------------------------\n");
 	}
 
 	@Override
@@ -1366,22 +1330,8 @@ class LCoder extends LCoderA {
 		this.thisCase = thisCase;
 	}
 
-	private void readTables(int coderID) {
-		byte id = 0;
-		switch (coderID) {
-		case 1:
-			id = DPowerJ.STM_CD1_SELECT;
-			break;
-		case 2:
-			id = DPowerJ.STM_CD2_SELECT;
-			break;
-		case 3:
-			id = DPowerJ.STM_CD3_SELECT;
-			break;
-		default:
-			id = DPowerJ.STM_CD4_SELECT;
-		}
-		ResultSet rst = pj.dbPowerJ.getResultSet(id);
+	private void readTables(PreparedStatement pstm) {
+		ResultSet rst = pj.dbPowerJ.getResultSet(pstm);
 		try {
 			while (rst.next()) {
 				wcode = new OWorkcode();
@@ -1396,7 +1346,8 @@ class LCoder extends LCoderA {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, coderName, e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
+			pj.dbPowerJ.close(pstm);
 		}
 	}
 }

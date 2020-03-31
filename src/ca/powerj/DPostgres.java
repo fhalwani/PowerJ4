@@ -22,7 +22,6 @@ class DPostgres extends DDesktop {
 				connection = DriverManager.getConnection(url, pj.pjUser, pj.pjPass);
 				stm = connection.createStatement();
 				execute("SET search_path TO " + pj.pjSchema);
-				prepareBase();
 				pj.log(LConstants.ERROR_NONE, dbName, "Connected to PostgreSQL.");
 			}
 		} catch (IllegalArgumentException e) {

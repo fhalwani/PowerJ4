@@ -1,4 +1,5 @@
 package ca.powerj;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -9,8 +10,8 @@ class MOrders {
 	private HashMap<Short, Short> orders = new HashMap<Short, Short>();
 	private HashMap<Short, OOrderGroup> groups = new HashMap<Short, OOrderGroup>();
 
-	MOrders(LBase parent) {
-		readDB(parent);
+	MOrders(LBase parent, PreparedStatement pstm) {
+		readDB(parent, pstm);
 	}
 
 	void close() {
@@ -58,8 +59,8 @@ class MOrders {
 		return false;
 	}
 
-	private void readDB(LBase pj) {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_ORM_SELECT);
+	private void readDB(LBase pj, PreparedStatement pstm) {
+		ResultSet rst = pj.dbPowerJ.getResultSet(pstm);
 		try {
 			while (rst.next()) {
 				if (groupID != rst.getShort("OGID")) {
@@ -84,7 +85,8 @@ class MOrders {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, "Orders Map", e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
+			pj.dbPowerJ.close(pstm);
 		}
 	}
 }

@@ -1,4 +1,5 @@
 package ca.powerj;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.sql.ResultSet;
@@ -7,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -42,7 +44,7 @@ class NWorkload extends NBase {
 	NWorkload(AClient parent) {
 		super(parent);
 		setName("Workload");
-		parent.dbPowerJ.prepareCasesSummary();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_DISTRIBUTE);
 		setDefaults();
 		createPanel();
 		programmaticChange = false;
@@ -120,8 +122,8 @@ class NWorkload extends NBase {
 		calMin.setTimeInMillis(pj.setup.getLong(LSetup.VAR_MIN_WL_DATE));
 		setLayout(new BorderLayout());
 		setOpaque(true);
-		add(new IToolBar(this, calStart, calEnd, calMin, calMax,
-				pj.userAccess[LConstants.ACCESS_NAMES]), BorderLayout.NORTH);
+		add(new IToolBar(this, calStart, calEnd, calMin, calMax, pj.userAccess[LConstants.ACCESS_NAMES]),
+				BorderLayout.NORTH);
 		add(splitAll, BorderLayout.CENTER);
 	}
 
@@ -318,29 +320,29 @@ class NWorkload extends NBase {
 			ResultSet rst = null;
 			try {
 				rows.clear();
-				pj.dbPowerJ.setDate(DPowerJ.STM_CSE_SL_SUM, 1, timeFrom);
-				pj.dbPowerJ.setDate(DPowerJ.STM_CSE_SL_SUM, 2, timeTo);
-				rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_CSE_SL_SUM);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_SUM), 1, timeFrom);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_SUM), 2, timeTo);
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CSE_SL_SUM));
 				while (rst.next()) {
 					row = new OWorkload();
-					row.spyID      = rst.getByte("SYID");
-					row.subID      = rst.getByte("SBID");
-					row.proID      = rst.getByte("POID");
-					row.facID      = rst.getShort("FAID");
-					row.prsID      = rst.getShort("FNID");
-					row.noCases    = rst.getInt("CACA");
-					row.noSpecs    = rst.getInt("CASP");
-					row.noBlocks   = rst.getInt("CABL");
-					row.noSlides   = rst.getInt("CASL");
-					row.fte1       = rst.getDouble("CAV1");
-					row.fte2       = rst.getDouble("CAV2");
-					row.fte3       = rst.getDouble("CAV3");
-					row.fte4       = rst.getDouble("CAV4");
-					row.fte5       = rst.getDouble("CAV5");
-					row.facility   = rst.getString("FANM").trim();
-					row.specialty  = rst.getString("SYNM").trim();
+					row.spyID = rst.getByte("SYID");
+					row.subID = rst.getByte("SBID");
+					row.proID = rst.getByte("POID");
+					row.facID = rst.getShort("FAID");
+					row.prsID = rst.getShort("FNID");
+					row.noCases = rst.getInt("CACA");
+					row.noSpecs = rst.getInt("CASP");
+					row.noBlocks = rst.getInt("CABL");
+					row.noSlides = rst.getInt("CASL");
+					row.fte1 = rst.getDouble("CAV1");
+					row.fte2 = rst.getDouble("CAV2");
+					row.fte3 = rst.getDouble("CAV3");
+					row.fte4 = rst.getDouble("CAV4");
+					row.fte5 = rst.getDouble("CAV5");
+					row.facility = rst.getString("FANM").trim();
+					row.specialty = rst.getString("SYNM").trim();
 					row.subspecial = rst.getString("SBNM").trim();
-					row.procedure  = rst.getString("PONM").trim();
+					row.procedure = rst.getString("PONM").trim();
 					if (pj.userAccess[LConstants.ACCESS_NAMES] || row.prsID == pj.userID) {
 						// Hide names except the current user
 						row.staff = rst.getString("FNNM").trim();
@@ -349,9 +351,9 @@ class NWorkload extends NBase {
 				}
 				rst.close();
 				// Frozen Sections
-				pj.dbPowerJ.setDate(DPowerJ.STM_FRZ_SL_SUM, 1, timeFrom);
-				pj.dbPowerJ.setDate(DPowerJ.STM_FRZ_SL_SUM, 2, timeTo);
-				rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_FRZ_SL_SUM);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_SUM), 1, timeFrom);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_SUM), 2, timeTo);
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_FRZ_SL_SUM));
 				while (rst.next()) {
 					exists = false;
 					for (int i = 0; i < rows.size(); i++) {
@@ -390,9 +392,9 @@ class NWorkload extends NBase {
 				}
 				rst.close();
 				// Additional
-				pj.dbPowerJ.setDate(DPowerJ.STM_ADD_SL_SUM, 1, timeFrom);
-				pj.dbPowerJ.setDate(DPowerJ.STM_ADD_SL_SUM, 2, timeTo);
-				rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_ADD_SL_SUM);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_ADD_SL_SUM), 1, timeFrom);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_ADD_SL_SUM), 2, timeTo);
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ADD_SL_SUM));
 				while (rst.next()) {
 					exists = false;
 					for (int i = 0; i < rows.size(); i++) {
@@ -430,7 +432,7 @@ class NWorkload extends NBase {
 			} catch (SQLException e) {
 				pj.log(LConstants.ERROR_SQL, getName(), e);
 			} finally {
-				pj.dbPowerJ.closeRst(rst);
+				pj.dbPowerJ.close(rst);
 			}
 		}
 
@@ -585,24 +587,24 @@ class NWorkload extends NBase {
 		}
 
 		private void structureData() {
-			short     id       = 0;
-			short     ids[]    = new short[rowsView.length];
-			int       rowNos[] = new int[rowsView.length];
-			int       size     = rows.size();
-			int       noDays   = pj.dates.getNoDays(timeFrom, timeTo);
-			double    fte1     = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER1_FTE) / 365;
-			double    fte2     = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER2_FTE) / 365;
-			double    fte3     = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER3_FTE) / 365;
-			double    fte4     = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER4_FTE) / 365;
-			double    fte5     = 1.0 * noDays * pj.setup.getInt(LSetup.VAR_V5_FTE) / 365;
-			String    name     = "";
-			OWorklist data0    = new OWorklist();
-			OWorklist data1    = new OWorklist();
-			OWorklist data2    = new OWorklist();
-			OWorklist data3    = new OWorklist();
-			OWorklist data4    = new OWorklist();
-			OWorklist data5    = new OWorklist();
-			OWorkload row      = new OWorkload();
+			short id = 0;
+			short ids[] = new short[rowsView.length];
+			int rowNos[] = new int[rowsView.length];
+			int size = rows.size();
+			int noDays = pj.dates.getNoDays(timeFrom, timeTo);
+			double fte1 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER1_FTE) / 365;
+			double fte2 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER2_FTE) / 365;
+			double fte3 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER3_FTE) / 365;
+			double fte4 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER4_FTE) / 365;
+			double fte5 = 1.0 * noDays * pj.setup.getInt(LSetup.VAR_V5_FTE) / 365;
+			String name = "";
+			OWorklist data0 = new OWorklist();
+			OWorklist data1 = new OWorklist();
+			OWorklist data2 = new OWorklist();
+			OWorklist data3 = new OWorklist();
+			OWorklist data4 = new OWorklist();
+			OWorklist data5 = new OWorklist();
+			OWorkload row = new OWorkload();
 			for (int i = 0; i < rowsView.length; i++) {
 				ids[i] = -1;
 			}
@@ -652,7 +654,7 @@ class NWorkload extends NBase {
 					ids[0] = id;
 					rowNos[0] = -1;
 					for (int i = 1; i < rowsView.length; i++) {
-						ids[i]    = -1;
+						ids[i] = -1;
 						rowNos[i] = -1;
 					}
 					for (int j = 0; j < data0.children.size(); j++) {
@@ -696,10 +698,10 @@ class NWorkload extends NBase {
 					id = -2;
 				}
 				if (ids[1] != id) {
-					ids[1]    = id;
+					ids[1] = id;
 					rowNos[1] = -1;
 					for (int i = 2; i < rowsView.length; i++) {
-						ids[i]    = -1;
+						ids[i] = -1;
 						rowNos[i] = -1;
 					}
 					for (int i = 0; i < data1.children.size(); i++) {

@@ -94,7 +94,7 @@ class NRouting extends NBase {
 	NRouting(AClient parent) {
 		super(parent);
 		setName("Routing");
-		parent.dbPowerJ.prepareRoute();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_ROUTING);
 		routeTime = parent.setup.getInt(LSetup.VAR_ROUTE_TIME);
 		colSum[6] = pj.setup.getString(LSetup.VAR_V5_NAME);
 		colCases[10] = colSum[6];
@@ -945,9 +945,9 @@ class NRouting extends NBase {
 			pj.setBusy(true);
 			try {
 				cases.clear();
-				pj.dbPowerJ.setTime(DPowerJ.STM_PND_SL_ROU, 1, dates.get(rowIndex + 1).getTimeInMillis());
-				pj.dbPowerJ.setTime(DPowerJ.STM_PND_SL_ROU, 2, dates.get(rowIndex).getTimeInMillis());
-				rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_PND_SL_ROU);
+				pj.dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_SL_ROU), 1, dates.get(rowIndex + 1).getTimeInMillis());
+				pj.dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_SL_ROU), 2, dates.get(rowIndex).getTimeInMillis());
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PND_SL_ROU));
 				while (rst.next()) {
 					pending = new OCasePending();
 					pending.spyID = rst.getByte("SYID");
@@ -975,7 +975,7 @@ class NRouting extends NBase {
 			} catch (SQLException e) {
 				pj.log(LConstants.ERROR_SQL, getName(), e);
 			} finally {
-				pj.dbPowerJ.closeRst(rst);
+				pj.dbPowerJ.close(rst);
 			}
 			return null;
 		}

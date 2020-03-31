@@ -1,4 +1,5 @@
 package ca.powerj;
+
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -8,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -32,12 +34,13 @@ class NAccession extends NBase {
 	NAccession(AClient parent) {
 		super(parent);
 		setName("Accessions");
-		parent.dbPowerJ.prepareStpAccessions();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_ACCESSION);
 		getData();
 		createPanel();
 		programmaticChange = false;
 	}
 
+	@Override
 	boolean close() {
 		if (super.close()) {
 			list.clear();
@@ -48,15 +51,19 @@ class NAccession extends NBase {
 	private void createPanel() {
 		model = new ModelAccession();
 		tbl = new ITable(pj, model);
-		// This class handles the ancestorAdded event and invokes the requestFocusInWindow() method
+		// This class handles the ancestorAdded event and invokes the
+		// requestFocusInWindow() method
 		tbl.addAncestorListener(new IFocusListener());
 		tbl.addFocusListener(this);
 		tbl.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				// Ignore extra messages
-				if (e.getValueIsAdjusting()) return;
+				if (e.getValueIsAdjusting())
+					return;
 				ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-				if (lsm.isSelectionEmpty()) return;
+				if (lsm.isSelectionEmpty())
+					return;
 				int index = lsm.getMinSelectionIndex();
 				if (index > -1) {
 					// else, Selection got filtered away.
@@ -73,17 +80,14 @@ class NAccession extends NBase {
 		// Read only, cannot be edited
 		lblName = IGUI.createJLabel(SwingConstants.LEFT, 0, "");
 		JLabel label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_N, "Name:");
-		IGUI.addComponent(label, 0, 0, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(lblName, 1, 0, 2, 1, 0.7, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(label, 0, 0, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(lblName, 1, 0, 2, 1, 0.7, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
 		ckbWorkflow = new JCheckBox("Workflow");
 		ckbWorkflow.setMnemonic(KeyEvent.VK_F);
 		ckbWorkflow.setFont(LConstants.APP_FONT);
 		ckbWorkflow.addFocusListener(this);
 		ckbWorkflow.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (!programmaticChange) {
 					accession.workflow = ckbWorkflow.isSelected();
@@ -91,14 +95,14 @@ class NAccession extends NBase {
 				}
 			}
 		});
-		IGUI.addComponent(ckbWorkflow, 0, 1, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(ckbWorkflow, 0, 1, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
 		ckbWorkload = new JCheckBox("Workload");
 		ckbWorkload.setMnemonic(KeyEvent.VK_L);
 		ckbWorkload.setFont(LConstants.APP_FONT);
 		ckbWorkload.addFocusListener(this);
 		ckbWorkload.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (!programmaticChange) {
 					accession.workload = ckbWorkload.isSelected();
@@ -106,18 +110,18 @@ class NAccession extends NBase {
 				}
 			}
 		});
-		IGUI.addComponent(ckbWorkload, 1, 1, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(ckbWorkload, 1, 1, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
 		cboSpecialties = new IComboBox();
 		cboSpecialties.setName("Specialties");
 		cboSpecialties.setModel(pj.dbPowerJ.getSpecialties(false));
 		cboSpecialties.addFocusListener(this);
 		cboSpecialties.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (!programmaticChange) {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
-						IComboBox cb = (IComboBox)e.getSource();
+						IComboBox cb = (IComboBox) e.getSource();
 						accession.spyID = (byte) cb.getIndex();
 						altered = true;
 					}
@@ -126,12 +130,9 @@ class NAccession extends NBase {
 		});
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_S, "Specialty:");
 		label.setLabelFor(cboSpecialties);
-		IGUI.addComponent(label, 0, 2, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(cboSpecialties, 1, 2, 2, 1, 0.5, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(label, 0, 2, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(cboSpecialties, 1, 2, 2, 1, 0.5, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
 		JSplitPane pnlSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		pnlSplit.setTopComponent(scrollTable);
 		pnlSplit.setBottomComponent(pnlData);
@@ -144,13 +145,13 @@ class NAccession extends NBase {
 	}
 
 	private void getData() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_ACC_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ACC_SELECT));
 		try {
 			while (rst.next()) {
 				accession = new OAccession();
-				accession.accID    = rst.getShort("ACID");
-				accession.spyID    = rst.getByte("SYID");
-				accession.name     = rst.getString("ACNM").trim();
+				accession.accID = rst.getShort("ACID");
+				accession.spyID = rst.getByte("SYID");
+				accession.name = rst.getString("ACNM").trim();
 				accession.workflow = (rst.getString("ACFL").equalsIgnoreCase("Y"));
 				accession.workload = (rst.getString("ACLD").equalsIgnoreCase("Y"));
 				list.add(accession);
@@ -159,17 +160,18 @@ class NAccession extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
+	@Override
 	void save() {
-		pj.dbPowerJ.setByte(DPowerJ.STM_ACC_UPDATE,  1, accession.spyID);
-		pj.dbPowerJ.setString(DPowerJ.STM_ACC_UPDATE, 2, (accession.workflow ? "Y" : "N"));
-		pj.dbPowerJ.setString(DPowerJ.STM_ACC_UPDATE, 3, (accession.workload ? "Y" : "N"));
-		pj.dbPowerJ.setString(DPowerJ.STM_ACC_UPDATE, 4, accession.name.trim());
-		pj.dbPowerJ.setShort(DPowerJ.STM_ACC_UPDATE,  5, accession.accID);
-		if (pj.dbPowerJ.execute(DPowerJ.STM_ACC_UPDATE) > 0) {
+		pj.dbPowerJ.setByte(pjStms.get(DPowerJ.STM_ACC_UPDATE), 1, accession.spyID);
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_ACC_UPDATE), 2, (accession.workflow ? "Y" : "N"));
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_ACC_UPDATE), 3, (accession.workload ? "Y" : "N"));
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_ACC_UPDATE), 4, accession.name.trim());
+		pj.dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ACC_UPDATE), 5, accession.accID);
+		if (pj.dbPowerJ.execute(pjStms.get(DPowerJ.STM_ACC_UPDATE)) > 0) {
 			altered = false;
 		}
 	}

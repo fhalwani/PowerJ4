@@ -1,8 +1,13 @@
 package ca.powerj;
+
 import java.awt.Color;
 import java.awt.Font;
 
 class LConstants {
+	static final boolean IS_CLIENT = false;
+	static final boolean IS_DESKTOP = true;
+	static final boolean IS_SERVER = false;
+	static final boolean IS_SETUP = false;
 	// User access codes (0-31)
 	static final byte ACCESS_DAILY = 0;
 	static final byte ACCESS_DIAGN = 1;
@@ -73,6 +78,13 @@ class LConstants {
 	static final byte ACTION_UTILIZATION = 40;
 	static final byte ACTION_WORKDAYS = 41;
 	static final byte ACTION_WORKLOAD = 42;
+	static final byte ACTION_LBASE = 43;
+	static final byte ACTION_LDAYS = 44;
+	static final byte ACTION_LFLOW = 45;
+	static final byte ACTION_LLOAD = 46;
+	static final byte ACTION_LLOGIN = 47;
+	static final byte ACTION_LSYNC = 48;
+	static final byte ACTION_LVAL5 = 49;
 	// Dialog Codes
 	static final byte OPTION_YES = 0;
 	static final byte OPTION_NO = 1;
@@ -109,16 +121,14 @@ class LConstants {
 	static final short SLEEP_TIME = 500;
 	static final String APP_NAME = "PowerJ";
 	static final String APP_VERSION = "4.0";
-	static final String[] ERROR_STRINGS = {"ERROR_NONE", "ERROR_ACCESS",
-			"ERROR_APP_INSTANCE", "ERROR_APP_PATH", "ERROR_BINARY_FILE",
-			"ERROR_CODING_RULE_UNKNOWN", "ERROR_CONNECTION", "ERROR_FILE_NOT_FOUND",
-			"ERROR_IMPORT", "ERROR_IO", "ERROR_NULL" , "ERROR_NUMBER_FORMAT",
-			"ERROR_ORDER_UNKNOWN" , "ERROR_SPECIMEN_UNKNOWN", "ERROR_SPECIMENS_COUNT_ZERO",
-			"ERROR_SQL", "ERROR_UNEXPECTED", "ERROR_VARIABLE"};
+	static final String[] ERROR_STRINGS = { "ERROR_NONE", "ERROR_ACCESS", "ERROR_APP_INSTANCE", "ERROR_APP_PATH",
+			"ERROR_BINARY_FILE", "ERROR_CODING_RULE_UNKNOWN", "ERROR_CONNECTION", "ERROR_FILE_NOT_FOUND",
+			"ERROR_IMPORT", "ERROR_IO", "ERROR_NULL", "ERROR_NUMBER_FORMAT", "ERROR_ORDER_UNKNOWN",
+			"ERROR_SPECIMEN_UNKNOWN", "ERROR_SPECIMENS_COUNT_ZERO", "ERROR_SQL", "ERROR_UNEXPECTED", "ERROR_VARIABLE" };
 	static final Color COLOR_LIGHT_BLUE = new Color(0, 190, 255);
 	static final Color COLOR_AZURE_BLUE = new Color(0, 127, 255);
-	static final Color COLOR_DARK_BLUE  = new Color(0, 0, 176);
-    static final Color COLOR_AMBER      = new Color(255, 191, 0);
-	static final Color[] COLOR_EVEN_ODD = {new Color(190, 190, 190), Color.WHITE};
+	static final Color COLOR_DARK_BLUE = new Color(0, 0, 176);
+	static final Color COLOR_AMBER = new Color(255, 191, 0);
+	static final Color[] COLOR_EVEN_ODD = { new Color(190, 190, 190), Color.WHITE };
 	static final Font APP_FONT = new Font("Serif", Font.BOLD, 14);
 }

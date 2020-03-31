@@ -90,7 +90,7 @@ class NPending extends NBase {
 	NPending(AClient parent) {
 		super(parent);
 		setName("Pending");
-		parent.dbPowerJ.preparePending();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_PENDING);
 		columns[8] = pj.setup.getString(LSetup.VAR_V5_NAME);
 		getTats();
 		createPanel();
@@ -141,7 +141,7 @@ class NPending extends NBase {
 	}
 
 	private void getTats() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_TUR_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_TUR_SELECT));
 		try {
 			while (rst.next()) {
 				turnaround = new OTurnaround();
@@ -156,7 +156,7 @@ class NPending extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
@@ -846,7 +846,7 @@ class NPending extends NBase {
 				pj.setBusy(true);
 				programmaticChange = true;
 				Calendar calToday = Calendar.getInstance();
-				rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_PND_SELECT);
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PND_SELECT));
 				pendings.clear();
 				while (rst.next()) {
 					pending = new OCasePending();
@@ -929,16 +929,10 @@ class NPending extends NBase {
 						}
 					}
 				}
-//				Collections.sort(pendings, new Comparator<OCasePending>() {
-//					@Override
-//					public int compare(OCasePending o1, OCasePending o2) {
-//						return (o1.delay > o2.delay ? -1 : (o1.delay == o2.delay ? 0 : 1));
-//					}
-//				});
 			} catch (SQLException e) {
 				pj.log(LConstants.ERROR_SQL, getName(), e);
 			} finally {
-				pj.dbPowerJ.closeRst(rst);
+				pj.dbPowerJ.close(rst);
 				pj.setBusy(false);
 				programmaticChange = false;
 			}

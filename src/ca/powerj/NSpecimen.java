@@ -40,7 +40,7 @@ class NSpecimen extends NBase {
 	NSpecimen(AClient parent) {
 		super(parent);
 		setName("Specimens");
-		parent.dbPowerJ.prepareSpecimen();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_SPECIMEN);
 		columns[7] = pj.setup.getString(LSetup.VAR_CODER1_NAME);
 		columns[8] = pj.setup.getString(LSetup.VAR_CODER2_NAME);
 		columns[9] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
@@ -284,9 +284,9 @@ class NSpecimen extends NBase {
 			ResultSet rst = null;
 			try {
 				setName("SpecWorker");
-				pj.dbPowerJ.setDate(DPowerJ.STM_SPG_SL_SUM, 1, timeFrom);
-				pj.dbPowerJ.setDate(DPowerJ.STM_SPG_SL_SUM, 2, timeTo);
-				rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SPG_SL_SUM);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_SPG_SL_SUM), 1, timeFrom);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_SPG_SL_SUM), 2, timeTo);
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SPG_SL_SUM));
 				specTotal.name = "Total";
 				while (rst.next()) {
 					if (facID == 0 || facID == rst.getShort("FAID")) {
@@ -428,7 +428,7 @@ class NSpecimen extends NBase {
 			} catch (SQLException e) {
 				pj.log(LConstants.ERROR_SQL, getName(), e);
 			} finally {
-				pj.dbPowerJ.closeRst(rst);
+				pj.dbPowerJ.close(rst);
 			}
 			return null;
 		}

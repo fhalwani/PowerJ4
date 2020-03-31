@@ -1,4 +1,5 @@
 package ca.powerj;
+
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -8,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -32,12 +34,13 @@ class NProcedure extends NBase {
 	NProcedure(AClient parent) {
 		super(parent);
 		setName("Procedures");
-		parent.dbPowerJ.prepareStpProcedures();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_PROCEDURES);
 		getData();
 		createPanel();
 		programmaticChange = false;
 	}
 
+	@Override
 	boolean close() {
 		if (super.close()) {
 			list.clear();
@@ -48,22 +51,26 @@ class NProcedure extends NBase {
 	private void createPanel() {
 		model = new ModelProcedure();
 		tbl = new ITable(pj, model);
-		//  This class handles the ancestorAdded event and invokes the requestFocusInWindow() method
+		// This class handles the ancestorAdded event and invokes the
+		// requestFocusInWindow() method
 		tbl.addAncestorListener(new IFocusListener());
 		tbl.addFocusListener(this);
-        tbl.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+		tbl.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
 			public void valueChanged(ListSelectionEvent e) {
-		        //Ignore extra messages
-		        if (e.getValueIsAdjusting()) return;
-		        ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-		        if (lsm.isSelectionEmpty()) return;
-		        int index = lsm.getMinSelectionIndex();
-		        if (index > -1) {
+				// Ignore extra messages
+				if (e.getValueIsAdjusting())
+					return;
+				ListSelectionModel lsm = (ListSelectionModel) e.getSource();
+				if (lsm.isSelectionEmpty())
+					return;
+				int index = lsm.getMinSelectionIndex();
+				if (index > -1) {
 					// else, Selection got filtered away.
 					setRow(tbl.convertRowIndexToModel(index));
-		        }
+				}
 			}
-        });
+		});
 		tbl.getColumnModel().getColumn(0).setMinWidth(190);
 		JScrollPane scrollTable = IGUI.createJScrollPane(tbl);
 		scrollTable.setMinimumSize(new Dimension(200, 300));
@@ -78,12 +85,8 @@ class NProcedure extends NBase {
 		txtName.getDocument().addDocumentListener(this);
 		JLabel label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_N, "Name:");
 		label.setLabelFor(txtName);
-		IGUI.addComponent(label, 0, 0, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(txtName, 1, 0, 2, 1, 0.7, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(label, 0, 0, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(txtName, 1, 0, 2, 1, 0.7, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
 		txtDescr = new JTextArea();
 		txtDescr.setName("Descr");
 		txtDescr.setMargin(new Insets(4, 4, 4, 4));
@@ -94,8 +97,7 @@ class NProcedure extends NBase {
 		txtDescr.setLineWrap(true);
 		txtDescr.setWrapStyleWord(true);
 		JScrollPane scrollText = IGUI.createJScrollPane(txtDescr);
-		IGUI.addComponent(scrollText, 0, 1, 3, 3, 0.7, 1.0,
-				GridBagConstraints.BOTH, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(scrollText, 0, 1, 3, 3, 0.7, 1.0, GridBagConstraints.BOTH, GridBagConstraints.EAST, pnlData);
 		JSplitPane pnlSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		pnlSplit.setTopComponent(scrollTable);
 		pnlSplit.setBottomComponent(pnlData);
@@ -106,12 +108,12 @@ class NProcedure extends NBase {
 	}
 
 	private void getData() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_PRO_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PRO_SELECT));
 		try {
 			while (rst.next()) {
 				procedure = new OItem();
 				procedure.id = rst.getShort("POID");
-				procedure.name  = rst.getString("PONM").trim();
+				procedure.name = rst.getString("PONM").trim();
 				procedure.descr = rst.getString("PODC").trim();
 				list.add(procedure);
 				if (newID < procedure.id) {
@@ -127,10 +129,11 @@ class NProcedure extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
+	@Override
 	void save() {
 		byte index = DPowerJ.STM_PRO_UPDATE;
 		if (procedure.newRow) {
@@ -145,10 +148,10 @@ class NProcedure extends NBase {
 		if (procedure.descr.length() > 256) {
 			procedure.descr = procedure.descr.substring(0, 256);
 		}
-		pj.dbPowerJ.setString(index, 1, procedure.name);
-		pj.dbPowerJ.setString(index, 2, procedure.descr);
-		pj.dbPowerJ.setShort(index,  3, procedure.id);
-		if (pj.dbPowerJ.execute(index) > 0) {
+		pj.dbPowerJ.setString(pjStms.get(index), 1, procedure.name);
+		pj.dbPowerJ.setString(pjStms.get(index), 2, procedure.descr);
+		pj.dbPowerJ.setShort(pjStms.get(index), 3, procedure.id);
+		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			altered = false;
 			model.fireTableRowsUpdated(rowIndex, rowIndex);
 			if (procedure.newRow) {
@@ -158,7 +161,7 @@ class NProcedure extends NBase {
 				OItem row = new OItem();
 				row.newRow = true;
 				list.add(row);
-				model.fireTableRowsInserted(list.size()-1, list.size()-1);
+				model.fireTableRowsInserted(list.size() - 1, list.size() - 1);
 			}
 		}
 	}

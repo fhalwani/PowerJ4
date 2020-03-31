@@ -60,7 +60,7 @@ class NFacililty extends NBase {
 	NFacililty(AClient parent) {
 		super(parent);
 		setName("Facilities");
-		parent.dbPowerJ.prepareStpFacilities();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_FACILITY);
 		getData();
 		createPanel();
 		programmaticChange = false;
@@ -159,7 +159,7 @@ class NFacililty extends NBase {
 	}
 
 	private void getData() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_FAC_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_FAC_SELECT));
 		try {
 			while (rst.next()) {
 				facility = new OFacility();
@@ -174,7 +174,7 @@ class NFacililty extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
@@ -267,12 +267,12 @@ class NFacililty extends NBase {
 
 	@Override
 	void save() {
-		pj.dbPowerJ.setString(DPowerJ.STM_FAC_UPDATE, 1, (facility.workflow ? "Y" : "N"));
-		pj.dbPowerJ.setString(DPowerJ.STM_FAC_UPDATE, 2, (facility.workload ? "Y" : "N"));
-		pj.dbPowerJ.setString(DPowerJ.STM_FAC_UPDATE, 3, facility.name.trim());
-		pj.dbPowerJ.setString(DPowerJ.STM_FAC_UPDATE, 4, facility.descr.trim());
-		pj.dbPowerJ.setShort(DPowerJ.STM_FAC_UPDATE, 5, facility.facID);
-		if (pj.dbPowerJ.execute(DPowerJ.STM_FAC_UPDATE) > 0) {
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_FAC_UPDATE), 1, (facility.workflow ? "Y" : "N"));
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_FAC_UPDATE), 2, (facility.workload ? "Y" : "N"));
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_FAC_UPDATE), 3, facility.name.trim());
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_FAC_UPDATE), 4, facility.descr.trim());
+		pj.dbPowerJ.setShort(pjStms.get(DPowerJ.STM_FAC_UPDATE), 5, facility.facID);
+		if (pj.dbPowerJ.execute(pjStms.get(DPowerJ.STM_FAC_UPDATE)) > 0) {
 			altered = false;
 		}
 	}

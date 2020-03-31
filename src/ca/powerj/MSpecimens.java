@@ -1,5 +1,6 @@
 package ca.powerj;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -26,8 +27,8 @@ class MSpecimens {
 	private HashMap<Short, Short> specMaster = new HashMap<Short, Short>();
 	private HashMap<Short, OSpecGroup> specGroups = new HashMap<Short, OSpecGroup>();
 
-	MSpecimens(LBase parent) {
-		readDB(parent);
+	MSpecimens(LBase parent, PreparedStatement pstm) {
+		readDB(parent, pstm);
 	}
 
 	void close() {
@@ -386,8 +387,8 @@ class MSpecimens {
 		return SPECIALTY_GENERAL;
 	}
 
-	private void readDB(LBase pj) {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SPM_SELECT);
+	private void readDB(LBase pj, PreparedStatement pstm) {
+		ResultSet rst = pj.dbPowerJ.getResultSet(pstm);
 		specGroups.clear();
 		specMaster.clear();
 		groupID = 0;
@@ -436,7 +437,8 @@ class MSpecimens {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, "Templates Map", e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
+			pj.dbPowerJ.close(pstm);
 		}
 	}
 }

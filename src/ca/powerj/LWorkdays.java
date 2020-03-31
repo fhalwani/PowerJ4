@@ -1,11 +1,14 @@
 package ca.powerj;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
+import java.util.Hashtable;
 
 class LWorkdays {
 	private final String className = "Workdays";
+	private Hashtable<Byte, PreparedStatement> pjStms = null;
 	private LBase pj;
 	private DPowerJ dbPowerJ;
 
@@ -16,6 +19,12 @@ class LWorkdays {
 		pj.log(LConstants.ERROR_NONE, className,
 				pj.dates.formatter(LDates.FORMAT_DATETIME) + " - Workdays Manager Started...");
 		setWorkdays();
+	}
+
+	private void close() {
+		if (dbPowerJ != null && pjStms != null) {
+			dbPowerJ.close(pjStms);
+		}
 		LBase.busy.set(false);
 	}
 
@@ -30,8 +39,8 @@ class LWorkdays {
 			calDate.set(Calendar.DAY_OF_MONTH, 31);
 			maxDate.add(Calendar.MONTH, 3);
 			maxDate.set(Calendar.DAY_OF_MONTH, 1);
-			dbPowerJ.prepareWorkdays();
-			rst = dbPowerJ.getResultSet(DPowerJ.STM_WDY_SL_LST);
+			pjStms = dbPowerJ.prepareStatements(LConstants.ACTION_LDAYS);
+			rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_WDY_SL_LST));
 			while (rst.next()) {
 				dayID = rst.getShort("WDID");
 				dayNo = rst.getShort("WDNO");
@@ -43,10 +52,11 @@ class LWorkdays {
 		} catch (SQLException ex) {
 			pj.log(LConstants.ERROR_SQL, className, ex);
 		} finally {
-			dbPowerJ.closeRst(rst);
+			dbPowerJ.close(rst);
 			if (calDate.getTimeInMillis() < maxDate.getTimeInMillis()) {
 				addWorkdays(dayID, dayNo, calDate, maxDate.getTimeInMillis());
 			}
+			close();
 		}
 	}
 
@@ -274,11 +284,11 @@ class LWorkdays {
 					dayType = DATE_WEEKDAY;
 				}
 			}
-			dbPowerJ.setDate(DPowerJ.STM_WDY_INSERT, 1, calDate.getTimeInMillis());
-			dbPowerJ.setString(DPowerJ.STM_WDY_INSERT, 2, dayTypes[dayType]);
-			dbPowerJ.setInt(DPowerJ.STM_WDY_INSERT, 3, dayNo);
-			dbPowerJ.setInt(DPowerJ.STM_WDY_INSERT, 4, dayID);
-			if (dbPowerJ.execute(DPowerJ.STM_WDY_INSERT) > 0) {
+			dbPowerJ.setDate(pjStms.get(DPowerJ.STM_WDY_INSERT), 1, calDate.getTimeInMillis());
+			dbPowerJ.setString(pjStms.get(DPowerJ.STM_WDY_INSERT), 2, dayTypes[dayType]);
+			dbPowerJ.setInt(pjStms.get(DPowerJ.STM_WDY_INSERT), 3, dayNo);
+			dbPowerJ.setInt(pjStms.get(DPowerJ.STM_WDY_INSERT), 4, dayID);
+			if (dbPowerJ.execute(pjStms.get(DPowerJ.STM_WDY_INSERT)) > 0) {
 				dayID++;
 				if (dayType == DATE_WEEKDAY) {
 					dayNo++;

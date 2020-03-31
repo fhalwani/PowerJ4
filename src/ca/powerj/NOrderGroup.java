@@ -88,7 +88,7 @@ class NOrderGroup extends NBase {
 		columns[6] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
 		columns[7] = pj.setup.getString(LSetup.VAR_CODER4_NAME);
 		columns[8] = pj.setup.getString(LSetup.VAR_V5_NAME);
-		pj.dbPowerJ.prepareStpOrdGroup();
+		pjStms = pj.dbPowerJ.prepareStatements(LConstants.ACTION_ORDERGROUP);
 		getData();
 		createPanel();
 		programmaticChange = false;
@@ -310,7 +310,7 @@ class NOrderGroup extends NBase {
 	}
 
 	private void getData() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_ORG_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ORG_SELECT));
 		try {
 			while (rst.next()) {
 				ordergroup = new OOrderGroup();
@@ -337,7 +337,7 @@ class NOrderGroup extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, "Variables", e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
@@ -357,7 +357,7 @@ class NOrderGroup extends NBase {
 		default:
 			index = DPowerJ.STM_CD4_SELECT;
 		}
-		ResultSet rst = pj.dbPowerJ.getResultSet(index);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(index));
 		try {
 			while (rst.next()) {
 				list.add(new OItem(rst.getShort("COID"), rst.getString("CONM")));
@@ -378,7 +378,7 @@ class NOrderGroup extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 		return list.toArray();
 	}
@@ -505,15 +505,15 @@ class NOrderGroup extends NBase {
 		if (ordergroup.descr.length() > 64) {
 			ordergroup.descr = ordergroup.descr.substring(0, 64);
 		}
-		pj.dbPowerJ.setShort(index, 1, ordergroup.typID);
-		pj.dbPowerJ.setShort(index, 2, ordergroup.value1);
-		pj.dbPowerJ.setShort(index, 3, ordergroup.value2);
-		pj.dbPowerJ.setShort(index, 4, ordergroup.value3);
-		pj.dbPowerJ.setShort(index, 5, ordergroup.value4);
-		pj.dbPowerJ.setString(index, 6, ordergroup.name);
-		pj.dbPowerJ.setString(index, 7, ordergroup.descr);
-		pj.dbPowerJ.setShort(index, 8, ordergroup.grpID);
-		if (pj.dbPowerJ.execute(index) > 0) {
+		pj.dbPowerJ.setShort(pjStms.get(index), 1, ordergroup.typID);
+		pj.dbPowerJ.setShort(pjStms.get(index), 2, ordergroup.value1);
+		pj.dbPowerJ.setShort(pjStms.get(index), 3, ordergroup.value2);
+		pj.dbPowerJ.setShort(pjStms.get(index), 4, ordergroup.value3);
+		pj.dbPowerJ.setShort(pjStms.get(index), 5, ordergroup.value4);
+		pj.dbPowerJ.setString(pjStms.get(index), 6, ordergroup.name);
+		pj.dbPowerJ.setString(pjStms.get(index), 7, ordergroup.descr);
+		pj.dbPowerJ.setShort(pjStms.get(index), 8, ordergroup.grpID);
+		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			altered = false;
 			model.fireTableRowsUpdated(rowIndex, rowIndex);
 			if (ordergroup.newRow) {

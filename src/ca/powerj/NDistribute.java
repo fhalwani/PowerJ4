@@ -55,7 +55,7 @@ class NDistribute extends NBase {
 	NDistribute(AClient parent) {
 		super(parent);
 		setName("Distribution");
-		parent.dbPowerJ.prepareCasesSummary();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_DISTRIBUTE);
 		annualFte = Double.parseDouble(parent.setup.getString(LSetup.VAR_V5_FTE));
 		if (annualFte < 1.00) {
 			annualFte = 1.00;
@@ -144,9 +144,9 @@ class NDistribute extends NBase {
 			facilities.clear();
 			persons.clear();
 			subs.clear();
-			pj.dbPowerJ.setDate(DPowerJ.STM_CSE_SL_SUM, 1, timeFrom);
-			pj.dbPowerJ.setDate(DPowerJ.STM_CSE_SL_SUM, 2, timeTo);
-			rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_CSE_SL_SUM);
+			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_SUM), 1, timeFrom);
+			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_SUM), 2, timeTo);
+			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CSE_SL_SUM));
 			while (rst.next()) {
 				DataFacility facility = facilities.get(rst.getShort("FAID"));
 				if (facility == null) {
@@ -182,9 +182,9 @@ class NDistribute extends NBase {
 			}
 			rst.close();
 			// Frozen Sections
-			pj.dbPowerJ.setDate(DPowerJ.STM_FRZ_SL_SUM, 1, timeFrom);
-			pj.dbPowerJ.setDate(DPowerJ.STM_FRZ_SL_SUM, 2, timeTo);
-			rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_FRZ_SL_SUM);
+			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_SUM), 1, timeFrom);
+			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_SUM), 2, timeTo);
+			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_FRZ_SL_SUM));
 			while (rst.next()) {
 				DataFacility facility = facilities.get(rst.getShort("FAID"));
 				if (facility == null) {
@@ -218,9 +218,9 @@ class NDistribute extends NBase {
 				}
 			}
 			// Additional
-			pj.dbPowerJ.setDate(DPowerJ.STM_ADD_SL_SUM, 1, timeFrom);
-			pj.dbPowerJ.setDate(DPowerJ.STM_ADD_SL_SUM, 2, timeTo);
-			rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_ADD_SL_SUM);
+			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_ADD_SL_SUM), 1, timeFrom);
+			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_ADD_SL_SUM), 2, timeTo);
+			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ADD_SL_SUM));
 			while (rst.next()) {
 				DataFacility facility = facilities.get(rst.getShort("FAID"));
 				if (facility == null) {
@@ -256,7 +256,7 @@ class NDistribute extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 

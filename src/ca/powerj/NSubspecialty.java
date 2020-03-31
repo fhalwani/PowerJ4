@@ -1,4 +1,5 @@
 package ca.powerj;
+
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -8,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -31,12 +33,13 @@ class NSubspecialty extends NBase {
 	NSubspecialty(AClient parent) {
 		super(parent);
 		setName("Subspecialties");
-		parent.dbPowerJ.prepareStpSubspecialty();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_SUBSPECIAL);
 		getData();
 		createPanel();
 		programmaticChange = false;
 	}
 
+	@Override
 	boolean close() {
 		if (super.close()) {
 			list.clear();
@@ -47,15 +50,19 @@ class NSubspecialty extends NBase {
 	private void createPanel() {
 		model = new ModelSubspecial();
 		tbl = new ITable(pj, model);
-		//  This class handles the ancestorAdded event and invokes the requestFocusInWindow() method
+		// This class handles the ancestorAdded event and invokes the
+		// requestFocusInWindow() method
 		tbl.addAncestorListener(new IFocusListener());
 		tbl.addFocusListener(this);
 		tbl.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
 			public void valueChanged(ListSelectionEvent e) {
-				//Ignore extra messages
-				if (e.getValueIsAdjusting()) return;
+				// Ignore extra messages
+				if (e.getValueIsAdjusting())
+					return;
 				ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-				if (lsm.isSelectionEmpty()) return;
+				if (lsm.isSelectionEmpty())
+					return;
 				int index = lsm.getMinSelectionIndex();
 				if (index > -1) {
 					// else, Selection got filtered away.
@@ -77,33 +84,27 @@ class NSubspecialty extends NBase {
 		txtName.getDocument().addDocumentListener(this);
 		JLabel label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_N, "Name:");
 		label.setLabelFor(txtName);
-		IGUI.addComponent(label, 0, 0, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(txtName, 1, 0, 2, 1, 0.5, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(label, 0, 0, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(txtName, 1, 0, 2, 1, 0.5, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
 		txtDescr = new ITextString(2, 32);
 		txtDescr.setName("Descr");
 		txtDescr.addFocusListener(this);
 		txtDescr.getDocument().addDocumentListener(this);
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_D, "Description:");
 		label.setLabelFor(txtDescr);
-		IGUI.addComponent(label, 0, 1, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(txtDescr, 1, 1, 3, 1, 0.7, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(label, 0, 1, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(txtDescr, 1, 1, 3, 1, 0.7, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
 		cboSpecialties = new IComboBox();
 		cboSpecialties.setName("Specialties");
 		cboSpecialties.setModel(pj.dbPowerJ.getSpecialties(false));
 		cboSpecialties.addFocusListener(this);
 		cboSpecialties.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (!programmaticChange) {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
-						IComboBox cb = (IComboBox)e.getSource();
+						IComboBox cb = (IComboBox) e.getSource();
 						subspecialty.spyID = (byte) cb.getIndex();
 						altered = true;
 					}
@@ -112,12 +113,9 @@ class NSubspecialty extends NBase {
 		});
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_S, "Specialty:");
 		label.setLabelFor(cboSpecialties);
-		IGUI.addComponent(label, 0, 2, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(cboSpecialties, 1, 2, 2, 1, 0.5, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(label, 0, 2, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(cboSpecialties, 1, 2, 2, 1, 0.5, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
 		JSplitPane pnlSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		pnlSplit.setTopComponent(scrollTable);
 		pnlSplit.setBottomComponent(pnlData);
@@ -128,13 +126,13 @@ class NSubspecialty extends NBase {
 	}
 
 	private void getData() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SUB_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SUB_SELECT));
 		try {
 			while (rst.next()) {
 				subspecialty = new OSubspecialty();
 				subspecialty.subID = rst.getByte("SBID");
 				subspecialty.spyID = rst.getByte("SYID");
-				subspecialty.name  = rst.getString("SBNM").trim();
+				subspecialty.name = rst.getString("SBNM").trim();
 				subspecialty.descr = rst.getString("SBDC").trim();
 				list.add(subspecialty);
 				if (newID < subspecialty.subID) {
@@ -150,10 +148,11 @@ class NSubspecialty extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, "Variables", e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
+	@Override
 	void save() {
 		byte index = DPowerJ.STM_SUB_UPDATE;
 		if (subspecialty.newRow) {
@@ -168,11 +167,11 @@ class NSubspecialty extends NBase {
 		if (subspecialty.descr.length() > 32) {
 			subspecialty.descr = subspecialty.descr.substring(0, 32);
 		}
-		pj.dbPowerJ.setByte(index,   1, subspecialty.spyID);
-		pj.dbPowerJ.setString(index, 2, subspecialty.name);
-		pj.dbPowerJ.setString(index, 3, subspecialty.descr);
-		pj.dbPowerJ.setByte(index,   4, subspecialty.subID);
-		if (pj.dbPowerJ.execute(index) > 0) {
+		pj.dbPowerJ.setByte(pjStms.get(index), 1, subspecialty.spyID);
+		pj.dbPowerJ.setString(pjStms.get(index), 2, subspecialty.name);
+		pj.dbPowerJ.setString(pjStms.get(index), 3, subspecialty.descr);
+		pj.dbPowerJ.setByte(pjStms.get(index), 4, subspecialty.subID);
+		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			altered = false;
 			model.fireTableRowsUpdated(rowIndex, rowIndex);
 			if (subspecialty.newRow) {
@@ -182,7 +181,7 @@ class NSubspecialty extends NBase {
 				OSubspecialty nextSub = new OSubspecialty();
 				nextSub.newRow = true;
 				list.add(nextSub);
-				model.fireTableRowsInserted(list.size()-1, list.size()-1);
+				model.fireTableRowsInserted(list.size() - 1, list.size() - 1);
 			}
 		}
 	}

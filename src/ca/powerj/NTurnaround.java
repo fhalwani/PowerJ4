@@ -1,17 +1,20 @@
 package ca.powerj;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
 class NTurnaround extends NBase {
-	private final String[] aMonths = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-	private short[] filters = {0, 0, 0, 0, 0};
-	private int firstYear  = 9999;
+	private final String[] aMonths = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov",
+			"Dec" };
+	private short[] filters = { 0, 0, 0, 0, 0 };
+	private int firstYear = 9999;
 	private ArrayList<OTurnSum> rows = new ArrayList<OTurnSum>();
 	private HashMap<Integer, String> years = new HashMap<Integer, String>();
 	private HashMap<Integer, String> months = new HashMap<Integer, String>();
@@ -19,16 +22,17 @@ class NTurnaround extends NBase {
 	private IChartBar chartBar;
 	private IChartLine chartLine;
 
-	NTurnaround(AClient pj) {
-		super(pj);
+	NTurnaround(AClient parent) {
+		super(parent);
 		setName("Turnaround");
-		pj.dbPowerJ.prepareTurnaround();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_TURNAROUND);
 		createPanel();
 		getData();
 		setFilter(IToolBar.TB_FAC, (short) 0);
 		programmaticChange = false;
 	}
 
+	@Override
 	boolean close() {
 		super.close();
 		rows.clear();
@@ -53,11 +57,11 @@ class NTurnaround extends NBase {
 		scrollCurrent.setMinimumSize(dim);
 		dim = new Dimension(600, 400);
 		chartBar = new IChartBar(dim);
-		JScrollPane scrollYears   = IGUI.createJScrollPane(chartBar);
+		JScrollPane scrollYears = IGUI.createJScrollPane(chartBar);
 		scrollYears.setMinimumSize(dim);
 		dim = new Dimension(1050, 400);
 		chartLine = new IChartLine(dim);
-		JScrollPane scrollMonths  = IGUI.createJScrollPane(chartLine);
+		JScrollPane scrollMonths = IGUI.createJScrollPane(chartLine);
 		scrollMonths.setMinimumSize(dim);
 		JSplitPane splitTop = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		splitTop.setTopComponent(scrollCurrent);
@@ -78,12 +82,12 @@ class NTurnaround extends NBase {
 	}
 
 	private void getData() {
-		int year      = 0;
-		int month     = 0;
-		String str    = "";
-		OTurnSum row   = new OTurnSum();
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_CSE_SL_TAT);
-		firstYear  = 9999;
+		int year = 0;
+		int month = 0;
+		String str = "";
+		OTurnSum row = new OTurnSum();
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CSE_SL_TAT));
+		firstYear = 9999;
 		try {
 			while (rst.next()) {
 				row = new OTurnSum();
@@ -91,20 +95,25 @@ class NTurnaround extends NBase {
 				row.subID = rst.getByte("SBID");
 				row.proID = rst.getByte("POID");
 				row.month = rst.getByte("FNMONTH");
-				row.year  = rst.getShort("FNYEAR");
+				row.year = rst.getShort("FNYEAR");
 				row.facID = rst.getShort("FAID");
-				row.qty   = rst.getInt("CASES");
+				row.qty = rst.getInt("CASES");
 				row.gross = rst.getInt("GRTA");
 				row.embed = rst.getInt("EMTA");
 				row.micro = rst.getInt("MITA");
 				row.route = rst.getInt("ROTA");
 				row.diagn = rst.getInt("FNTA");
 				// Some are not initialized (December 31, 1969)
-				if (row.diagn < 0) row.diagn = 0;
-				if (row.route < 0) row.route = 0;
-				if (row.micro < 0) row.micro = 0;
-				if (row.embed < 0) row.embed = 0;
-				if (row.gross < 0) row.gross = 0;
+				if (row.diagn < 0)
+					row.diagn = 0;
+				if (row.route < 0)
+					row.route = 0;
+				if (row.micro < 0)
+					row.micro = 0;
+				if (row.embed < 0)
+					row.embed = 0;
+				if (row.gross < 0)
+					row.gross = 0;
 				rows.add(row);
 				if (year != row.year) {
 					year = row.year;
@@ -127,17 +136,17 @@ class NTurnaround extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
 	@Override
 	void setFilter(short id, short value) {
-		final byte FILTER_FAC  = 0;
-		final byte FILTER_PRO  = 1;
-		final byte FILTER_SPY  = 2;
-		final byte FILTER_STA  = 3;
-		final byte FILTER_SUB  = 4;
+		final byte FILTER_FAC = 0;
+		final byte FILTER_PRO = 1;
+		final byte FILTER_SPY = 2;
+		final byte FILTER_STA = 3;
+		final byte FILTER_SUB = 4;
 		switch (id) {
 		case IToolBar.TB_FAC:
 			filters[FILTER_FAC] = value;
@@ -198,7 +207,7 @@ class NTurnaround extends NBase {
 				}
 			}
 		}
-		double[] yCurrent = {0};
+		double[] yCurrent = { 0 };
 		double[] yYears = new double[aYears.length];
 		double[][] yMonths = new double[aYears.length][aMonths.length];
 		for (byte y = 0; y < aYears.length; y++) {
@@ -212,7 +221,7 @@ class NTurnaround extends NBase {
 				}
 			}
 		}
-		String[] xData = {pj.numbers.formatDouble(0, yCurrent[0])};
+		String[] xData = { pj.numbers.formatDouble(0, yCurrent[0]) };
 		double maxData = 0;
 		switch (filters[FILTER_STA]) {
 		case OCaseStatus.ID_GROSS:

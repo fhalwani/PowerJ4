@@ -6,11 +6,13 @@ import java.awt.Insets;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Hashtable;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JScrollPane;
@@ -47,6 +49,7 @@ class NError extends NBase {
 	private long caseID = 0;
 	private final String[] columns = { "NO", "ERROR", "CASE" };
 	private ArrayList<OError> list = new ArrayList<OError>();
+	private Hashtable<Byte, PreparedStatement> apStms = null;
 	private ITableModelEvent modelEvent;
 	private ITableModelSpecimen modelSpec;
 	private ModelError modelError;
@@ -58,9 +61,9 @@ class NError extends NBase {
 	NError(AClient parent) {
 		super(parent);
 		setName("Error");
-		parent.dbPowerJ.prepareError();
+		pjStms = pj.dbPowerJ.prepareStatements(LConstants.ACTION_ERROR);
 		if (!parent.offLine) {
-			pj.dbAP.prepareEditor();
+			apStms = pj.dbAP.prepareStatements(LConstants.ACTION_EDITOR);
 		}
 		getData();
 		createPanel();
@@ -72,8 +75,8 @@ class NError extends NBase {
 		if (super.close()) {
 			modelEvent.close();
 			modelSpec.close();
-			if (pj.dbAP != null) {
-				pj.dbAP.close();
+			if (pj.dbAP != null && apStms != null) {
+				pj.dbAP.close(apStms);
 			}
 		}
 		return !altered;
@@ -118,7 +121,7 @@ class NError extends NBase {
 		tblSpec.addFocusListener(this);
 		IComboBox cboMaster = new IComboBox();
 		cboMaster.setName("SpecMaster");
-		cboMaster.setModel(pj.dbPowerJ.getSpecimenMaster(false));
+		cboMaster.setModel(pj.dbPowerJ.getSpecimenMaster(false, pjStms.get(DPowerJ.STM_SPM_SELECT)));
 		TableColumn column = tblSpec.getColumnModel().getColumn(ITableModelSpecimen.SPEC_CODE);
 		column.setCellEditor(new DefaultCellEditor(cboMaster));
 		JScrollPane scrollSpec = IGUI.createJScrollPane(tblSpec);
@@ -159,7 +162,7 @@ class NError extends NBase {
 	}
 
 	private void getData() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_ERR_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ERR_SELECT));
 		try {
 			while (rst.next()) {
 				OError error = new OError();
@@ -171,7 +174,7 @@ class NError extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 			pj.statusBar.setMessage("No Rows: " + pj.numbers.formatNumber(list.size()));
 		}
 	}
@@ -254,11 +257,11 @@ class NError extends NBase {
 	}
 
 	private void save(short masterID, long specID) {
-		pj.dbAP.setShort(DPowerpath.STM_SPEC_UPDATE, 1, masterID);
-		pj.dbAP.setLong(DPowerpath.STM_SPEC_UPDATE, 2, specID);
-		if (pj.dbAP.execute(DPowerpath.STM_SPEC_UPDATE) > 0) {
-			pj.dbPowerJ.setLong(DPowerJ.STM_ERR_UPDATE, 1, caseID);
-			if (pj.dbPowerJ.execute(DPowerJ.STM_ERR_UPDATE) > 0) {
+		pj.dbAP.setShort(apStms.get(DPowerpath.STM_SPEC_UPDATE), 1, masterID);
+		pj.dbAP.setLong(apStms.get(DPowerpath.STM_SPEC_UPDATE), 2, specID);
+		if (pj.dbAP.execute(apStms.get(DPowerpath.STM_SPEC_UPDATE)) > 0) {
+			pj.dbPowerJ.setLong(pjStms.get(DPowerJ.STM_ERR_UPDATE), 1, caseID);
+			if (pj.dbPowerJ.execute(pjStms.get(DPowerJ.STM_ERR_UPDATE)) > 0) {
 				altered = false;
 			}
 		}
@@ -269,11 +272,11 @@ class NError extends NBase {
 		pj.setBusy(true);
 		caseID = list.get(row).caseID;
 		if (!pj.offLine) {
-			modelSpec.getData(caseID);
-			modelSpec.getData(caseID);
+			modelEvent.getData(caseID, apStms.get(DPowerpath.STM_CASE_EVENTS));
+			modelSpec.getData(caseID, apStms.get(DPowerpath.STM_CASE_SPCMNS));
 		}
-		pj.dbPowerJ.setLong(DPowerJ.STM_ERR_SL_CMT, 1, caseID);
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_ERR_SL_CMT);
+		pj.dbPowerJ.setLong(pjStms.get(DPowerJ.STM_ERR_SL_CMT), 1, caseID);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ERR_SL_CMT));
 		try {
 			while (rst.next()) {
 				if (rst.getString("ERDC") != null) {
@@ -284,7 +287,7 @@ class NError extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 		programmaticChange = false;
 		pj.setBusy(false);

@@ -55,7 +55,7 @@ class NWorkdays extends NBase {
 	public NWorkdays(AClient parent) {
 		super(parent);
 		setName("Workdays");
-		parent.dbPowerJ.prepareScheduleSummary();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_WORKDAYS);
 		createPanel();
 		programmaticChange = false;
 	}
@@ -354,9 +354,9 @@ class NWorkdays extends NBase {
 			try {
 				headers.clear();
 				list.clear();
-				pj.dbPowerJ.setDate(DPowerJ.STM_SCH_SL_SUM, 1, timeFrom);
-				pj.dbPowerJ.setDate(DPowerJ.STM_SCH_SL_SUM, 2, timeTo);
-				rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SCH_SL_SUM);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_SCH_SL_SUM), 1, timeFrom);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_SCH_SL_SUM), 2, timeTo);
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SCH_SL_SUM));
 				while (rst.next()) {
 					if (facID > 0 && facID != rst.getShort("FAID")) {
 						continue;
@@ -477,7 +477,7 @@ class NWorkdays extends NBase {
 			} catch (SQLException e) {
 				pj.log(LConstants.ERROR_SQL, getName(), e);
 			} finally {
-				pj.dbPowerJ.closeRst(rst);
+				pj.dbPowerJ.close(rst);
 			}
 			return null;
 		}

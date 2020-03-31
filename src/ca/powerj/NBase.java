@@ -1,7 +1,9 @@
 package ca.powerj;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.sql.PreparedStatement;
 import java.util.Calendar;
+import java.util.Hashtable;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
@@ -11,6 +13,7 @@ import javax.swing.event.DocumentListener;
 class NBase extends JPanel implements DocumentListener, FocusListener {
 	volatile boolean altered = false;
 	volatile boolean programmaticChange = true;
+	Hashtable<Byte, PreparedStatement> pjStms = null;
 	AClient pj;
 
 	NBase(AClient parent) {
@@ -34,7 +37,9 @@ class NBase extends JPanel implements DocumentListener, FocusListener {
 			}
 		}
 		if (!altered) {
-			pj.dbPowerJ.closeStms(false);
+			if (pj.dbPowerJ != null && pjStms != null) {
+				pj.dbPowerJ.close(pjStms);
+			}
 		}
 		return !altered;
 	}

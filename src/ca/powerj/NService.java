@@ -1,4 +1,5 @@
 package ca.powerj;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -25,10 +26,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 class NService extends NBase implements ItemListener {
-	private final String[] strCheck = {"Call",
-			"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
-			"Active", "Sub", "", "", "", "", ""};
-	private byte newID   = 0;
+	private final String[] strCheck = { "Call", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Active", "Sub", "",
+			"", "", "", "" };
+	private byte newID = 0;
 	private int rowIndex = 0;
 	private OService service = new OService();
 	private ArrayList<JCheckBox> checkboxes = new ArrayList<JCheckBox>();
@@ -43,13 +43,14 @@ class NService extends NBase implements ItemListener {
 	NService(AClient parent) {
 		super(parent);
 		setName("Services");
-		parent.dbPowerJ.prepareStpServices();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_SERVICES);
 		getData();
 		getSpecialties();
 		createPanel();
 		programmaticChange = false;
 	}
 
+	@Override
 	boolean close() {
 		if (super.close()) {
 			list.clear();
@@ -102,15 +103,19 @@ class NService extends NBase implements ItemListener {
 		}
 		model = new ModelService();
 		tblList = new ITable(pj, model);
-		//  This class handles the ancestorAdded event and invokes the requestFocusInWindow() method
+		// This class handles the ancestorAdded event and invokes the
+		// requestFocusInWindow() method
 		tblList.addAncestorListener(new IFocusListener());
 		tblList.addFocusListener(this);
 		tblList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
 			public void valueChanged(ListSelectionEvent e) {
-				//Ignore extra messages
-				if (e.getValueIsAdjusting()) return;
+				// Ignore extra messages
+				if (e.getValueIsAdjusting())
+					return;
 				ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-				if (lsm.isSelectionEmpty()) return;
+				if (lsm.isSelectionEmpty())
+					return;
 				int index = lsm.getMinSelectionIndex();
 				if (index > -1) {
 					// else, Selection got filtered away.
@@ -132,41 +137,32 @@ class NService extends NBase implements ItemListener {
 		txtName.getDocument().addDocumentListener(this);
 		JLabel label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_N, "Name:");
 		label.setLabelFor(txtName);
-		IGUI.addComponent(label, 0, 0, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(txtName, 1, 0, 1, 1, 0.7, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(label, 0, 0, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(txtName, 1, 0, 1, 1, 0.7, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
 		txtDescr = new ITextString(2, 64);
 		txtDescr.setName("Description");
 		txtDescr.addFocusListener(this);
 		txtDescr.getDocument().addDocumentListener(this);
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_D, "Descr:");
 		label.setLabelFor(txtDescr);
-		IGUI.addComponent(label, 0, 1, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(txtDescr, 1, 1, 1, 1, 0.7, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(createPanelDays(), 0, 2, 2, 6, 1.0, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(checkboxes.get(8), 0, 8, 1, 1, 0.5, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(checkboxes.get(9), 1, 8, 1, 1, 0.5, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(label, 0, 1, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(txtDescr, 1, 1, 1, 1, 0.7, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
+		IGUI.addComponent(createPanelDays(), 0, 2, 2, 6, 1.0, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
+		IGUI.addComponent(checkboxes.get(8), 0, 8, 1, 1, 0.5, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
+		IGUI.addComponent(checkboxes.get(9), 1, 8, 1, 1, 0.5, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
 		cboFacilities = new IComboBox();
 		cboFacilities.setName("Facilities");
 		cboFacilities.setModel(pj.dbPowerJ.getFacilities(false));
 		cboFacilities.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (!programmaticChange) {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
-						IComboBox cb = (IComboBox)e.getSource();
+						IComboBox cb = (IComboBox) e.getSource();
 						service.facID = cb.getIndex();
 						altered = true;
 					}
@@ -175,21 +171,19 @@ class NService extends NBase implements ItemListener {
 		});
 		label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_F, "Facility:");
 		label.setLabelFor(cboFacilities);
-		IGUI.addComponent(label, 0, 9, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(cboFacilities, 1, 9, 2, 1, 0.5, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(label, 0, 9, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(cboFacilities, 1, 9, 2, 1, 0.5, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
 		cboSubspecial = new IComboBox();
 		cboSubspecial.setName("Subspecial");
 		cboSubspecial.setModel(pj.dbPowerJ.getSubspecialties(false));
 		cboSubspecial.addFocusListener(this);
 		cboSubspecial.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (!programmaticChange) {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
-						IComboBox cb = (IComboBox)e.getSource();
+						IComboBox cb = (IComboBox) e.getSource();
 						service.subID = (byte) cb.getIndex();
 						altered = true;
 					}
@@ -198,20 +192,14 @@ class NService extends NBase implements ItemListener {
 		});
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_B, "Subspecial:");
 		label.setLabelFor(cboSubspecial);
-		IGUI.addComponent(label, 0, 10, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(cboSubspecial, 1, 10, 2, 1, 0.5, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(label, 0, 10, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(cboSubspecial, 1, 10, 2, 1, 0.5, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
 		label = IGUI.createJLabel(SwingConstants.LEFT, 0, "Specialty:");
-		IGUI.addComponent(label, 0, 11, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(label, 0, 11, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
 		lblSpecialties = IGUI.createJLabel(SwingConstants.LEFT, 0, "            ");
-		IGUI.addComponent(lblSpecialties, 1, 11, 2, 1, 0.5, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(lblSpecialties, 1, 11, 2, 1, 0.5, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
 		JSplitPane pnlSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		pnlSplit.setTopComponent(scrollTable);
 		pnlSplit.setBottomComponent(pnlData);
@@ -231,24 +219,21 @@ class NService extends NBase implements ItemListener {
 		panel.setLayout(new GridBagLayout());
 		panel.setOpaque(true);
 		for (int i = 0; i < 8; i++) {
-			IGUI.addComponent(checkboxes.get(i),
-					(i % 2 == 0 ? 0 : 1),
-					(i / 2), 1, 1, 0.5, 0,
-					GridBagConstraints.HORIZONTAL,
-					GridBagConstraints.EAST, panel);
+			IGUI.addComponent(checkboxes.get(i), (i % 2 == 0 ? 0 : 1), (i / 2), 1, 1, 0.5, 0,
+					GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		}
 		return panel;
 	}
 
 	private void getData() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SRV_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SRV_SELECT));
 		try {
 			while (rst.next()) {
 				service = new OService();
 				service.srvID = rst.getByte("SRID");
 				service.subID = rst.getByte("SBID");
 				service.facID = rst.getShort("FAID");
-				service.name  = rst.getString("SRNM");
+				service.name = rst.getString("SRNM");
 				service.descr = rst.getString("SRDC");
 				service.codes = pj.numbers.shortToBoolean(rst.getShort("SRCD"));
 				list.add(service);
@@ -265,12 +250,12 @@ class NService extends NBase implements ItemListener {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, "Variables", e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
 	private void getSpecialties() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SUB_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SUB_SELECT));
 		try {
 			while (rst.next()) {
 				mapSpecialties.put(rst.getByte("SBID"), rst.getString("SYNM"));
@@ -278,7 +263,7 @@ class NService extends NBase implements ItemListener {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
@@ -289,6 +274,7 @@ class NService extends NBase implements ItemListener {
 		}
 	}
 
+	@Override
 	void save() {
 		byte index = DPowerJ.STM_SRV_UPDATE;
 		if (service.newRow) {
@@ -303,20 +289,19 @@ class NService extends NBase implements ItemListener {
 		if (service.name.length() > 64) {
 			service.name = service.name.substring(0, 64);
 		}
-		if (service.facID == 0 || service.subID == 0
-				|| service.name.length() == 0) {
+		if (service.facID == 0 || service.subID == 0 || service.name.length() == 0) {
 			return;
 		}
 		for (int i = 0; i < strCheck.length; i++) {
 			service.codes[i] = checkboxes.get(i).isSelected();
 		}
-		pj.dbPowerJ.setShort(index,  1, service.facID);
-		pj.dbPowerJ.setShort(index,  2, service.subID);
-		pj.dbPowerJ.setShort(index,  3, pj.numbers.booleanToShort(service.codes));
-		pj.dbPowerJ.setString(index, 4, service.name);
-		pj.dbPowerJ.setString(index, 5, service.descr);
-		pj.dbPowerJ.setShort(index,  6, service.srvID);
-		if (pj.dbPowerJ.execute(index) > 0) {
+		pj.dbPowerJ.setShort(pjStms.get(index), 1, service.facID);
+		pj.dbPowerJ.setShort(pjStms.get(index), 2, service.subID);
+		pj.dbPowerJ.setShort(pjStms.get(index), 3, pj.numbers.booleanToShort(service.codes));
+		pj.dbPowerJ.setString(pjStms.get(index), 4, service.name);
+		pj.dbPowerJ.setString(pjStms.get(index), 5, service.descr);
+		pj.dbPowerJ.setShort(pjStms.get(index), 6, service.srvID);
+		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			altered = false;
 			model.fireTableRowsUpdated(rowIndex, rowIndex);
 			if (service.newRow) {
@@ -326,7 +311,7 @@ class NService extends NBase implements ItemListener {
 				OService blank = new OService();
 				blank.newRow = true;
 				list.add(blank);
-				model.fireTableRowsInserted(list.size()-1, list.size()-1);
+				model.fireTableRowsInserted(list.size() - 1, list.size() - 1);
 			}
 		}
 	}

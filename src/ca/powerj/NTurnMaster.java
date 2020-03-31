@@ -33,7 +33,7 @@ class NTurnMaster extends NBase {
 	NTurnMaster(AClient parent) {
 		super(parent);
 		setName("Turnaround");
-		parent.dbPowerJ.prepareStpTurnaround();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_TURNMASTER);
 		getData();
 		createPanel();
 		programmaticChange = false;
@@ -146,7 +146,7 @@ class NTurnMaster extends NBase {
 	}
 
 	private void getData() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_TUR_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_TUR_SELECT));
 		try {
 			while (rst.next()) {
 				turnaround = new OTurnaround();
@@ -171,7 +171,7 @@ class NTurnMaster extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
@@ -191,14 +191,14 @@ class NTurnMaster extends NBase {
 		if (turnaround.name.length() > 16) {
 			turnaround.name = turnaround.name.substring(0, 16);
 		}
-		pj.dbPowerJ.setShort(index, 1, turnaround.gross);
-		pj.dbPowerJ.setShort(index, 2, turnaround.embed);
-		pj.dbPowerJ.setShort(index, 3, turnaround.micro);
-		pj.dbPowerJ.setShort(index, 4, turnaround.route);
-		pj.dbPowerJ.setShort(index, 5, turnaround.diagn);
-		pj.dbPowerJ.setString(index, 6, turnaround.name);
-		pj.dbPowerJ.setByte(index, 7, turnaround.turID);
-		if (pj.dbPowerJ.execute(index) > 0) {
+		pj.dbPowerJ.setShort(pjStms.get(index), 1, turnaround.gross);
+		pj.dbPowerJ.setShort(pjStms.get(index), 2, turnaround.embed);
+		pj.dbPowerJ.setShort(pjStms.get(index), 3, turnaround.micro);
+		pj.dbPowerJ.setShort(pjStms.get(index), 4, turnaround.route);
+		pj.dbPowerJ.setShort(pjStms.get(index), 5, turnaround.diagn);
+		pj.dbPowerJ.setString(pjStms.get(index), 6, turnaround.name);
+		pj.dbPowerJ.setByte(pjStms.get(index), 7, turnaround.turID);
+		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			altered = false;
 			model.fireTableRowsUpdated(rowIndex, rowIndex);
 			if (turnaround.newRow) {

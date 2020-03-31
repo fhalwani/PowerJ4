@@ -141,7 +141,7 @@ class NFinals extends NBase {
 	NFinals(AClient parent) {
 		super(parent);
 		setName("Finals");
-		parent.dbPowerJ.prepareFinals();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_FINALS);
 		columns[6] = pj.setup.getString(LSetup.VAR_CODER1_NAME);
 		columns[7] = pj.setup.getString(LSetup.VAR_CODER2_NAME);
 		columns[8] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
@@ -631,8 +631,8 @@ class NFinals extends NBase {
 			additionals.clear();
 			orders.clear();
 			frozens.clear();
-			pj.dbPowerJ.setLong(DPowerJ.STM_CMT_SELECT, 1, caseID);
-			rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_CMT_SELECT);
+			pj.dbPowerJ.setLong(pjStms.get(DPowerJ.STM_CMT_SELECT), 1, caseID);
+			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CMT_SELECT));
 			while (rst.next()) {
 				// deleted after a year
 				if (rst.getString("COM1") != null && rst.getString("COM1").length() > 2) {
@@ -648,9 +648,9 @@ class NFinals extends NBase {
 					comment += rst.getString("COM4");
 				}
 			}
-			pj.dbPowerJ.closeRst(rst);
-			pj.dbPowerJ.setLong(DPowerJ.STM_SPE_SELECT, 1, caseID);
-			rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SPE_SELECT);
+			pj.dbPowerJ.close(rst);
+			pj.dbPowerJ.setLong(pjStms.get(DPowerJ.STM_SPE_SELECT), 1, caseID);
+			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SPE_SELECT));
 			OSpecFinal specimen = new OSpecFinal();
 			while (rst.next()) {
 				specimen = new OSpecFinal();
@@ -671,9 +671,9 @@ class NFinals extends NBase {
 				specimen.descr = rst.getString("SPDC");
 				specimens.add(specimen);
 			}
-			pj.dbPowerJ.closeRst(rst);
-			pj.dbPowerJ.setLong(DPowerJ.STM_ADD_SL_CID, 1, caseID);
-			rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_ADD_SL_CID);
+			pj.dbPowerJ.close(rst);
+			pj.dbPowerJ.setLong(pjStms.get(DPowerJ.STM_ADD_SL_CID), 1, caseID);
+			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ADD_SL_CID));
 			byte codeID = 0;
 			final String[] codes = { "NIL", "AMND", "ADDN", "CORR", "REVW" };
 			OAdditional additional = new OAdditional();
@@ -701,7 +701,7 @@ class NFinals extends NBase {
 		} finally {
 			pj.setBusy(false);
 			programmaticChange = false;
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 			modelAddl.fireTableDataChanged();
 			modelFrozen.fireTableDataChanged();
 			modelOrder.fireTableDataChanged();
@@ -751,8 +751,8 @@ class NFinals extends NBase {
 			programmaticChange = true;
 			orders.clear();
 			frozens.clear();
-			pj.dbPowerJ.setLong(DPowerJ.STM_ORD_SELECT, 1, specID);
-			rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_ORD_SELECT);
+			pj.dbPowerJ.setLong(pjStms.get(DPowerJ.STM_ORD_SELECT), 1, specID);
+			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ORD_SELECT));
 			OOrderFinal order = new OOrderFinal();
 			while (rst.next()) {
 				order = new OOrderFinal();
@@ -764,9 +764,9 @@ class NFinals extends NBase {
 				order.name = rst.getString("OGNM");
 				orders.add(order);
 			}
-			pj.dbPowerJ.closeRst(rst);
-			pj.dbPowerJ.setLong(DPowerJ.STM_FRZ_SL_SID, 1, specID);
-			rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_FRZ_SL_SID);
+			pj.dbPowerJ.close(rst);
+			pj.dbPowerJ.setLong(pjStms.get(DPowerJ.STM_FRZ_SL_SID), 1, specID);
+			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_FRZ_SL_SID));
 			OFrozen frozen = new OFrozen();
 			while (rst.next()) {
 				frozen = new OFrozen();
@@ -786,7 +786,7 @@ class NFinals extends NBase {
 		} finally {
 			pj.setBusy(false);
 			programmaticChange = false;
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 			modelFrozen.fireTableDataChanged();
 			modelOrder.fireTableDataChanged();
 		}
@@ -1549,7 +1549,7 @@ class NFinals extends NBase {
 			} catch (SQLException e) {
 				pj.log(LConstants.ERROR_SQL, getName(), e);
 			} finally {
-				pj.dbPowerJ.closeRst(rst);
+				pj.dbPowerJ.close(rst);
 				pj.setBusy(false);
 				programmaticChange = false;
 			}

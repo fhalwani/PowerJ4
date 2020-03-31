@@ -30,7 +30,6 @@ class DMicrosoft extends DServer {
 				connection = ds.getConnection();
 				stm = connection.createStatement();
 				execute("USE dbpj");
-				prepareBase();
 				pj.log(LConstants.ERROR_NONE, dbName, "Connected to MSSQL.");
 			}
 		} catch (SQLServerException e) {

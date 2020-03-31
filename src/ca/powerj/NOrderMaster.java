@@ -71,7 +71,7 @@ class NOrderMaster extends NBase {
 	NOrderMaster(AClient parent) {
 		super(parent);
 		setName("Orders");
-		parent.dbPowerJ.prepareStpOrdMstr();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_ORDERMASTER);
 		getData();
 		createPanel();
 		programmaticChange = false;
@@ -87,7 +87,7 @@ class NOrderMaster extends NBase {
 	}
 
 	private void createPanel() {
-		mapGroup = pj.dbPowerJ.getOrderGroupMap();
+		mapGroup = pj.dbPowerJ.getOrderGroupMap(pjStms.get(DPowerJ.STM_ORG_SELECT));
 		model = new ModelOrdMstr();
 		tbl = new ITable(pj, model);
 		// This class handles the ancestorAdded event and invokes the
@@ -174,7 +174,7 @@ class NOrderMaster extends NBase {
 	}
 
 	private void getData() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_ORM_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ORM_SELECT));
 		try {
 			while (rst.next()) {
 				ordermaster = new OOrderMaster();
@@ -188,7 +188,7 @@ class NOrderMaster extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
@@ -276,11 +276,11 @@ class NOrderMaster extends NBase {
 
 	@Override
 	void save() {
-		pj.dbPowerJ.setShort(DPowerJ.STM_ORM_UPDATE, 1, ordermaster.grpID);
-		pj.dbPowerJ.setString(DPowerJ.STM_ORM_UPDATE, 2, ordermaster.name.trim());
-		pj.dbPowerJ.setString(DPowerJ.STM_ORM_UPDATE, 3, ordermaster.descr.trim());
-		pj.dbPowerJ.setShort(DPowerJ.STM_ORM_UPDATE, 4, ordermaster.ordID);
-		if (pj.dbPowerJ.execute(DPowerJ.STM_ORM_UPDATE) > 0) {
+		pj.dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ORM_UPDATE), 1, ordermaster.grpID);
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_ORM_UPDATE), 2, ordermaster.name.trim());
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_ORM_UPDATE), 3, ordermaster.descr.trim());
+		pj.dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ORM_UPDATE), 4, ordermaster.ordID);
+		if (pj.dbPowerJ.execute(pjStms.get(DPowerJ.STM_ORM_UPDATE)) > 0) {
 			altered = false;
 		}
 	}

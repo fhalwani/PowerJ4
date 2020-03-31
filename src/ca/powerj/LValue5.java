@@ -1,12 +1,15 @@
 package ca.powerj;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Hashtable;
 
 class LValue5 {
 	final String className = "Value5";
+	private Hashtable<Byte, PreparedStatement> pjStms = null;
 	LBase pj;
 	DPowerJ dbPowerJ;
 
@@ -16,13 +19,15 @@ class LValue5 {
 		dbPowerJ = pj.dbPowerJ;
 		pj.log(LConstants.ERROR_NONE, className,
 				pj.dates.formatter(LDates.FORMAT_DATETIME) + " - Value5 Manager Started...");
-		dbPowerJ.prepareValue5();
+		pjStms = dbPowerJ.prepareStatements(LConstants.ACTION_LVAL5);
 		update();
 		close();
 	}
 
 	private void close() {
-		dbPowerJ.closeStms(false);
+		if (dbPowerJ != null && pjStms != null) {
+			dbPowerJ.close(pjStms);
+		}
 		LBase.busy.set(false);
 	}
 
@@ -66,9 +71,9 @@ class LValue5 {
 			calNext.set(Calendar.DAY_OF_MONTH, 1);
 			calLast.setTimeInMillis(calNext.getTimeInMillis());
 			calLast.add(Calendar.YEAR, -noYears);
-			dbPowerJ.setTime(DPowerJ.STM_SPG_SL_SU5, 1, calLast.getTimeInMillis());
-			dbPowerJ.setTime(DPowerJ.STM_SPG_SL_SU5, 2, calNext.getTimeInMillis());
-			rst = dbPowerJ.getResultSet(DPowerJ.STM_SPG_SL_SU5);
+			dbPowerJ.setTime(pjStms.get(DPowerJ.STM_SPG_SL_SU5), 1, calLast.getTimeInMillis());
+			dbPowerJ.setTime(pjStms.get(DPowerJ.STM_SPG_SL_SU5), 2, calNext.getTimeInMillis());
+			rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SPG_SL_SU5));
 			while (rst.next()) {
 				if (rst.getInt("QTY") > 0) {
 					Integer[] specimen = { rst.getInt("SGID"), rst.getInt("QTY"),
@@ -83,10 +88,10 @@ class LValue5 {
 					total[V5_VAL4] += specimen[V5_VAL4];
 				}
 			}
-			dbPowerJ.closeRst(rst);
-			dbPowerJ.setTime(DPowerJ.STM_FRZ_SL_SU5, 1, calLast.getTimeInMillis());
-			dbPowerJ.setTime(DPowerJ.STM_FRZ_SL_SU5, 2, calNext.getTimeInMillis());
-			rst = dbPowerJ.getResultSet(DPowerJ.STM_FRZ_SL_SU5);
+			dbPowerJ.close(rst);
+			dbPowerJ.setTime(pjStms.get(DPowerJ.STM_FRZ_SL_SU5), 1, calLast.getTimeInMillis());
+			dbPowerJ.setTime(pjStms.get(DPowerJ.STM_FRZ_SL_SU5), 2, calNext.getTimeInMillis());
+			rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_FRZ_SL_SU5));
 			while (rst.next()) {
 				if (rst.getInt("QTY") > 0) {
 					frozn[V5_QTY] = rst.getInt("QTY");
@@ -100,7 +105,7 @@ class LValue5 {
 					total[V5_VAL4] += frozn[V5_VAL4];
 				}
 			}
-			dbPowerJ.closeRst(rst);
+			dbPowerJ.close(rst);
 			for (int i = 0; i < specimens.size(); i++) {
 				Integer[] specimen = specimens.get(i);
 				avg = 0;
@@ -115,9 +120,9 @@ class LValue5 {
 					avg = avg / count;
 					value5 = avg * fte5 / specimen[V5_QTY];
 					if (value5 > 0) {
-						dbPowerJ.setInt(DPowerJ.STM_SPG_UPD_V5, 1, value5);
-						dbPowerJ.setInt(DPowerJ.STM_SPG_UPD_V5, 2, specimen[V5_ROWID]);
-						dbPowerJ.execute(DPowerJ.STM_SPG_UPD_V5);
+						dbPowerJ.setInt(pjStms.get(DPowerJ.STM_SPG_UPD_V5), 1, value5);
+						dbPowerJ.setInt(pjStms.get(DPowerJ.STM_SPG_UPD_V5), 2, specimen[V5_ROWID]);
+						dbPowerJ.execute(pjStms.get(DPowerJ.STM_SPG_UPD_V5));
 					}
 				}
 			}
@@ -142,7 +147,7 @@ class LValue5 {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbPowerJ.closeRst(rst);
+			dbPowerJ.close(rst);
 		}
 	}
 }

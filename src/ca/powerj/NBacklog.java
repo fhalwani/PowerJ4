@@ -77,7 +77,7 @@ class NBacklog extends NBase {
 	NBacklog(AClient parent) {
 		super(parent);
 		setName("Backlog");
-		pj.dbPowerJ.prepareBacklog();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_BACKLOG);
 		columns[12] = pj.setup.getString(LSetup.VAR_V5_NAME);
 		getTats();
 		createPanel();
@@ -137,7 +137,7 @@ class NBacklog extends NBase {
 	}
 
 	private void getTats() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_TUR_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_TUR_SELECT));
 		try {
 			while (rst.next()) {
 				turnaround = new OTurnaround();
@@ -152,7 +152,7 @@ class NBacklog extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
@@ -571,7 +571,7 @@ class NBacklog extends NBase {
 			ResultSet rst = null;
 			try {
 				Calendar calToday = Calendar.getInstance();
-				rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_PND_SELECT);
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PND_SELECT));
 				pendings.clear();
 				while (rst.next()) {
 					pending = new OCasePending();
@@ -645,7 +645,7 @@ class NBacklog extends NBase {
 			} catch (SQLException e) {
 				pj.log(LConstants.ERROR_SQL, getName(), e);
 			} finally {
-				pj.dbPowerJ.closeRst(rst);
+				pj.dbPowerJ.close(rst);
 			}
 			return null;
 		}

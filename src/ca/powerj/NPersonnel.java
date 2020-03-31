@@ -46,7 +46,7 @@ class NPersonnel extends NBase implements ItemListener {
 	NPersonnel(AClient parent) {
 		super(parent);
 		setName("Persons");
-		parent.dbPowerJ.prepareStpPersons();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_PERSONNEL);
 		getData();
 		createPanel();
 		programmaticChange = false;
@@ -288,7 +288,7 @@ class NPersonnel extends NBase implements ItemListener {
 	}
 
 	private void getData() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_PRS_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PRS_SELECT));
 		try {
 			while (rst.next()) {
 				person = new OPerson();
@@ -307,7 +307,7 @@ class NPersonnel extends NBase implements ItemListener {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
@@ -328,15 +328,15 @@ class NPersonnel extends NBase implements ItemListener {
 		if (person.initials.length() > 3) {
 			person.initials = person.initials.substring(0, 3);
 		}
-		pj.dbPowerJ.setInt(DPowerJ.STM_PRS_UPDATE, 1, person.access);
-		pj.dbPowerJ.setDate(DPowerJ.STM_PRS_UPDATE, 2, person.started.getTime());
-		pj.dbPowerJ.setString(DPowerJ.STM_PRS_UPDATE, 3, person.code.trim());
-		pj.dbPowerJ.setString(DPowerJ.STM_PRS_UPDATE, 4, (person.active ? "Y" : "N"));
-		pj.dbPowerJ.setString(DPowerJ.STM_PRS_UPDATE, 5, person.initials);
-		pj.dbPowerJ.setString(DPowerJ.STM_PRS_UPDATE, 6, person.lastname.trim());
-		pj.dbPowerJ.setString(DPowerJ.STM_PRS_UPDATE, 7, person.firstname.trim());
-		pj.dbPowerJ.setShort(DPowerJ.STM_PRS_UPDATE, 8, person.prsID);
-		if (pj.dbPowerJ.execute(DPowerJ.STM_PRS_UPDATE) > 0) {
+		pj.dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PRS_UPDATE), 1, person.access);
+		pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_PRS_UPDATE), 2, person.started.getTime());
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_PRS_UPDATE), 3, person.code.trim());
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_PRS_UPDATE), 4, (person.active ? "Y" : "N"));
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_PRS_UPDATE), 5, person.initials);
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_PRS_UPDATE), 6, person.lastname.trim());
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_PRS_UPDATE), 7, person.firstname.trim());
+		pj.dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PRS_UPDATE), 8, person.prsID);
+		if (pj.dbPowerJ.execute(pjStms.get(DPowerJ.STM_PRS_UPDATE)) > 0) {
 			altered = false;
 		}
 	}

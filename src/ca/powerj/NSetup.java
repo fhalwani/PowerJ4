@@ -1,4 +1,5 @@
 package ca.powerj;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -13,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.HashMap;
+
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
@@ -30,22 +32,24 @@ import javax.swing.text.JTextComponent;
 
 class NSetup extends NBase implements ItemListener {
 	private final byte VAR_TYPE_BOOLEAN = 1;
-	private final byte VAR_TYPE_BYTE    = 2;
-	private final byte VAR_TYPE_SHORT   = 3;
-	private final byte VAR_TYPE_INT     = 4;
-	private final byte VAR_TYPE_LONG    = 5;
-	private final byte VAR_TYPE_STRING  = 6;
+	private final byte VAR_TYPE_BYTE = 2;
+	private final byte VAR_TYPE_SHORT = 3;
+	private final byte VAR_TYPE_INT = 4;
+	private final byte VAR_TYPE_LONG = 5;
+	private final byte VAR_TYPE_STRING = 6;
 	private OSetup setup = new OSetup();
 	private HashMap<Byte, OSetup> map = new HashMap<Byte, OSetup>();
 
 	NSetup(AClient parent) {
 		super(parent);
 		setName("Setup");
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_SETUP);
 		getData();
 		createPanel();
 		programmaticChange = false;
 	}
 
+	@Override
 	boolean close() {
 		if (super.close()) {
 			map.clear();
@@ -54,7 +58,7 @@ class NSetup extends NBase implements ItemListener {
 	}
 
 	private void createPanel() {
-		//Lay out 3 panels from top to bottom.
+		// Lay out 3 panels from top to bottom.
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		add(createPanelServer());
 		add(createPanelWorkflow());
@@ -81,12 +85,8 @@ class NSetup extends NBase implements ItemListener {
 		txtField.setText(map.get(LSetup.VAR_AP_SERVER).value);
 		JLabel label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_E, "Server Name:");
 		label.setLabelFor(txtField);
-		IGUI.addComponent(label, 0, 0, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(txtField, 1, 0, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 0, 0, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(txtField, 1, 0, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		txtField = new ITextString(3, 50);
 		txtField.setName("Database");
 		txtField.addFocusListener(this);
@@ -95,12 +95,8 @@ class NSetup extends NBase implements ItemListener {
 		txtField.setText(map.get(LSetup.VAR_AP_DATABASE).value);
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_A, "Database Name:");
 		label.setLabelFor(txtField);
-		IGUI.addComponent(label, 2, 0, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(txtField, 3, 0, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 2, 0, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(txtField, 3, 0, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		ITextInteger intField = new ITextInteger(pj.numbers, 1000, 9999);
 		intField.setName("Port");
 		intField.addFocusListener(this);
@@ -109,12 +105,8 @@ class NSetup extends NBase implements ItemListener {
 		intField.setText(map.get(LSetup.VAR_AP_PORT).value);
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_O, "Port no:");
 		label.setLabelFor(intField);
-		IGUI.addComponent(label, 4, 0, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(intField, 5, 0, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 4, 0, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(intField, 5, 0, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		txtField = new ITextString(3, 50);
 		txtField.setName("Login");
 		txtField.addFocusListener(this);
@@ -123,12 +115,8 @@ class NSetup extends NBase implements ItemListener {
 		txtField.setText(map.get(LSetup.VAR_AP_LOGIN).value);
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_L, "Login name:");
 		label.setLabelFor(txtField);
-		IGUI.addComponent(label, 0, 1, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(txtField, 1, 1, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 0, 1, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(txtField, 1, 1, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		JPasswordField textPassword = new JPasswordField(20);
 		textPassword.setName("Password");
 		textPassword.addFocusListener(this);
@@ -137,12 +125,9 @@ class NSetup extends NBase implements ItemListener {
 		textPassword.setText(map.get(LSetup.VAR_AP_PASSWORD).value);
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_P, "Password:");
 		label.setLabelFor(textPassword);
-		IGUI.addComponent(label, 2, 1, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(textPassword, 3, 1, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 2, 1, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(textPassword, 3, 1, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				panel);
 		return panel;
 	}
 
@@ -166,12 +151,8 @@ class NSetup extends NBase implements ItemListener {
 		intField.setText(map.get(LSetup.VAR_UPDATER).value);
 		JLabel label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_U, "Update every (min):");
 		label.setLabelFor(intField);
-		IGUI.addComponent(label, 0, 0, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(intField, 1, 0, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 0, 0, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(intField, 1, 0, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		// Range 1-10 minutes (3 columns)
 		intField = new ITextInteger(pj.numbers, 1, 10);
 		intField.setName("Timer");
@@ -181,12 +162,8 @@ class NSetup extends NBase implements ItemListener {
 		intField.setText(map.get(LSetup.VAR_TIMER).value);
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_W, "Wakeup every (min):");
 		label.setLabelFor(intField);
-		IGUI.addComponent(label, 2, 0, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(intField, 3, 0, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 2, 0, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(intField, 3, 0, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		// Range 1-12 o'clock (3 columns)
 		intField = new ITextInteger(pj.numbers, 1, 12);
 		intField.setName("Opening");
@@ -196,12 +173,8 @@ class NSetup extends NBase implements ItemListener {
 		intField.setText(map.get(LSetup.VAR_OPENING).value);
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_O, "Opening hour:");
 		label.setLabelFor(intField);
-		IGUI.addComponent(label, 0, 1, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(intField, 1, 1, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 0, 1, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(intField, 1, 1, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		// Range 12-24 o'clock (3 columns)
 		intField = new ITextInteger(pj.numbers, 12, 24);
 		intField.setName("Closing");
@@ -211,12 +184,8 @@ class NSetup extends NBase implements ItemListener {
 		intField.setText(map.get(LSetup.VAR_CLOSING).value);
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_C, "Closing hour:");
 		label.setLabelFor(intField);
-		IGUI.addComponent(label, 2, 1, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(intField, 3, 1, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 2, 1, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(intField, 3, 1, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		JCheckBox checkBox = new JCheckBox();
 		checkBox.setName("Saturday");
 		checkBox.setFont(LConstants.APP_FONT);
@@ -226,9 +195,7 @@ class NSetup extends NBase implements ItemListener {
 		checkBox.setSelected(map.get(LSetup.VAR_SAT_OFF).value.equals("Y"));
 		checkBox.addFocusListener(this);
 		checkBox.addItemListener(this);
-		IGUI.addComponent(checkBox, 0, 2, 2, 1, 0.2, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(checkBox, 0, 2, 2, 1, 0.2, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		checkBox = new JCheckBox();
 		checkBox.setName("Sunday");
 		checkBox.setFont(LConstants.APP_FONT);
@@ -238,19 +205,18 @@ class NSetup extends NBase implements ItemListener {
 		checkBox.setSelected(map.get(LSetup.VAR_SUN_OFF).value.equals("Y"));
 		checkBox.addFocusListener(this);
 		checkBox.addItemListener(this);
-		IGUI.addComponent(checkBox, 2, 2, 2, 1, 0.2, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(checkBox, 2, 2, 2, 1, 0.2, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		IPanelTime timeRouting = new IPanelTime(pj.numbers.parseInt(map.get(LSetup.VAR_ROUTE_TIME).value));
 		timeRouting.setName("Routing");
 		timeRouting.putClientProperty("DV", LSetup.VAR_ROUTE_TIME);
 		timeRouting.addFocusListener(this);
 		timeRouting.addPropertyChangeListener(new PropertyChangeListener() {
+			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				String property = e.getPropertyName();
 				if ("Value".equals(property)) {
 					setup = map.get(LSetup.VAR_ROUTE_TIME);
-					setup.value = String.valueOf((Integer) e.getNewValue());
+					setup.value = String.valueOf(e.getNewValue());
 					setup.altered = true;
 					altered = true;
 					save(LSetup.VAR_ROUTE_TIME);
@@ -259,12 +225,9 @@ class NSetup extends NBase implements ItemListener {
 		});
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_R, "Routing Cutoff:");
 		label.setLabelFor(timeRouting);
-		IGUI.addComponent(label, 0, 3, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(timeRouting, 1, 3, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 0, 3, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(timeRouting, 1, 3, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				panel);
 		return panel;
 	}
 
@@ -287,12 +250,8 @@ class NSetup extends NBase implements ItemListener {
 		txtField.getDocument().addDocumentListener(this);
 		JLabel label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_1, "Coder1 Name:");
 		label.setLabelFor(txtField);
-		IGUI.addComponent(label, 0, 0, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(txtField, 1, 0, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 0, 0, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(txtField, 1, 0, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		JCheckBox checkBox = new JCheckBox();
 		checkBox.setName("Coder1Active");
 		checkBox.setText("Active: ");
@@ -300,9 +259,7 @@ class NSetup extends NBase implements ItemListener {
 		checkBox.setSelected(map.get(LSetup.VAR_CODER1_ACTIVE).value.equals("Y"));
 		checkBox.addFocusListener(this);
 		checkBox.addItemListener(this);
-		IGUI.addComponent(checkBox, 2, 0, 2, 1, 0.2, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(checkBox, 2, 0, 2, 1, 0.2, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		ITextInteger intField = new ITextInteger(pj.numbers, 1000, Short.MAX_VALUE);
 		intField.setName("FTE1");
 		intField.getDocument().putProperty("DV", LSetup.VAR_CODER1_FTE);
@@ -311,12 +268,8 @@ class NSetup extends NBase implements ItemListener {
 		intField.getDocument().addDocumentListener(this);
 		label = IGUI.createJLabel(SwingConstants.LEFT, 0, "Coder1 FTE:");
 		label.setLabelFor(intField);
-		IGUI.addComponent(label, 4, 0, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(intField, 5, 0, 2, 1, 0.2, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 4, 0, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(intField, 5, 0, 2, 1, 0.2, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		txtField = new ITextString(2, 15);
 		txtField.setName("Coder2Name");
 		txtField.getDocument().putProperty("DV", LSetup.VAR_CODER2_NAME);
@@ -325,12 +278,8 @@ class NSetup extends NBase implements ItemListener {
 		txtField.getDocument().addDocumentListener(this);
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_2, "Coder2 Name:");
 		label.setLabelFor(txtField);
-		IGUI.addComponent(label, 0, 1, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(txtField, 1, 1, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 0, 1, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(txtField, 1, 1, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		checkBox = new JCheckBox();
 		checkBox.setName("Coder2Active");
 		checkBox.setText("Active: ");
@@ -338,9 +287,7 @@ class NSetup extends NBase implements ItemListener {
 		checkBox.setSelected(map.get(LSetup.VAR_CODER2_ACTIVE).value.equals("Y"));
 		checkBox.addFocusListener(this);
 		checkBox.addItemListener(this);
-		IGUI.addComponent(checkBox, 2, 1, 2, 1, 0.2, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(checkBox, 2, 1, 2, 1, 0.2, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		intField = new ITextInteger(pj.numbers, 1000, Short.MAX_VALUE);
 		intField.setName("FTE2");
 		intField.getDocument().putProperty("DV", LSetup.VAR_CODER2_FTE);
@@ -349,12 +296,8 @@ class NSetup extends NBase implements ItemListener {
 		intField.getDocument().addDocumentListener(this);
 		label = IGUI.createJLabel(SwingConstants.LEFT, 0, "Coder2 FTE:");
 		label.setLabelFor(intField);
-		IGUI.addComponent(label, 4, 1, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(intField, 5, 1, 2, 1, 0.2, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 4, 1, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(intField, 5, 1, 2, 1, 0.2, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		txtField = new ITextString(2, 15);
 		txtField.setName("Coder3Name");
 		txtField.getDocument().putProperty("DV", LSetup.VAR_CODER3_NAME);
@@ -363,12 +306,8 @@ class NSetup extends NBase implements ItemListener {
 		txtField.getDocument().addDocumentListener(this);
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_3, "Coder3 Name:");
 		label.setLabelFor(txtField);
-		IGUI.addComponent(label, 0, 2, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(txtField, 1, 2, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 0, 2, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(txtField, 1, 2, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		checkBox = new JCheckBox();
 		checkBox.setName("Coder3Active");
 		checkBox.setText("Active: ");
@@ -376,9 +315,7 @@ class NSetup extends NBase implements ItemListener {
 		checkBox.setSelected(map.get(LSetup.VAR_CODER3_ACTIVE).value.equals("Y"));
 		checkBox.addFocusListener(this);
 		checkBox.addItemListener(this);
-		IGUI.addComponent(checkBox, 2, 2, 2, 1, 0.2, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(checkBox, 2, 2, 2, 1, 0.2, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		intField = new ITextInteger(pj.numbers, 1000, Short.MAX_VALUE);
 		intField.setName("FTE3");
 		intField.getDocument().putProperty("DV", LSetup.VAR_CODER3_FTE);
@@ -387,12 +324,8 @@ class NSetup extends NBase implements ItemListener {
 		intField.getDocument().addDocumentListener(this);
 		label = IGUI.createJLabel(SwingConstants.LEFT, 0, "Coder3 FTE:");
 		label.setLabelFor(intField);
-		IGUI.addComponent(label, 4, 2, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(intField, 5, 2, 2, 1, 0.2, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 4, 2, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(intField, 5, 2, 2, 1, 0.2, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		txtField = new ITextString(2, 15);
 		txtField.setName("Coder4Name");
 		txtField.getDocument().putProperty("DV", LSetup.VAR_CODER4_NAME);
@@ -401,12 +334,8 @@ class NSetup extends NBase implements ItemListener {
 		txtField.getDocument().addDocumentListener(this);
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_4, "Coder4 Name:");
 		label.setLabelFor(txtField);
-		IGUI.addComponent(label, 0, 3, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(txtField, 1, 3, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 0, 3, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(txtField, 1, 3, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		checkBox = new JCheckBox();
 		checkBox.setName("Coder4Active");
 		checkBox.setText("Active: ");
@@ -414,9 +343,7 @@ class NSetup extends NBase implements ItemListener {
 		checkBox.setSelected(map.get(LSetup.VAR_CODER4_ACTIVE).value.equals("Y"));
 		checkBox.addFocusListener(this);
 		checkBox.addItemListener(this);
-		IGUI.addComponent(checkBox, 2, 3, 2, 1, 0.2, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(checkBox, 2, 3, 2, 1, 0.2, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		intField = new ITextInteger(pj.numbers, 1000, 9999);
 		intField.setName("FTE4");
 		intField.getDocument().putProperty("DV", LSetup.VAR_CODER4_FTE);
@@ -425,12 +352,8 @@ class NSetup extends NBase implements ItemListener {
 		intField.getDocument().addDocumentListener(this);
 		label = IGUI.createJLabel(SwingConstants.LEFT, 0, "Coder4 FTE:");
 		label.setLabelFor(intField);
-		IGUI.addComponent(label, 4, 3, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(intField, 5, 3, 2, 1, 0.2, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 4, 3, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(intField, 5, 3, 2, 1, 0.2, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		Calendar calMin = Calendar.getInstance();
 		Calendar calMax = Calendar.getInstance();
 		Calendar calStart = Calendar.getInstance();
@@ -441,9 +364,10 @@ class NSetup extends NBase implements ItemListener {
 		cboStart.putClientProperty("DV", LSetup.VAR_MIN_WL_DATE);
 		cboStart.addFocusListener(this);
 		cboStart.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					IComboDate cbo = (IComboDate)e.getSource();
+					IComboDate cbo = (IComboDate) e.getSource();
 					Calendar cal = cbo.getValue();
 					setup = map.get(LSetup.VAR_MIN_WL_DATE);
 					setup.value = String.valueOf(cal.getTimeInMillis());
@@ -455,12 +379,8 @@ class NSetup extends NBase implements ItemListener {
 		});
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_M, "Minimum Date:");
 		label.setLabelFor(cboStart);
-		IGUI.addComponent(label, 0, 4, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(cboStart, 1, 4, 2, 1, 0.2, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 0, 4, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(cboStart, 1, 4, 2, 1, 0.2, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		intField = new ITextInteger(pj.numbers, 100, 356);
 		intField.setName("Business");
 		intField.getDocument().putProperty("DV", LSetup.VAR_BUSINESS_DAYS);
@@ -469,12 +389,8 @@ class NSetup extends NBase implements ItemListener {
 		intField.getDocument().addDocumentListener(this);
 		label = IGUI.createJLabel(SwingConstants.LEFT, KeyEvent.VK_B, "Business Days:");
 		label.setLabelFor(intField);
-		IGUI.addComponent(label, 4, 4, 1, 1, 0.1, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
-		IGUI.addComponent(intField, 5, 4, 2, 1, 0.2, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, panel);
+		IGUI.addComponent(label, 4, 4, 1, 1, 0.1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
+		IGUI.addComponent(intField, 5, 4, 2, 1, 0.2, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, panel);
 		return panel;
 	}
 
@@ -484,19 +400,19 @@ class NSetup extends NBase implements ItemListener {
 			Component c = e.getComponent();
 			if (c != null) {
 				if (c instanceof JCheckBox) {
-					save((Byte) ((JCheckBox)c).getClientProperty("DV"));
+					save((Byte) ((JCheckBox) c).getClientProperty("DV"));
 				} else if (c instanceof IComboDate) {
-					save((Byte) ((IComboDate)c).getClientProperty("DV"));
+					save((Byte) ((IComboDate) c).getClientProperty("DV"));
 				} else if (c instanceof IPanelTime) {
 					save(LSetup.VAR_ROUTE_TIME);
 				} else if (c instanceof JPasswordField) {
 					char[] input = ((JPasswordField) c).getPassword();
-					setup = map.get((Byte) ((JPasswordField)c).getDocument().getProperty("DV"));
+					setup = map.get(((JPasswordField) c).getDocument().getProperty("DV"));
 					setup.value = String.copyValueOf(input).trim();
 					setup.altered = true;
-					save((Byte) ((JPasswordField)c).getDocument().getProperty("DV"));
+					save((Byte) ((JPasswordField) c).getDocument().getProperty("DV"));
 				} else if (c instanceof JTextComponent) {
-					save((Byte) ((JTextComponent)c).getDocument().getProperty("DV"));
+					save((Byte) ((JTextComponent) c).getDocument().getProperty("DV"));
 				}
 			}
 		}
@@ -504,11 +420,12 @@ class NSetup extends NBase implements ItemListener {
 
 	private void getData() {
 		byte id = 0;
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_STP_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_STP_SELECT));
 		try {
 			while (rst.next()) {
 				id = rst.getByte("STID");
-				if (id > LSetup.VAR_V5_FTE) break; // The rest are read only
+				if (id > LSetup.VAR_V5_FTE)
+					break; // The rest are read only
 				setup = new OSetup();
 				setup.value = rst.getString("STVA").trim();
 				switch (id) {
@@ -547,7 +464,7 @@ class NSetup extends NBase implements ItemListener {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, "Variables", e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
@@ -595,8 +512,8 @@ class NSetup extends NBase implements ItemListener {
 
 	private void trackCheckbox(ItemEvent e) {
 		if (!programmaticChange) {
-			JCheckBox cb = (JCheckBox)e.getSource();
-			setup = map.get((Byte) cb.getClientProperty("DV"));
+			JCheckBox cb = (JCheckBox) e.getSource();
+			setup = map.get(cb.getClientProperty("DV"));
 			setup.value = cb.isSelected() ? "Y" : "N";
 			setup.altered = true;
 			altered = true;
@@ -607,8 +524,8 @@ class NSetup extends NBase implements ItemListener {
 	void trackDocument(DocumentEvent e) {
 		if (!programmaticChange) {
 			try {
-				Document doc = (Document)e.getDocument();
-				setup = map.get((Byte) doc.getProperty("DV"));
+				Document doc = e.getDocument();
+				setup = map.get(doc.getProperty("DV"));
 				setup.value = doc.getText(0, doc.getLength());
 				setup.altered = true;
 				altered = true;

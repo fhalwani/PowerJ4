@@ -1,4 +1,5 @@
 package ca.powerj;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -36,7 +37,7 @@ class LDates {
 		Date date = new Date();
 		return formatter(date, format);
 	}
-	
+
 	String formatter(Calendar cal, byte format) {
 		if (cal == null) {
 			cal = Calendar.getInstance();
@@ -78,18 +79,18 @@ class LDates {
 	int getBusinessDays(Calendar calStart, Calendar calEnd) {
 		return getBusinessDays(calStart.getTimeInMillis(), calEnd.getTimeInMillis());
 	}
-	
+
 	int getBusinessDays(long start, long end) {
 		int n = 0;
 		if (getNoDays(start, end) != 0) {
-			pj.dbPowerJ.setDate(DPowerJ.STM_WDY_SL_DTE, 1, end);
-			n = pj.dbPowerJ.getInt(DPowerJ.STM_WDY_SL_DTE);
-			pj.dbPowerJ.setDate(DPowerJ.STM_WDY_SL_DTE, 1, start);
-			n -= pj.dbPowerJ.getInt(DPowerJ.STM_WDY_SL_DTE);
+			pj.dbPowerJ.setDate(pj.pjStms.get(DPowerJ.STM_WDY_SL_DTE), 1, end);
+			n = pj.dbPowerJ.getInt(pj.pjStms.get(DPowerJ.STM_WDY_SL_DTE));
+			pj.dbPowerJ.setDate(pj.pjStms.get(DPowerJ.STM_WDY_SL_DTE), 1, start);
+			n -= pj.dbPowerJ.getInt(pj.pjStms.get(DPowerJ.STM_WDY_SL_DTE));
 		}
 		return n;
 	}
-	
+
 	short getBusinessHours(long start, long end) {
 		Calendar calStart = Calendar.getInstance();
 		Calendar calEnd = Calendar.getInstance();
@@ -102,15 +103,14 @@ class LDates {
 		// Calculate Difference in working hours between 2 dates
 		// Saturday, Sunday and statutory holidays are skipped
 		int hours = workHours * getBusinessDays(calStart, calEnd);
-		hours += (calEnd.get(Calendar.HOUR_OF_DAY)
-				- calStart.get(Calendar.HOUR_OF_DAY));
+		hours += (calEnd.get(Calendar.HOUR_OF_DAY) - calStart.get(Calendar.HOUR_OF_DAY));
 		if (hours < 0) {
 			hours = 0;
 		}
 		if (hours > Short.MAX_VALUE) {
 			hours = Short.MAX_VALUE;
 		}
-		return (short)hours;
+		return (short) hours;
 	}
 
 	int getNoDays(Calendar calStart, Calendar calEnd) {
@@ -130,8 +130,8 @@ class LDates {
 
 	int getNoMonths(Calendar calStart, Calendar calEnd) {
 		if (calEnd.get(Calendar.YEAR) != calStart.get(Calendar.YEAR)) {
-			return ((calEnd.get(Calendar.YEAR) - calStart.get(Calendar.YEAR)) * 12)
-					+ calEnd.get(Calendar.MONTH) - calStart.get(Calendar.MONTH);
+			return ((calEnd.get(Calendar.YEAR) - calStart.get(Calendar.YEAR)) * 12) + calEnd.get(Calendar.MONTH)
+					- calStart.get(Calendar.MONTH);
 		}
 		return (calEnd.get(Calendar.MONTH) - calStart.get(Calendar.MONTH));
 	}
@@ -145,8 +145,8 @@ class LDates {
 	}
 
 	long getNextBusinessDay(Calendar cal) {
-		pj.dbPowerJ.setTime(DPowerJ.STM_WDY_SL_NXT, 1, cal.getTimeInMillis());
-		return pj.dbPowerJ.getTime(DPowerJ.STM_WDY_SL_NXT);
+		pj.dbPowerJ.setTime(pj.pjStms.get(DPowerJ.STM_WDY_SL_NXT), 1, cal.getTimeInMillis());
+		return pj.dbPowerJ.getTime(pj.pjStms.get(DPowerJ.STM_WDY_SL_NXT));
 	}
 
 	long getNextBusinessDay(long thisDate) {
@@ -156,8 +156,8 @@ class LDates {
 	}
 
 	long getPreviousBusinessDay(Calendar cal) {
-		pj.dbPowerJ.setTime(DPowerJ.STM_WDY_SL_PRV, 1, cal.getTimeInMillis());
-		return pj.dbPowerJ.getTime(DPowerJ.STM_WDY_SL_PRV);
+		pj.dbPowerJ.setTime(pj.pjStms.get(DPowerJ.STM_WDY_SL_PRV), 1, cal.getTimeInMillis());
+		return pj.dbPowerJ.getTime(pj.pjStms.get(DPowerJ.STM_WDY_SL_PRV));
 	}
 
 	long getPreviousBusinessDay(long thisDate) {

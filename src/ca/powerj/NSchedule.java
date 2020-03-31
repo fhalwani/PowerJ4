@@ -66,7 +66,7 @@ class NSchedule extends NBase {
 	NSchedule(AClient parent) {
 		super(parent);
 		setName("Schedule");
-		parent.dbPowerJ.prepareSchedules(pj.userAccess[LConstants.ACCESS_STP_SC]);
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_SCHEDULE);
 		getWeeks();
 		getServices();
 		createPanel();
@@ -157,8 +157,8 @@ class NSchedule extends NBase {
 		try {
 			workdays.clear();
 			calMonday.setTimeInMillis(dates.get(rowIndex).getTime());
-			pj.dbPowerJ.setDate(DPowerJ.STM_WDY_SELECT, 1, calMonday.getTimeInMillis());
-			rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_WDY_SELECT);
+			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_WDY_SELECT), 1, calMonday.getTimeInMillis());
+			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_WDY_SELECT));
 			while (rst.next() && workdays.size() < 7) {
 				workday = new OWorkday();
 				calStart.setTimeInMillis(rst.getDate("WDDT").getTime());
@@ -172,13 +172,13 @@ class NSchedule extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
 	private Object[] getPersons() {
 		ArrayList<OItem> list = new ArrayList<OItem>();
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_PRS_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PRS_SELECT));
 		try {
 			persons.clear();
 			while (rst.next()) {
@@ -193,7 +193,7 @@ class NSchedule extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 		return list.toArray();
 	}
@@ -231,10 +231,10 @@ class NSchedule extends NBase {
 				scheduleServices.add(cols);
 			}
 			calMonday.setTimeInMillis(dates.get(rowIndex).getTime());
-			pj.dbPowerJ.setDate(DPowerJ.STM_SCH_SL_SRV, 1, calMonday.getTimeInMillis());
+			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_SCH_SL_SRV), 1, calMonday.getTimeInMillis());
 			calMonday.add(Calendar.DAY_OF_YEAR, 7);
-			pj.dbPowerJ.setDate(DPowerJ.STM_SCH_SL_SRV, 2, calMonday.getTimeInMillis());
-			rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SCH_SL_SRV);
+			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_SCH_SL_SRV), 2, calMonday.getTimeInMillis());
+			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SCH_SL_SRV));
 			while (rst.next()) {
 				if (srvID != rst.getShort("SRID")) {
 					srvID = rst.getShort("SRID");
@@ -265,7 +265,7 @@ class NSchedule extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
@@ -281,10 +281,10 @@ class NSchedule extends NBase {
 			scheduleServices.clear();
 			scheduleStaff.clear();
 			calMonday.setTimeInMillis(dates.get(rowIndex).getTime());
-			pj.dbPowerJ.setDate(DPowerJ.STM_SCH_SL_STA, 1, calMonday.getTimeInMillis());
+			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_SCH_SL_STA), 1, calMonday.getTimeInMillis());
 			calMonday.add(Calendar.DAY_OF_YEAR, 6);
-			pj.dbPowerJ.setDate(DPowerJ.STM_SCH_SL_STA, 2, calMonday.getTimeInMillis());
-			rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SCH_SL_STA);
+			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_SCH_SL_STA), 2, calMonday.getTimeInMillis());
+			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SCH_SL_STA));
 			while (rst.next()) {
 				if (prsID != rst.getShort("PRID")) {
 					prsID = rst.getShort("PRID");
@@ -337,12 +337,12 @@ class NSchedule extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
 	private void getServices() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SRV_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SRV_SELECT));
 		try {
 			services.clear();
 			while (rst.next()) {
@@ -358,13 +358,13 @@ class NSchedule extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
 	private void getWeeks() {
 		Calendar isMonday = Calendar.getInstance();
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SCH_SL_MON);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SCH_SL_MON));
 		try {
 			while (rst.next()) {
 				isMonday.setTimeInMillis(rst.getDate("WDDT").getTime());
@@ -386,7 +386,7 @@ class NSchedule extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
@@ -485,10 +485,10 @@ class NSchedule extends NBase {
 	void save(OScheduleService schedule) {
 		if (schedule.wdID > 0 && schedule.srvID > 0 && schedule.person.id > 0) {
 			byte index = (schedule.isNew ? DPowerJ.STM_SCH_INSERT : DPowerJ.STM_SCH_UPDATE);
-			pj.dbPowerJ.setShort(index, 1, schedule.person.id);
-			pj.dbPowerJ.setShort(index, 2, schedule.srvID);
-			pj.dbPowerJ.setInt(index, 3, schedule.wdID);
-			if (pj.dbPowerJ.execute(index) > 0) {
+			pj.dbPowerJ.setShort(pjStms.get(index), 1, schedule.person.id);
+			pj.dbPowerJ.setShort(pjStms.get(index), 2, schedule.srvID);
+			pj.dbPowerJ.setInt(pjStms.get(index), 3, schedule.wdID);
+			if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 				altered = false;
 				if (schedule.isNew) {
 					schedule.isNew = false;
@@ -685,12 +685,9 @@ class NSchedule extends NBase {
 		@Override
 		public Object getValueAt(int row, int col) {
 			Object value = Object.class;
-			if (dates.size() > 0 && row < dates.size()) {
-				value = dates.get(row);
-			}
 			if (byService) {
 				if (col > 0 && scheduleServices.size() > 0 && row < scheduleServices.size()) {
-					if (scheduleServices.get(row).size() > col) {
+					if (scheduleServices.get(row).size() >= col) {
 						value = scheduleServices.get(row).get(col - 1).person;
 					}
 				} else if (services.size() > 0 && row < services.size()) {
@@ -698,9 +695,11 @@ class NSchedule extends NBase {
 				}
 			} else {
 				if (col > 0 && scheduleStaff.size() > 0 && row < scheduleStaff.size()) {
-					return scheduleStaff.get(row).services[col - 1];
+					if (scheduleStaff.get(row).services.length >= col) {
+						value = scheduleStaff.get(row).services[col - 1];
+					}
 				} else if (scheduleStaff.size() > 0 && row < scheduleStaff.size()) {
-					return scheduleStaff.get(row).name;
+					value = scheduleStaff.get(row).name;
 				}
 			}
 			return value;

@@ -10,6 +10,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Hashtable;
 
 import javax.swing.AbstractAction;
@@ -442,11 +444,16 @@ class AClient extends LBase implements Runnable, WindowListener {
 
 	/** Check login access to PowerJ & set userAccess value **/
 	private boolean setLogin() {
-		dbPowerJ.prepareLogin();
-		dbPowerJ.setShort(DPowerJ.STM_PRS_SL_PID, 1, userID);
-		int i = dbPowerJ.getInt(DPowerJ.STM_PRS_SL_PID);
-		dbPowerJ.closeStm(DPowerJ.STM_PRS_SL_PID);
-		userAccess = numbers.intToBoolean(i);
+		int i = 0;
+		try {
+			Hashtable<Byte, PreparedStatement> pstms = dbPowerJ.prepareStatements(LConstants.ACTION_LLOGIN);
+			pstms.get(DPowerJ.STM_PRS_SL_PID).setShort(1, userID);
+			i = dbPowerJ.getInt(pstms.get(DPowerJ.STM_PRS_SL_PID));
+			dbPowerJ.close(pstms);
+			userAccess = numbers.intToBoolean(i);
+		} catch (SQLException e) {
+			log(LConstants.ERROR_SQL, "PJClient", e);
+		}
 		return (i != 0);
 	}
 

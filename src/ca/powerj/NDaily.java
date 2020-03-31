@@ -73,7 +73,7 @@ class NDaily extends NBase {
 		super(parent);
 		setName("Daily");
 		routeTime = parent.setup.getInt(LSetup.VAR_ROUTE_TIME);
-		parent.dbPowerJ.prepareDaily();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_DAILY);
 		getTats();
 		createPanel();
 		refresh();
@@ -139,7 +139,7 @@ class NDaily extends NBase {
 
 	private void getTats() {
 		OTurnaround turnaround = new OTurnaround();
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_TUR_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_TUR_SELECT));
 		try {
 			while (rst.next()) {
 				turnaround = new OTurnaround();
@@ -154,7 +154,7 @@ class NDaily extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
@@ -587,7 +587,7 @@ class NDaily extends NBase {
 				startFinal.set(Calendar.HOUR, 0);
 				startFinal.set(Calendar.MINUTE, 0);
 				startFinal.set(Calendar.SECOND, 0);
-				rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_PND_SELECT);
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PND_SELECT));
 				while (rst.next()) {
 					statusID = rst.getByte("PNST");
 					finalID = rst.getShort("FNID");
@@ -694,7 +694,7 @@ class NDaily extends NBase {
 			} catch (SQLException e) {
 				pj.log(LConstants.ERROR_SQL, getName(), e);
 			} finally {
-				pj.dbPowerJ.closeRst(rst);
+				pj.dbPowerJ.close(rst);
 				mapPersons.clear();
 			}
 			return null;

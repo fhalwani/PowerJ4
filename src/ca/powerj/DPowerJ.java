@@ -1,128 +1,131 @@
 package ca.powerj;
+
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 
 class DPowerJ extends DCore {
-	static final byte STM_STP_SELECT = 1;
-	static final byte STM_STP_SL_SID = 2;
-	static final byte STM_STP_UPDATE = 3;
-	static final byte STM_WDY_SL_DTE = 4;
-	static final byte STM_WDY_SL_NXT = 5;
-	static final byte STM_ACC_INSERT = 6;
-	static final byte STM_ACC_SELECT = 7;
-	static final byte STM_ACC_UPDATE = 8;
-	static final byte STM_ADD_INSERT = 9;
-	static final byte STM_ADD_SL_CID = 10;
-	static final byte STM_ADD_SL_SUM = 11;
-	static final byte STM_CD1_INSERT = 12;
-	static final byte STM_CD1_SELECT = 13;
-	static final byte STM_CD1_UPDATE = 14;
-	static final byte STM_CD2_INSERT = 15;
-	static final byte STM_CD2_SELECT = 16;
-	static final byte STM_CD2_UPDATE = 17;
-	static final byte STM_CD3_INSERT = 18;
-	static final byte STM_CD3_SELECT = 19;
-	static final byte STM_CD3_UPDATE = 20;
-	static final byte STM_CD4_INSERT = 21;
-	static final byte STM_CD4_SELECT = 22;
-	static final byte STM_CD4_UPDATE = 23;
-	static final byte STM_CMT_INSERT = 24;
-	static final byte STM_CMT_SELECT = 25;
-	static final byte STM_CMT_UPDATE = 26;
-	static final byte STM_CSE_INSERT = 27;
-	static final byte STM_CSE_SELECT = 28;
-	static final byte STM_CSE_SL_CID = 29;
-	static final byte STM_CSE_SL_CNO = 30;
-	static final byte STM_CSE_SL_DTE = 31;
-	static final byte STM_CSE_SL_LST = 32;
-	static final byte STM_CSE_SL_SPE = 33;
-	static final byte STM_CSE_SL_SUM = 34;
-	static final byte STM_CSE_SL_TAT = 35;
-	static final byte STM_CSE_SL_YER = 36;
-	static final byte STM_CSE_UPDATE = 37;
-	static final byte STM_ERR_DELETE = 38;
-	static final byte STM_ERR_INSERT = 39;
-	static final byte STM_ERR_SELECT = 40;
-	static final byte STM_ERR_SL_CMT = 41;
-	static final byte STM_ERR_SL_FXD = 42;
-	static final byte STM_ERR_UPDATE = 43;
-	static final byte STM_FAC_INSERT = 44;
-	static final byte STM_FAC_SELECT = 45;
-	static final byte STM_FAC_UPDATE = 46;
-	static final byte STM_FRZ_INSERT = 47;
-	static final byte STM_FRZ_SL_SID = 48;
-	static final byte STM_FRZ_SL_SU5 = 49;
-	static final byte STM_FRZ_SL_SUM = 50;
-	static final byte STM_FRZ_UPDATE = 51;
-	static final byte STM_ORD_INSERT = 52;
-	static final byte STM_ORD_SELECT = 53;
-	static final byte STM_ORD_UPDATE = 54;
-	static final byte STM_ORG_INSERT = 55;
-	static final byte STM_ORG_SELECT = 56;
-	static final byte STM_ORG_UPDATE = 57;
-	static final byte STM_ORM_INSERT = 58;
-	static final byte STM_ORM_SELECT = 59;
-	static final byte STM_ORM_UPDATE = 60;
-	static final byte STM_ORT_INSERT = 61;
-	static final byte STM_ORT_SELECT = 62;
-	static final byte STM_PND_DEL_FN = 63;
-	static final byte STM_PND_DEL_ID = 64;
-	static final byte STM_PND_INSERT = 65;
-	static final byte STM_PND_SELECT = 66;
-	static final byte STM_PND_SL_LST = 67;
-	static final byte STM_PND_SL_ROU = 68;
-	static final byte STM_PND_UP_EMB = 69;
-	static final byte STM_PND_UP_FIN = 70;
-	static final byte STM_PND_UP_GRS = 71;
-	static final byte STM_PND_UP_MIC = 72;
-	static final byte STM_PND_UP_ROU = 73;
-	static final byte STM_PRO_INSERT = 74;
-	static final byte STM_PRO_SELECT = 75;
-	static final byte STM_PRO_UPDATE = 76;
-	static final byte STM_PRS_INSERT = 77;
-	static final byte STM_PRS_SELECT = 78;
-	static final byte STM_PRS_SL_PID = 79;
-	static final byte STM_PRS_UPDATE = 80;
-	static final byte STM_RUL_INSERT = 81;
-	static final byte STM_RUL_SELECT = 82;
-	static final byte STM_RUL_UPDATE = 83;
-	static final byte STM_SCH_INSERT = 84;
-	static final byte STM_SCH_SL_MON = 85;
-	static final byte STM_SCH_SL_SRV = 86;
-	static final byte STM_SCH_SL_SUM = 87;
-	static final byte STM_SCH_SL_STA = 88;
-	static final byte STM_SCH_UPDATE = 89;
-	static final byte STM_SPE_INSERT = 90;
-	static final byte STM_SPE_SELECT = 91;
-	static final byte STM_SPE_UPDATE = 92;
-	static final byte STM_SPG_INSERT = 93;
-	static final byte STM_SPG_SELECT = 94;
-	static final byte STM_SPG_SL_SUM = 95;
-	static final byte STM_SPG_SL_SU5 = 96;
-	static final byte STM_SPG_UPD_V5 = 97;
-	static final byte STM_SPG_UPDATE = 98;
-	static final byte STM_SPM_INSERT = 99;
-	static final byte STM_SPM_SELECT = 100;
-	static final byte STM_SPM_UPDATE = 101;
-	static final byte STM_SPY_INSERT = 102;
-	static final byte STM_SPY_SELECT = 103;
-	static final byte STM_SPY_UPDATE = 104;
-	static final byte STM_SRV_INSERT = 105;
-	static final byte STM_SRV_SELECT = 106;
-	static final byte STM_SRV_UPDATE = 107;
-	static final byte STM_STP_INSERT = 108;
-	static final byte STM_SUB_INSERT = 109;
-	static final byte STM_SUB_SELECT = 110;
-	static final byte STM_SUB_UPDATE = 111;
-	static final byte STM_TUR_INSERT = 112;
-	static final byte STM_TUR_SELECT = 113;
-	static final byte STM_TUR_UPDATE = 114;
-	static final byte STM_WDY_INSERT = 115;
-	static final byte STM_WDY_SELECT = 116;
-	static final byte STM_WDY_SL_LST = 117;
+	static final byte STM_ACC_INSERT = 1;
+	static final byte STM_ACC_SELECT = 2;
+	static final byte STM_ACC_UPDATE = 3;
+	static final byte STM_ADD_INSERT = 4;
+	static final byte STM_ADD_SL_CID = 5;
+	static final byte STM_ADD_SL_SUM = 6;
+	static final byte STM_CD1_INSERT = 7;
+	static final byte STM_CD1_SELECT = 8;
+	static final byte STM_CD1_UPDATE = 9;
+	static final byte STM_CD2_INSERT = 10;
+	static final byte STM_CD2_SELECT = 11;
+	static final byte STM_CD2_UPDATE = 12;
+	static final byte STM_CD3_INSERT = 13;
+	static final byte STM_CD3_SELECT = 14;
+	static final byte STM_CD3_UPDATE = 15;
+	static final byte STM_CD4_INSERT = 16;
+	static final byte STM_CD4_SELECT = 17;
+	static final byte STM_CD4_UPDATE = 18;
+	static final byte STM_CMT_INSERT = 19;
+	static final byte STM_CMT_SELECT = 20;
+	static final byte STM_CMT_UPDATE = 21;
+	static final byte STM_CSE_INSERT = 22;
+	static final byte STM_CSE_SELECT = 23;
+	static final byte STM_CSE_SL_CID = 24;
+	static final byte STM_CSE_SL_CNO = 25;
+	static final byte STM_CSE_SL_DTE = 26;
+	static final byte STM_CSE_SL_LST = 27;
+	static final byte STM_CSE_SL_SPE = 28;
+	static final byte STM_CSE_SL_SUM = 29;
+	static final byte STM_CSE_SL_TAT = 30;
+	static final byte STM_CSE_SL_YER = 31;
+	static final byte STM_CSE_UPDATE = 32;
+	static final byte STM_ERR_DELETE = 33;
+	static final byte STM_ERR_INSERT = 34;
+	static final byte STM_ERR_SELECT = 35;
+	static final byte STM_ERR_SL_CMT = 36;
+	static final byte STM_ERR_SL_FXD = 37;
+	static final byte STM_ERR_UPDATE = 38;
+	static final byte STM_FAC_INSERT = 39;
+	static final byte STM_FAC_SELECT = 40;
+	static final byte STM_FAC_UPDATE = 41;
+	static final byte STM_FRZ_INSERT = 42;
+	static final byte STM_FRZ_SL_SID = 43;
+	static final byte STM_FRZ_SL_SU5 = 44;
+	static final byte STM_FRZ_SL_SUM = 45;
+	static final byte STM_FRZ_UPDATE = 46;
+	static final byte STM_ORD_INSERT = 47;
+	static final byte STM_ORD_SELECT = 48;
+	static final byte STM_ORD_UPDATE = 49;
+	static final byte STM_ORG_INSERT = 50;
+	static final byte STM_ORG_SELECT = 51;
+	static final byte STM_ORG_UPDATE = 52;
+	static final byte STM_ORM_INSERT = 53;
+	static final byte STM_ORM_SELECT = 54;
+	static final byte STM_ORM_UPDATE = 55;
+	static final byte STM_ORT_INSERT = 56;
+	static final byte STM_ORT_SELECT = 57;
+	static final byte STM_PND_DEL_FN = 58;
+	static final byte STM_PND_DEL_ID = 59;
+	static final byte STM_PND_INSERT = 60;
+	static final byte STM_PND_SELECT = 61;
+	static final byte STM_PND_SL_LST = 62;
+	static final byte STM_PND_SL_ROU = 63;
+	static final byte STM_PND_UP_EMB = 64;
+	static final byte STM_PND_UP_FIN = 65;
+	static final byte STM_PND_UP_GRS = 66;
+	static final byte STM_PND_UP_MIC = 67;
+	static final byte STM_PND_UP_ROU = 68;
+	static final byte STM_PRO_INSERT = 69;
+	static final byte STM_PRO_SELECT = 70;
+	static final byte STM_PRO_UPDATE = 71;
+	static final byte STM_PRS_INSERT = 72;
+	static final byte STM_PRS_SELECT = 73;
+	static final byte STM_PRS_SL_PID = 74;
+	static final byte STM_PRS_UPDATE = 75;
+	static final byte STM_RUL_INSERT = 76;
+	static final byte STM_RUL_SELECT = 77;
+	static final byte STM_RUL_UPDATE = 78;
+	static final byte STM_SCH_INSERT = 79;
+	static final byte STM_SCH_SL_MON = 80;
+	static final byte STM_SCH_SL_SRV = 81;
+	static final byte STM_SCH_SL_STA = 82;
+	static final byte STM_SCH_SL_SUM = 83;
+	static final byte STM_SCH_UPDATE = 84;
+	static final byte STM_SPE_INSERT = 85;
+	static final byte STM_SPE_SELECT = 86;
+	static final byte STM_SPE_UPDATE = 87;
+	static final byte STM_SPG_INSERT = 88;
+	static final byte STM_SPG_SELECT = 89;
+	static final byte STM_SPG_SL_SU5 = 90;
+	static final byte STM_SPG_SL_SUM = 91;
+	static final byte STM_SPG_UPD_V5 = 92;
+	static final byte STM_SPG_UPDATE = 93;
+	static final byte STM_SPM_INSERT = 94;
+	static final byte STM_SPM_SELECT = 95;
+	static final byte STM_SPM_UPDATE = 96;
+	static final byte STM_SPY_INSERT = 97;
+	static final byte STM_SPY_SELECT = 98;
+	static final byte STM_SPY_UPDATE = 99;
+	static final byte STM_SRV_INSERT = 100;
+	static final byte STM_SRV_SELECT = 101;
+	static final byte STM_SRV_UPDATE = 102;
+	static final byte STM_STP_INSERT = 103;
+	static final byte STM_STP_SELECT = 104;
+	static final byte STM_STP_SL_SID = 105;
+	static final byte STM_STP_UPDATE = 106;
+	static final byte STM_SUB_INSERT = 107;
+	static final byte STM_SUB_SELECT = 108;
+	static final byte STM_SUB_UPDATE = 109;
+	static final byte STM_TUR_INSERT = 110;
+	static final byte STM_TUR_SELECT = 111;
+	static final byte STM_TUR_UPDATE = 112;
+	static final byte STM_WDY_INSERT = 113;
+	static final byte STM_WDY_SELECT = 114;
+	static final byte STM_WDY_SL_DTE = 115;
+	static final byte STM_WDY_SL_LST = 116;
+	static final byte STM_WDY_SL_NXT = 117;
 	static final byte STM_WDY_SL_PRV = 118;
 
 	DPowerJ(LBase parent) {
@@ -131,48 +134,15 @@ class DPowerJ extends DCore {
 	}
 
 	Object[] getFacilities(boolean isFilter) {
-		ResultSet rst = getResultSet(DPowerJ.STM_FAC_SELECT);
-		ArrayList<OItem> list = new ArrayList<OItem>();
-		if (isFilter) {
-			list.add(new OItem((short) 0, "* All *"));
-		}
-		try {
-			while (rst.next()) {
-				if (rst.getString("FAFL").equalsIgnoreCase("Y")
-						|| rst.getString("FALD").equalsIgnoreCase("Y")) {
-					list.add(new OItem(rst.getShort("FAID"),
-							rst.getString("FANM")));
-				}
-			}
-		} catch (SQLException e) {
-			pj.log(LConstants.ERROR_SQL, dbName, e);
-		} finally {
-			closeRst(rst);
-		}
-		return list.toArray();
+		return null;
 	}
 
 	Object[] getOrderGroupArray(boolean isFilter) {
-		ResultSet rst = getResultSet(DPowerJ.STM_ORG_SELECT);
-		ArrayList<OItem> list = new ArrayList<OItem>();
-		if (isFilter) {
-			list.add(new OItem((short) -1, "* All *"));
-		}
-		try {
-			while (rst.next()) {
-				list.add(new OItem(rst.getShort("OGID"),
-					rst.getString("OGNM")));
-			}
-		} catch (SQLException e) {
-			pj.log(LConstants.ERROR_SQL, dbName, e);
-		} finally {
-			closeRst(rst);
-		}
-		return list.toArray();
+		return null;
 	}
 
-	HashMap<Short, String> getOrderGroupMap() {
-		ResultSet rst = getResultSet(DPowerJ.STM_ORG_SELECT);
+	HashMap<Short, String> getOrderGroupMap(PreparedStatement pstm) {
+		ResultSet rst = getResultSet(pstm);
 		HashMap<Short, String> map = new HashMap<Short, String>();
 		try {
 			while (rst.next()) {
@@ -181,7 +151,7 @@ class DPowerJ extends DCore {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		} finally {
-			closeRst(rst);
+			close(rst);
 		}
 		return map;
 	}
@@ -209,22 +179,7 @@ class DPowerJ extends DCore {
 	}
 
 	Object[] getProcedures(boolean isFilter) {
-		ResultSet rst = getResultSet(DPowerJ.STM_PRO_SELECT);
-		ArrayList<OItem> list = new ArrayList<OItem>();
-		if (isFilter) {
-			list.add(new OItem((short) 0, "* All *"));
-		}
-		try {
-			while (rst.next()) {
-				list.add(new OItem(rst.getShort("POID"),
-					rst.getString("PONM")));
-			}
-		} catch (SQLException e) {
-			pj.log(LConstants.ERROR_SQL, dbName, e);
-		} finally {
-			closeRst(rst);
-		}
-		return list.toArray();
+		return null;
 	}
 
 	ResultSet getResultSet(short index, String filters) {
@@ -241,97 +196,34 @@ class DPowerJ extends DCore {
 	}
 
 	Object[] getSpecialties(boolean isFilter) {
-		ResultSet rst = getResultSet(DPowerJ.STM_SPY_SELECT);
-		ArrayList<OItem> list = new ArrayList<OItem>();
-		if (isFilter) {
-			list.add(new OItem((short) 0, "* All *"));
-		}
-		try {
-			while (rst.next()) {
-				list.add(new OItem(rst.getShort("SYID"),
-					rst.getString("SYNM")));
-			}
-		} catch (SQLException e) {
-			pj.log(LConstants.ERROR_SQL, dbName, e);
-		} finally {
-			closeRst(rst);
-		}
-		return list.toArray();
+		return null;
 	}
 
-	Object[] getSpecimenMaster(boolean isFilter) {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SPM_SELECT);
+	Object[] getSpecimenMaster(boolean isFilter, PreparedStatement pstm) {
+		ResultSet rst = getResultSet(pstm);
 		ArrayList<OItem> list = new ArrayList<OItem>();
 		if (isFilter) {
 			list.add(new OItem((short) 0, "* All *"));
 		}
 		try {
 			while (rst.next()) {
-				list.add(new OItem(rst.getShort("SMID"),
-					rst.getString("SMNM")));
+				list.add(new OItem(rst.getShort("SMID"), rst.getString("SMNM")));
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		} finally {
-			closeRst(rst);
+			close(rst);
 		}
 		return list.toArray();
 	}
 
 	Object[] getSubspecialties(boolean isFilter) {
-		ResultSet rst = getResultSet(DPowerJ.STM_SUB_SELECT);
-		ArrayList<OItem> list = new ArrayList<OItem>();
-		if (isFilter) {
-			list.add(new OItem((short) 0, "* All *"));
-		}
-		try {
-			while (rst.next()) {
-				list.add(new OItem(rst.getShort("SBID"),
-					rst.getString("SBNM")));
-			}
-		} catch (SQLException e) {
-			pj.log(LConstants.ERROR_SQL, dbName, e);
-		} finally {
-			closeRst(rst);
-		}
-		return list.toArray();
+		return null;
 	}
 
-	void prepareBacklog() {}
-	void prepareBase() {}
-	void prepareCasesSummary() {}
-	void prepareDaily() {}
-	void prepareEditor() {}
-	void prepareError() {}
-	void prepareFinals() {}
-	void prepareForecast() {}
-	void prepareHistology() {}
-	void prepareLogin() {}
-	void preparePending() {}
-	void prepareRoute() {}
-	void prepareSchedules(boolean canEdit) {}
-	void prepareScheduleSummary() {}
-	void prepareSpecimen() {}
-	void prepareStpAccessions() {}
-	void prepareStpCoder(byte coder) {}
-	void prepareStpFacilities() {}
-	void prepareStpOrdGroup() {}
-	void prepareStpOrdMstr() {}
-	void prepareStpPersons() {}
-	void prepareStpProcedures() {}
-	void prepareStpRules() {}
-	void prepareStpServices() {}
-	void prepareStpSpecialties() {}
-	void prepareStpSpeGroup() {}
-	void prepareStpSpeMstr() {}
-	void prepareStpSubspecialty() {}
-	void prepareStpTurnaround() {}
-	void prepareSynchronizer() {}
-	void prepareTurnaround() {}
-	void prepareValue5() {}
-	void prepareWorkflow() {}
-	void prepareWorkload() {}
-	void prepareWorkdays() {}
+	Hashtable<Byte, PreparedStatement> prepareStatements(byte id) {
+		return null;
+	}
 
 	String setSQL(short id) {
 		switch (id) {
@@ -362,19 +254,19 @@ class DPowerJ extends DCore {
 		case STM_CMT_UPDATE:
 			return "UPDATE Comments set COM1 = ?, COM2 = ?, COM3 = ?, COM4 = ? WHERE CAID = ?";
 		case STM_CSE_INSERT:
-			return "INSERT INTO Cases (FAID, SBID, SMID, GRID, EMID, MIID, ROID, FNID, GRTA, EMTA, MITA, " +
-			"ROTA, FNTA, CASP, CABL, CASL, CASY, CAFS, CAHE, CASS, CAIH, CAMO, CAV5, ACED, GRED, EMED, MIED, ROED, " +
-			"FNED, CAV1, CAV2, CAV3, CAV4, CANO, CAID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-			"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			return "INSERT INTO Cases (FAID, SBID, SMID, GRID, EMID, MIID, ROID, FNID, GRTA, EMTA, MITA, "
+					+ "ROTA, FNTA, CASP, CABL, CASL, CASY, CAFS, CAHE, CASS, CAIH, CAMO, CAV5, ACED, GRED, EMED, MIED, ROED, "
+					+ "FNED, CAV1, CAV2, CAV3, CAV4, CANO, CAID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+					+ "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		case STM_CSE_SL_LST:
 			return "SELECT FNED FROM udvCasesLast";
 		case STM_CSE_SL_TAT:
 			return "SELECT * FROM udvCasesTA ORDER BY FAID, SYID, SBID, POID, FNYEAR, FNMONTH";
 		case STM_CSE_UPDATE:
-			return "UPDATE Cases SET FAID = ?, SBID = ?, SMID = ?, GRID = ?, EMID = ?, MIID = ?, ROID = ?, FNID = ?, " +
-			"GRTA = ?, EMTA = ?, MITA = ?, ROTA = ?, FNTA = ?, CASP = ?, CABL = ?, CASL = ?, CASY = ?, CAFS = ?, CAHE = ?, CASS = ?, " +
-			"CAIH = ?, CAMO = ?, CAV5 = ?, ACED = ?, GRED = ?, EMED = ?, MIED = ?, ROED = ?, FNED = ?, CAV1 = ?, CAV2 = ?, CAV3 = ?, " +
-			"CAV4 = ?, CANO = ? WHERE CAID = ?";
+			return "UPDATE Cases SET FAID = ?, SBID = ?, SMID = ?, GRID = ?, EMID = ?, MIID = ?, ROID = ?, FNID = ?, "
+					+ "GRTA = ?, EMTA = ?, MITA = ?, ROTA = ?, FNTA = ?, CASP = ?, CABL = ?, CASL = ?, CASY = ?, CAFS = ?, CAHE = ?, CASS = ?, "
+					+ "CAIH = ?, CAMO = ?, CAV5 = ?, ACED = ?, GRED = ?, EMED = ?, MIED = ?, ROED = ?, FNED = ?, CAV1 = ?, CAV2 = ?, CAV3 = ?, "
+					+ "CAV4 = ?, CANO = ? WHERE CAID = ?";
 		case STM_ERR_DELETE:
 			return "DELETE FROM Errors WHERE CAID = ?";
 		case STM_ERR_INSERT:
@@ -410,19 +302,19 @@ class DPowerJ extends DCore {
 		case STM_PND_DEL_ID:
 			return "DELETE FROM Pending WHERE PNID = ?";
 		case STM_PND_INSERT:
-			return "INSERT INTO Pending (FAID, SBID, POID, SMID, GRID, EMID, MIID, ROID, FNID, GRTA, EMTA, " +
-			"MITA, ROTA, FNTA, PNST, PNSP, PNBL, PNSL, PNV5, ACED, GRED, EMED, MIED, ROED, FNED, PNNO, PNID) " +
-			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			return "INSERT INTO Pending (FAID, SBID, POID, SMID, GRID, EMID, MIID, ROID, FNID, GRTA, EMTA, "
+					+ "MITA, ROTA, FNTA, PNST, PNSP, PNBL, PNSL, PNV5, ACED, GRED, EMED, MIED, ROED, FNED, PNNO, PNID) "
+					+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		case STM_PND_SL_LST:
 			return "SELECT ACED FROM udvPendingLast";
 		case STM_PND_UP_EMB:
-			return "UPDATE Pending SET SBID = ?, POID = ?, SMID = ?, EMID = ?, EMTA = ?, PNST = ?, PNSP = ?, " +
-					"PNBL = ?, PNV5 = ?, EMED = ? WHERE PNID = ?";
+			return "UPDATE Pending SET SBID = ?, POID = ?, SMID = ?, EMID = ?, EMTA = ?, PNST = ?, PNSP = ?, "
+					+ "PNBL = ?, PNV5 = ?, EMED = ? WHERE PNID = ?";
 		case STM_PND_UP_FIN:
 			return "UPDATE Pending SET FNID = ?, FNTA = ?, PNST = ?, PNSL = ?, FNED = ? WHERE PNID = ?";
 		case STM_PND_UP_GRS:
-			return "UPDATE Pending SET SBID = ?, POID = ?, SMID = ?, GRID = ?, GRTA = ?, PNST = ?, PNSP = ?, " +
-					"PNBL = ?, PNV5 = ?, GRED = ? WHERE PNID = ?";
+			return "UPDATE Pending SET SBID = ?, POID = ?, SMID = ?, GRID = ?, GRTA = ?, PNST = ?, PNSP = ?, "
+					+ "PNBL = ?, PNV5 = ?, GRED = ? WHERE PNID = ?";
 		case STM_PND_UP_MIC:
 			return "UPDATE Pending SET MIID = ?, MITA = ?, PNST = ?, PNBL = ?, PNSL = ?, MIED = ? WHERE PNID = ?";
 		case STM_PND_UP_ROU:
@@ -446,17 +338,17 @@ class DPowerJ extends DCore {
 		case STM_SCH_UPDATE:
 			return "UPDATE Schedules SET PRID = ? WHERE SRID = ? AND WDID = ?";
 		case STM_SPE_INSERT:
-			return "INSERT INTO Specimens (CAID, SMID, SPBL, SPSL, SPFR, SPHE, SPSS, SPIH, SPMO, SPV5, SPV1, SPV2, " +
-			"SPV3, SPV4, SPDC, SPID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			return "INSERT INTO Specimens (CAID, SMID, SPBL, SPSL, SPFR, SPHE, SPSS, SPIH, SPMO, SPV5, SPV1, SPV2, "
+					+ "SPV3, SPV4, SPDC, SPID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		case STM_SPE_UPDATE:
-			return "UPDATE Specimens SET CAID = ?, SMID = ?, SPBL = ?, SPSL = ?, SPFR = ?, SPHE = ?, " +
-			"SPSS = ?, SPIH = ?, SPMO = ?, SPV5 = ?, SPV1 = ?, SPV2 = ?, SPV3 = ?, SPV4 = ?, SPDC = ? WHERE SPID = ?";
+			return "UPDATE Specimens SET CAID = ?, SMID = ?, SPBL = ?, SPSL = ?, SPFR = ?, SPHE = ?, "
+					+ "SPSS = ?, SPIH = ?, SPMO = ?, SPV5 = ?, SPV1 = ?, SPV2 = ?, SPV3 = ?, SPV4 = ?, SPDC = ? WHERE SPID = ?";
 		case STM_SPG_INSERT:
-			return "INSERT INTO SpeciGroups (SBID, POID, SG1B, SG1M, SG1R, SG2B, SG2M, SG2R, SG3B, SG3M, SG3R, SG4B, SG4M, SG4R, " +
-			"SGV5, SGLN, SGDC, SGID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			return "INSERT INTO SpeciGroups (SBID, POID, SG1B, SG1M, SG1R, SG2B, SG2M, SG2R, SG3B, SG3M, SG3R, SG4B, SG4M, SG4R, "
+					+ "SGV5, SGLN, SGDC, SGID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		case STM_SPG_UPDATE:
-			return "UPDATE SpeciGroups SET SBID = ?, POID = ?, SG1B = ?, SG1M = ?, SG1R = ?, SG2B = ?, SG2M = ?, SG2R = ?, " +
-			"SG3B = ?, SG3M = ?, SG3R = ?, SG4B = ?, SG4M = ?, SG4R = ?, SGV5 = ?, SGLN = ?, SGDC = ? WHERE SGID = ?";
+			return "UPDATE SpeciGroups SET SBID = ?, POID = ?, SG1B = ?, SG1M = ?, SG1R = ?, SG2B = ?, SG2M = ?, SG2R = ?, "
+					+ "SG3B = ?, SG3M = ?, SG3R = ?, SG4B = ?, SG4M = ?, SG4R = ?, SGV5 = ?, SGLN = ?, SGDC = ? WHERE SGID = ?";
 		case STM_SPG_UPD_V5:
 			return "UPDATE SpeciGroups SET SGV5 = ? WHERE SGID = ?";
 		case STM_SPM_INSERT:

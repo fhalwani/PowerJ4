@@ -1,8 +1,10 @@
 package ca.powerj;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
+import java.util.Hashtable;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,6 +27,8 @@ class LFinals {
 	private MAccessions accessions;
 	private MOrders masterOrders;
 	private MSpecimens masterSpecimens;
+	private Hashtable<Byte, PreparedStatement> pjStms = null;
+	private Hashtable<Byte, PreparedStatement> apStms = null;
 	private OCaseFinal thisCase = new OCaseFinal();
 	private OSpecFinal thisSpecimen = new OSpecFinal();
 	private OOrderFinal thisOrder = new OOrderFinal();
@@ -45,48 +49,52 @@ class LFinals {
 		pj.log(LConstants.ERROR_NONE, className,
 				pj.dates.formatter(LDates.FORMAT_DATETIME) + " - Workload Manager Started...");
 		try {
-			dbAP.prepareWorkload();
+			apStms = dbAP.prepareStatements(LConstants.ACTION_LLOAD);
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
-				dbPowerJ.prepareWorkload();
+				pjStms = dbPowerJ.prepareStatements(LConstants.ACTION_LLOAD);
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
-				accessions = new MAccessions(pj);
+				accessions = new MAccessions(pj, pjStms.get(DPowerJ.STM_ACC_SELECT));
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
-				facilities = new MFacilities(pj);
+				facilities = new MFacilities(pj, pjStms.get(DPowerJ.STM_FAC_SELECT));
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
-				masterOrders = new MOrders(pj);
+				masterOrders = new MOrders(pj, pjStms.get(DPowerJ.STM_ORM_SELECT));
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
-				masterSpecimens = new MSpecimens(pj);
+				masterSpecimens = new MSpecimens(pj, pjStms.get(DPowerJ.STM_SPM_SELECT));
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 				if (pj.setup.getBoolean(LSetup.VAR_CODER1_ACTIVE)) {
-					coder1 = new LCoder(pj, 1);
+					coder1 = new LCoder(pj, pjStms.get(DPowerJ.STM_CD1_SELECT), 1);
 				} else {
 					coder1 = new LCoderA(pj, 1);
+					dbPowerJ.close(pjStms.get(DPowerJ.STM_CD1_SELECT));
 				}
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 				if (pj.setup.getBoolean(LSetup.VAR_CODER2_ACTIVE)) {
-					coder2 = new LCoder(pj, 2);
+					coder2 = new LCoder(pj, pjStms.get(DPowerJ.STM_CD2_SELECT), 2);
 				} else {
 					coder2 = new LCoderA(pj, 2);
+					dbPowerJ.close(pjStms.get(DPowerJ.STM_CD2_SELECT));
 				}
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 				if (pj.setup.getBoolean(LSetup.VAR_CODER3_ACTIVE)) {
-					coder3 = new LCoder(pj, 3);
+					coder3 = new LCoder(pj, pjStms.get(DPowerJ.STM_CD3_SELECT), 3);
 				} else {
 					coder3 = new LCoderA(pj, 3);
+					dbPowerJ.close(pjStms.get(DPowerJ.STM_CD3_SELECT));
 				}
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 				if (pj.setup.getBoolean(LSetup.VAR_CODER4_ACTIVE)) {
-					coder4 = new LCoder(pj, 4);
+					coder4 = new LCoder(pj, pjStms.get(DPowerJ.STM_CD4_SELECT), 4);
 				} else {
 					coder4 = new LCoderA(pj, 4);
+					dbPowerJ.close(pjStms.get(DPowerJ.STM_CD4_SELECT));
 				}
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
@@ -152,11 +160,11 @@ class LFinals {
 		if (coder4 != null) {
 			coder4.close();
 		}
-		if (dbAP != null) {
-			dbAP.closeStms(false);
+		if (dbAP != null && apStms != null) {
+			dbAP.close(apStms);
 		}
-		if (dbPowerJ != null) {
-			dbPowerJ.closeStms(false);
+		if (dbPowerJ != null && pjStms != null) {
+			dbPowerJ.close(pjStms);
 		}
 		LBase.busy.set(false);
 	}
@@ -165,8 +173,8 @@ class LFinals {
 		boolean success = false;
 		ResultSet rst = null;
 		try {
-			dbAP.setLong(DPowerpath.STM_CASE_DETAILS, 1, caseID);
-			rst = dbAP.getResultSet(DPowerpath.STM_CASE_DETAILS);
+			dbAP.setLong(apStms.get(DPowerpath.STM_CASE_DETAILS), 1, caseID);
+			rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_DETAILS));
 			while (rst.next()) {
 				if (accessions.doWorkload(rst.getShort("acc_type_id"))
 						&& facilities.doWorkload(rst.getShort("facility_id"))) {
@@ -181,8 +189,8 @@ class LFinals {
 					thisCase.accessed.setTimeInMillis(rst.getTimestamp("created_date").getTime());
 					pj.log(LConstants.ERROR_NONE, className, "Coding case " + thisCase.caseNo);
 					// We need to know if the case is malignant before-hand
-					dbAP.setLong(DPowerpath.STM_CASE_SYNOPTI, 1, thisCase.caseID);
-					thisCase.noSynop = dbAP.getByte(DPowerpath.STM_CASE_SYNOPTI);
+					dbAP.setLong(apStms.get(DPowerpath.STM_CASE_SYNOPTI), 1, thisCase.caseID);
+					thisCase.noSynop = dbAP.getByte(apStms.get(DPowerpath.STM_CASE_SYNOPTI));
 					coder1.newCase(thisCase);
 					coder2.newCase(thisCase);
 					coder3.newCase(thisCase);
@@ -207,7 +215,7 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbAP.closeRst(rst);
+			dbAP.close(rst);
 		}
 		return success;
 	}
@@ -216,8 +224,8 @@ class LFinals {
 		boolean exists = false;
 		ResultSet rst = null;
 		try {
-			dbPowerJ.setLong(DPowerJ.STM_CSE_SL_SPE, 1, thisCase.caseID);
-			rst = dbPowerJ.getResultSet(DPowerJ.STM_CSE_SL_SPE);
+			dbPowerJ.setLong(pjStms.get(DPowerJ.STM_CSE_SL_SPE), 1, thisCase.caseID);
+			rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CSE_SL_SPE));
 			while (rst.next()) {
 				// Must also get a specimen for WLCoder
 				if (masterSpecimens.matchSpecimens(rst.getShort("SMID"))) {
@@ -236,14 +244,14 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbPowerJ.closeRst(rst);
+			dbPowerJ.close(rst);
 		}
 		return exists;
 	}
 
 	private boolean deleteError(long caseID) {
-		dbPowerJ.setLong(DPowerJ.STM_ERR_DELETE, 1, caseID);
-		return (dbPowerJ.execute(DPowerJ.STM_ERR_DELETE) > 0);
+		dbPowerJ.setLong(pjStms.get(DPowerJ.STM_ERR_DELETE), 1, caseID);
+		return (dbPowerJ.execute(apStms.get(DPowerJ.STM_ERR_DELETE)) > 0);
 	}
 
 	private void doAdditional() {
@@ -256,9 +264,9 @@ class LFinals {
 		ResultSet rstOrders = null;
 		try {
 			thisCase = new OCaseFinal();
-			dbAP.setTime(DPowerpath.STM_CASES_REVIEW, 1, lastUpdate);
-			dbAP.setTime(DPowerpath.STM_CASES_REVIEW, 2, maxDate);
-			rstOrders = dbAP.getResultSet(DPowerpath.STM_CASES_REVIEW);
+			dbAP.setTime(apStms.get(DPowerpath.STM_CASES_REVIEW), 1, lastUpdate);
+			dbAP.setTime(apStms.get(DPowerpath.STM_CASES_REVIEW), 2, maxDate);
+			rstOrders = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASES_REVIEW));
 			while (rstOrders.next()) {
 				if (thisCase.caseID != rstOrders.getLong("acc_id")) {
 					thisCase = new OCaseFinal();
@@ -287,16 +295,16 @@ class LFinals {
 					if (dValue1 > 0.001 || dValue2 > 0.001 || dValue3 > 0.001 || dValue4 > 0.001
 							|| masterOrders.getCodeID(5) > 0) {
 						pj.log(LConstants.ERROR_NONE, className, "Coding Additionals on case " + thisCase.caseID);
-						dbPowerJ.setLong(DPowerJ.STM_ADD_INSERT, 1, thisCase.caseID);
-						dbPowerJ.setShort(DPowerJ.STM_ADD_INSERT, 2, thisCase.finalID);
-						dbPowerJ.setShort(DPowerJ.STM_ADD_INSERT, 3, orderID);
-						dbPowerJ.setTime(DPowerJ.STM_ADD_INSERT, 4, thisCase.finaled.getTimeInMillis());
-						dbPowerJ.setDouble(DPowerJ.STM_ADD_INSERT, 5, dValue1);
-						dbPowerJ.setDouble(DPowerJ.STM_ADD_INSERT, 6, dValue2);
-						dbPowerJ.setDouble(DPowerJ.STM_ADD_INSERT, 7, dValue3);
-						dbPowerJ.setDouble(DPowerJ.STM_ADD_INSERT, 8, dValue4);
-						dbPowerJ.setShort(DPowerJ.STM_ADD_INSERT, 9, masterOrders.getCodeID(5));
-						if (dbPowerJ.execute(DPowerJ.STM_ADD_INSERT) > 0) {
+						dbPowerJ.setLong(pjStms.get(DPowerJ.STM_ADD_INSERT), 1, thisCase.caseID);
+						dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_INSERT), 2, thisCase.finalID);
+						dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_INSERT), 3, orderID);
+						dbPowerJ.setTime(pjStms.get(DPowerJ.STM_ADD_INSERT), 4, thisCase.finaled.getTimeInMillis());
+						dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 5, dValue1);
+						dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 6, dValue2);
+						dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 7, dValue3);
+						dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 8, dValue4);
+						dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_INSERT), 9, masterOrders.getCodeID(5));
+						if (dbPowerJ.execute(pjStms.get(DPowerJ.STM_ADD_INSERT)) > 0) {
 							noCases++;
 						}
 					}
@@ -320,7 +328,7 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbAP.closeRst(rstOrders);
+			dbAP.close(rstOrders);
 		}
 	}
 
@@ -334,9 +342,9 @@ class LFinals {
 		ResultSet rstCases = null, rstOrders = null;
 		try {
 			thisCase = new OCaseFinal();
-			dbAP.setTime(DPowerpath.STM_CASES_ADDEND, 1, lastUpdate);
-			dbAP.setTime(DPowerpath.STM_CASES_ADDEND, 2, maxDate);
-			rstCases = dbAP.getResultSet(DPowerpath.STM_CASES_ADDEND);
+			dbAP.setTime(apStms.get(DPowerpath.STM_CASES_ADDEND), 1, lastUpdate);
+			dbAP.setTime(apStms.get(DPowerpath.STM_CASES_ADDEND), 2, maxDate);
+			rstCases = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASES_ADDEND));
 			while (rstCases.next()) {
 				descr = rstCases.getString("description").trim().toLowerCase();
 				if (descr.equals("amendment final")) {
@@ -380,8 +388,8 @@ class LFinals {
 						masterSpecimens.getCoderID(LConstants.CODER_4, LConstants.CODER_B),
 						masterSpecimens.getCoderID(LConstants.CODER_4, LConstants.CODER_M),
 						masterSpecimens.getCoderID(LConstants.CODER_4, LConstants.CODER_R));
-				dbAP.setLong(DPowerpath.STM_CASE_ORDERS, 1, thisCase.caseID);
-				rstOrders = dbAP.getResultSet(DPowerpath.STM_CASE_ORDERS);
+				dbAP.setLong(apStms.get(DPowerpath.STM_CASE_ORDERS), 1, thisCase.caseID);
+				rstOrders = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_ORDERS));
 				while (rstOrders.next()) {
 					orderID = rstOrders.getShort("procedure_id");
 					if (masterOrders.matchOrder(orderID)) {
@@ -417,16 +425,16 @@ class LFinals {
 				dValue3 = coder3.getValue();
 				dValue4 = coder4.getValue();
 				if (dValue1 > 0.01 || dValue2 > 0.01 || dValue3 > 0.01 || dValue4 > 0.01) {
-					dbPowerJ.setLong(DPowerJ.STM_ADD_INSERT, 1, thisCase.caseID);
-					dbPowerJ.setShort(DPowerJ.STM_ADD_INSERT, 2, thisCase.finalID);
-					dbPowerJ.setShort(DPowerJ.STM_ADD_INSERT, 3, codeID);
-					dbPowerJ.setDate(DPowerJ.STM_ADD_INSERT, 4, thisCase.finaled.getTimeInMillis());
-					dbPowerJ.setDouble(DPowerJ.STM_ADD_INSERT, 5, dValue1);
-					dbPowerJ.setDouble(DPowerJ.STM_ADD_INSERT, 6, dValue2);
-					dbPowerJ.setDouble(DPowerJ.STM_ADD_INSERT, 7, dValue3);
-					dbPowerJ.setDouble(DPowerJ.STM_ADD_INSERT, 8, dValue4);
-					dbPowerJ.setInt(DPowerJ.STM_ADD_INSERT, 9, 0);
-					if (dbPowerJ.execute(DPowerJ.STM_ADD_INSERT) > 0) {
+					dbPowerJ.setLong(pjStms.get(DPowerJ.STM_ADD_INSERT), 1, thisCase.caseID);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_INSERT), 2, thisCase.finalID);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_INSERT), 3, codeID);
+					dbPowerJ.setDate(pjStms.get(DPowerJ.STM_ADD_INSERT), 4, thisCase.finaled.getTimeInMillis());
+					dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 5, dValue1);
+					dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 6, dValue2);
+					dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 7, dValue3);
+					dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 8, dValue4);
+					dbPowerJ.setInt(pjStms.get(DPowerJ.STM_ADD_INSERT), 9, 0);
+					if (dbPowerJ.execute(pjStms.get(DPowerJ.STM_ADD_INSERT)) > 0) {
 						noCases++;
 					}
 				}
@@ -451,8 +459,8 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbAP.closeRst(rstCases);
-			dbPowerJ.closeRst(rstOrders);
+			dbAP.close(rstCases);
+			dbPowerJ.close(rstOrders);
 		}
 	}
 
@@ -462,9 +470,9 @@ class LFinals {
 		long startTime = System.currentTimeMillis();
 		ResultSet rst = null;
 		try {
-			dbAP.setTime(DPowerpath.STM_CASES_FINAL, 1, lastUpdate);
-			dbAP.setTime(DPowerpath.STM_CASES_FINAL, 2, maxDate);
-			rst = dbAP.getResultSet(DPowerpath.STM_CASES_FINAL);
+			dbAP.setTime(apStms.get(DPowerpath.STM_CASES_FINAL), 1, lastUpdate);
+			dbAP.setTime(apStms.get(DPowerpath.STM_CASES_FINAL), 2, maxDate);
+			rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASES_FINAL));
 			while (rst.next()) {
 				caseID = rst.getLong("CaseID");
 				if (accessions.doWorkload(rst.getShort("acc_type_id"))
@@ -497,7 +505,7 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbAP.closeRst(rst);
+			dbAP.close(rst);
 		}
 	}
 
@@ -517,9 +525,9 @@ class LFinals {
 		ResultSet rstCases = null;
 		try {
 			thisCase = new OCaseFinal();
-			dbAP.setTime(DPowerpath.STM_CORRELATIONS, 1, lastUpdate);
-			dbAP.setTime(DPowerpath.STM_CORRELATIONS, 2, maxDate);
-			rstCases = dbAP.getResultSet(DPowerpath.STM_CORRELATIONS);
+			dbAP.setTime(apStms.get(DPowerpath.STM_CORRELATIONS), 1, lastUpdate);
+			dbAP.setTime(apStms.get(DPowerpath.STM_CORRELATIONS), 2, maxDate);
+			rstCases = dbAP.getResultSet(apStms.get(DPowerpath.STM_CORRELATIONS));
 			while (rstCases.next()) {
 				if (thisCase.caseID != rstCases.getLong("acc_id")) {
 					thisCase = new OCaseFinal();
@@ -535,16 +543,16 @@ class LFinals {
 				if (isDuplicate(codeID))
 					continue;
 				pj.log(LConstants.ERROR_NONE, className, "Coding Correlation on case " + thisCase.caseNo);
-				dbPowerJ.setLong(DPowerJ.STM_ADD_INSERT, 1, thisCase.caseID);
-				dbPowerJ.setShort(DPowerJ.STM_ADD_INSERT, 2, thisCase.finalID);
-				dbPowerJ.setShort(DPowerJ.STM_ADD_INSERT, 3, codeID);
-				dbPowerJ.setDate(DPowerJ.STM_ADD_INSERT, 4, thisCase.finaled.getTimeInMillis());
-				dbPowerJ.setDouble(DPowerJ.STM_ADD_INSERT, 5, dValue1);
-				dbPowerJ.setDouble(DPowerJ.STM_ADD_INSERT, 6, dValue2);
-				dbPowerJ.setDouble(DPowerJ.STM_ADD_INSERT, 7, dValue3);
-				dbPowerJ.setDouble(DPowerJ.STM_ADD_INSERT, 8, dValue4);
-				dbPowerJ.setInt(DPowerJ.STM_ADD_INSERT, 9, 0);
-				if (dbPowerJ.execute(DPowerJ.STM_ADD_INSERT) > 0) {
+				dbPowerJ.setLong(pjStms.get(DPowerJ.STM_ADD_INSERT), 1, thisCase.caseID);
+				dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_INSERT), 2, thisCase.finalID);
+				dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_INSERT), 3, codeID);
+				dbPowerJ.setDate(pjStms.get(DPowerJ.STM_ADD_INSERT), 4, thisCase.finaled.getTimeInMillis());
+				dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 5, dValue1);
+				dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 6, dValue2);
+				dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 7, dValue3);
+				dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 8, dValue4);
+				dbPowerJ.setInt(pjStms.get(DPowerJ.STM_ADD_INSERT), 9, 0);
+				if (dbPowerJ.execute(pjStms.get(DPowerJ.STM_ADD_INSERT)) > 0) {
 					noCases++;
 				}
 				if (pj.errorID != LConstants.ERROR_NONE || pj.abort()) {
@@ -568,7 +576,7 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbAP.closeRst(rstCases);
+			dbAP.close(rstCases);
 		}
 	}
 
@@ -578,7 +586,7 @@ class LFinals {
 		long startTime = System.currentTimeMillis();
 		ResultSet rst = null;
 		try {
-			rst = dbPowerJ.getResultSet(DPowerJ.STM_ERR_SL_FXD);
+			rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ERR_SL_FXD));
 			while (rst.next()) {
 				caseID = rst.getLong("CAID");
 				pj.log(LConstants.ERROR_NONE, className, "Re-coding Error case " + caseID);
@@ -609,13 +617,13 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbPowerJ.closeRst(rst);
+			dbPowerJ.close(rst);
 		}
 	}
 
 	private void getCase(String caseNo) {
-		dbAP.setString(DPowerpath.STM_CASE_NUMBER, 1, caseNo);
-		long caseID = dbAP.getLong(DPowerpath.STM_CASE_NUMBER);
+		dbAP.setString(apStms.get(DPowerpath.STM_CASE_NUMBER), 1, caseNo);
+		long caseID = dbAP.getLong(apStms.get(DPowerpath.STM_CASE_NUMBER));
 		if (caseID > 0) {
 			if (codeCase(caseID)) {
 				if (pj.errorID == LConstants.ERROR_NONE) {
@@ -629,8 +637,8 @@ class LFinals {
 		String grossDescr = "";
 		ResultSet rst = null;
 		try {
-			dbAP.setLong(DPowerpath.STM_CASE_GROSS, 1, thisCase.caseID);
-			rst = dbAP.getResultSet(DPowerpath.STM_CASE_GROSS);
+			dbAP.setLong(apStms.get(DPowerpath.STM_CASE_GROSS), 1, thisCase.caseID);
+			rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_GROSS));
 			while (rst.next()) {
 				// There are 2 fields, one is null
 				if (rst.getString("finding") != null) {
@@ -642,8 +650,8 @@ class LFinals {
 			rst.close();
 			if (grossDescr.length() == 0) {
 				// Some cases have gross combined with other fields
-				dbAP.setLong(DPowerpath.STM_CASE_DIAGNOS, 1, thisCase.caseID);
-				rst = dbAP.getResultSet(DPowerpath.STM_CASE_DIAGNOS);
+				dbAP.setLong(apStms.get(DPowerpath.STM_CASE_DIAGNOS), 1, thisCase.caseID);
+				rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_DIAGNOS));
 				while (rst.next()) {
 					// There are 2 fields, one is null
 					if (rst.getString("finding_text") != null) {
@@ -691,7 +699,7 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbAP.closeRst(rst);
+			dbAP.close(rst);
 		}
 	}
 
@@ -700,8 +708,8 @@ class LFinals {
 		short noBlocks = 0;
 		ResultSet rst = null;
 		try {
-			dbAP.setLong(DPowerpath.STM_CASE_EMBEDED, 1, thisCase.caseID);
-			rst = dbAP.getResultSet(DPowerpath.STM_CASE_EMBEDED);
+			dbAP.setLong(apStms.get(DPowerpath.STM_CASE_EMBEDED), 1, thisCase.caseID);
+			rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_EMBEDED));
 			while (rst.next()) {
 				noBlocks++;
 				if (noBlocks >= thisCase.noBlocks) {
@@ -713,7 +721,7 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbAP.closeRst(rst);
+			dbAP.close(rst);
 		}
 	}
 
@@ -721,8 +729,8 @@ class LFinals {
 		String descr = "";
 		ResultSet rst = null;
 		try {
-			dbAP.setLong(DPowerpath.STM_CASE_PROCESS, 1, thisCase.caseID);
-			rst = dbAP.getResultSet(DPowerpath.STM_CASE_PROCESS);
+			dbAP.setLong(apStms.get(DPowerpath.STM_CASE_PROCESS), 1, thisCase.caseID);
+			rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_PROCESS));
 			while (rst.next()) {
 				if (rst.getString("description") != null) {
 					if (rst.getTimestamp("completed_date") != null) {
@@ -738,7 +746,7 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbAP.closeRst(rst);
+			dbAP.close(rst);
 		}
 	}
 
@@ -746,7 +754,7 @@ class LFinals {
 		// Earliest date is 1/1/2011 (1293858000001)
 		long minWorkloadDate = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
 		// Add 0.01 second to avoid duplicated 1st case
-		lastUpdate = dbPowerJ.getTime(DPowerJ.STM_CSE_SL_LST) + 1;
+		lastUpdate = dbPowerJ.getTime(pjStms.get(DPowerJ.STM_CSE_SL_LST)) + 1;
 		if (lastUpdate < minWorkloadDate) {
 			lastUpdate = minWorkloadDate;
 		}
@@ -770,8 +778,8 @@ class LFinals {
 		short noBlocks = 0;
 		ResultSet rst = null;
 		try {
-			dbAP.setLong(DPowerpath.STM_CASE_MICROTO, 1, thisCase.caseID);
-			rst = dbAP.getResultSet(DPowerpath.STM_CASE_MICROTO);
+			dbAP.setLong(apStms.get(DPowerpath.STM_CASE_MICROTO), 1, thisCase.caseID);
+			rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_MICROTO));
 			while (rst.next()) {
 				noBlocks++;
 				if (noBlocks >= thisCase.noBlocks) {
@@ -783,14 +791,14 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbAP.closeRst(rst);
+			dbAP.close(rst);
 		}
 	}
 
 	/** Update Number of blocks for a specimen. */
 	private short getNoBlocks(long specID) {
-		dbAP.setLong(DPowerpath.STM_CASE_BLOCKS, 1, specID);
-		return dbAP.getShort(DPowerpath.STM_CASE_BLOCKS);
+		dbAP.setLong(apStms.get(DPowerpath.STM_CASE_BLOCKS), 1, specID);
+		return dbAP.getShort(apStms.get(DPowerpath.STM_CASE_BLOCKS));
 	}
 
 	private short getNoFragments(String gross) {
@@ -854,9 +862,9 @@ class LFinals {
 		short qty = 0, orderID = 0;
 		ResultSet rst = null;
 		try {
-			dbAP.setLong(DPowerpath.STM_SPEC_ORDERS, 1, thisSpecimen.specID);
-			dbAP.setTime(DPowerpath.STM_SPEC_ORDERS, 2, thisCase.finaled.getTimeInMillis());
-			rst = dbAP.getResultSet(DPowerpath.STM_SPEC_ORDERS);
+			dbAP.setLong(apStms.get(DPowerpath.STM_SPEC_ORDERS), 1, thisSpecimen.specID);
+			dbAP.setTime(apStms.get(DPowerpath.STM_SPEC_ORDERS), 2, thisCase.finaled.getTimeInMillis());
+			rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_SPEC_ORDERS));
 			while (rst.next()) {
 				orderID = rst.getShort("procedure_id");
 				if (masterOrders.matchOrder(orderID)) {
@@ -946,15 +954,15 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbAP.closeRst(rst);
+			dbAP.close(rst);
 		}
 	}
 
 	private void getRouted() {
 		ResultSet rst = null;
 		try {
-			dbAP.setLong(DPowerpath.STM_CASE_ROUTING, 1, thisCase.caseID);
-			rst = dbAP.getResultSet(DPowerpath.STM_CASE_ROUTING);
+			dbAP.setLong(apStms.get(DPowerpath.STM_CASE_ROUTING), 1, thisCase.caseID);
+			rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_ROUTING));
 			while (rst.next()) {
 				thisCase.routed.setTimeInMillis(rst.getTimestamp("event_date").getTime());
 				thisCase.routeID = rst.getShort("personnel_id");
@@ -963,15 +971,15 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbAP.closeRst(rst);
+			dbAP.close(rst);
 		}
 	}
 
 	private void getScanned() {
 		ResultSet rst = null;
 		try {
-			dbAP.setLong(DPowerpath.STM_CASE_SCANNED, 1, thisCase.caseID);
-			rst = dbAP.getResultSet(DPowerpath.STM_CASE_SCANNED);
+			dbAP.setLong(apStms.get(DPowerpath.STM_CASE_SCANNED), 1, thisCase.caseID);
+			rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_SCANNED));
 			while (rst.next()) {
 				thisCase.scanned.setTimeInMillis(rst.getTimestamp("event_date").getTime());
 				break;
@@ -979,7 +987,7 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbAP.closeRst(rst);
+			dbAP.close(rst);
 		}
 	}
 
@@ -987,8 +995,8 @@ class LFinals {
 		short noBlocks = 0;
 		ResultSet rst = null;
 		try {
-			dbAP.setLong(DPowerpath.STM_CASE_SPCMNS, 1, thisCase.caseID);
-			rst = dbAP.getResultSet(DPowerpath.STM_CASE_SPCMNS);
+			dbAP.setLong(apStms.get(DPowerpath.STM_CASE_SPCMNS), 1, thisCase.caseID);
+			rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_SPCMNS));
 			while (rst.next()) {
 				if (masterSpecimens.matchSpecimens(rst.getShort("tmplt_profile_id"))) {
 					thisSpecimen = new OSpecFinal();
@@ -1061,7 +1069,7 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbAP.closeRst(rst);
+			dbAP.close(rst);
 		}
 	}
 
@@ -1069,8 +1077,8 @@ class LFinals {
 		boolean exists = false;
 		ResultSet rst = null;
 		try {
-			dbPowerJ.setLong(DPowerJ.STM_ADD_SL_CID, 1, thisCase.caseID);
-			rst = dbPowerJ.getResultSet(DPowerJ.STM_ADD_SL_CID);
+			dbPowerJ.setLong(apStms.get(DPowerJ.STM_ADD_SL_CID), 1, thisCase.caseID);
+			rst = dbPowerJ.getResultSet(apStms.get(DPowerJ.STM_ADD_SL_CID));
 			while (rst.next()) {
 				if (thisCase.finalID == rst.getShort("PRID")) {
 					if (codeID == rst.getShort("ADCD")) {
@@ -1087,7 +1095,7 @@ class LFinals {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
-			dbPowerJ.closeRst(rst);
+			dbPowerJ.close(rst);
 		}
 		return exists;
 	}
@@ -1171,42 +1179,42 @@ class LFinals {
 				thisCase.finalTAT = Short.MAX_VALUE;
 			}
 			byte index = (isNew ? DPowerJ.STM_CSE_INSERT : DPowerJ.STM_CSE_UPDATE);
-			dbPowerJ.setShort(index, 1, thisCase.facID);
-			dbPowerJ.setShort(index, 2, thisCase.subID);
-			dbPowerJ.setShort(index, 3, thisCase.mainSpec);
-			dbPowerJ.setShort(index, 4, thisCase.grossID);
-			dbPowerJ.setShort(index, 5, thisCase.embedID);
-			dbPowerJ.setShort(index, 6, thisCase.microID);
-			dbPowerJ.setShort(index, 7, thisCase.routeID);
-			dbPowerJ.setShort(index, 8, thisCase.finalID);
-			dbPowerJ.setInt(index, 9, thisCase.grossTAT);
-			dbPowerJ.setInt(index, 10, thisCase.embedTAT);
-			dbPowerJ.setInt(index, 11, thisCase.microTAT);
-			dbPowerJ.setInt(index, 12, thisCase.routeTAT);
-			dbPowerJ.setInt(index, 13, thisCase.finalTAT);
-			dbPowerJ.setShort(index, 14, thisCase.noSpec);
-			dbPowerJ.setShort(index, 15, thisCase.noBlocks);
-			dbPowerJ.setShort(index, 16, thisCase.noSlides);
-			dbPowerJ.setShort(index, 17, thisCase.noSynop);
-			dbPowerJ.setShort(index, 18, thisCase.noFSSpec);
-			dbPowerJ.setShort(index, 19, thisCase.noHE);
-			dbPowerJ.setShort(index, 20, thisCase.noSS);
-			dbPowerJ.setShort(index, 21, thisCase.noIHC);
-			dbPowerJ.setShort(index, 22, thisCase.noMol);
-			dbPowerJ.setInt(index, 23, thisCase.value5);
-			dbPowerJ.setTime(index, 24, thisCase.accessed.getTimeInMillis());
-			dbPowerJ.setTime(index, 25, thisCase.grossed.getTimeInMillis());
-			dbPowerJ.setTime(index, 26, thisCase.embeded.getTimeInMillis());
-			dbPowerJ.setTime(index, 27, thisCase.microed.getTimeInMillis());
-			dbPowerJ.setTime(index, 28, thisCase.routed.getTimeInMillis());
-			dbPowerJ.setTime(index, 29, thisCase.finaled.getTimeInMillis());
-			dbPowerJ.setDouble(index, 30, coder1.getValue());
-			dbPowerJ.setDouble(index, 31, coder2.getValue());
-			dbPowerJ.setDouble(index, 32, coder3.getValue());
-			dbPowerJ.setDouble(index, 33, coder4.getValue());
-			dbPowerJ.setString(index, 34, thisCase.caseNo);
-			dbPowerJ.setLong(index, 35, thisCase.caseID);
-			if (dbPowerJ.execute(index) > 0) {
+			dbPowerJ.setShort(pjStms.get(index), 1, thisCase.facID);
+			dbPowerJ.setShort(pjStms.get(index), 2, thisCase.subID);
+			dbPowerJ.setShort(pjStms.get(index), 3, thisCase.mainSpec);
+			dbPowerJ.setShort(pjStms.get(index), 4, thisCase.grossID);
+			dbPowerJ.setShort(pjStms.get(index), 5, thisCase.embedID);
+			dbPowerJ.setShort(pjStms.get(index), 6, thisCase.microID);
+			dbPowerJ.setShort(pjStms.get(index), 7, thisCase.routeID);
+			dbPowerJ.setShort(pjStms.get(index), 8, thisCase.finalID);
+			dbPowerJ.setInt(pjStms.get(index), 9, thisCase.grossTAT);
+			dbPowerJ.setInt(pjStms.get(index), 10, thisCase.embedTAT);
+			dbPowerJ.setInt(pjStms.get(index), 11, thisCase.microTAT);
+			dbPowerJ.setInt(pjStms.get(index), 12, thisCase.routeTAT);
+			dbPowerJ.setInt(pjStms.get(index), 13, thisCase.finalTAT);
+			dbPowerJ.setShort(pjStms.get(index), 14, thisCase.noSpec);
+			dbPowerJ.setShort(pjStms.get(index), 15, thisCase.noBlocks);
+			dbPowerJ.setShort(pjStms.get(index), 16, thisCase.noSlides);
+			dbPowerJ.setShort(pjStms.get(index), 17, thisCase.noSynop);
+			dbPowerJ.setShort(pjStms.get(index), 18, thisCase.noFSSpec);
+			dbPowerJ.setShort(pjStms.get(index), 19, thisCase.noHE);
+			dbPowerJ.setShort(pjStms.get(index), 20, thisCase.noSS);
+			dbPowerJ.setShort(pjStms.get(index), 21, thisCase.noIHC);
+			dbPowerJ.setShort(pjStms.get(index), 22, thisCase.noMol);
+			dbPowerJ.setInt(pjStms.get(index), 23, thisCase.value5);
+			dbPowerJ.setTime(pjStms.get(index), 24, thisCase.accessed.getTimeInMillis());
+			dbPowerJ.setTime(pjStms.get(index), 25, thisCase.grossed.getTimeInMillis());
+			dbPowerJ.setTime(pjStms.get(index), 26, thisCase.embeded.getTimeInMillis());
+			dbPowerJ.setTime(pjStms.get(index), 27, thisCase.microed.getTimeInMillis());
+			dbPowerJ.setTime(pjStms.get(index), 28, thisCase.routed.getTimeInMillis());
+			dbPowerJ.setTime(pjStms.get(index), 29, thisCase.finaled.getTimeInMillis());
+			dbPowerJ.setDouble(pjStms.get(index), 30, coder1.getValue());
+			dbPowerJ.setDouble(pjStms.get(index), 31, coder2.getValue());
+			dbPowerJ.setDouble(pjStms.get(index), 32, coder3.getValue());
+			dbPowerJ.setDouble(pjStms.get(index), 33, coder4.getValue());
+			dbPowerJ.setString(pjStms.get(index), 34, thisCase.caseNo);
+			dbPowerJ.setLong(pjStms.get(index), 35, thisCase.caseID);
+			if (dbPowerJ.execute(pjStms.get(index)) > 0) {
 				saveSpecimens(isNew);
 				saveComment(isNew);
 			}
@@ -1233,11 +1241,11 @@ class LFinals {
 		if (comment.length() > 2048) {
 			comment = comment.substring(0, 2048);
 		}
-		dbPowerJ.setLong(DPowerJ.STM_ERR_INSERT, 1, thisCase.caseID);
-		dbPowerJ.setByte(DPowerJ.STM_ERR_INSERT, 2, errorID);
-		dbPowerJ.setString(DPowerJ.STM_ERR_INSERT, 3, thisCase.caseNo);
-		dbPowerJ.setString(DPowerJ.STM_ERR_INSERT, 4, comment);
-		dbPowerJ.execute(DPowerJ.STM_ERR_INSERT);
+		dbPowerJ.setLong(pjStms.get(DPowerJ.STM_ERR_INSERT), 1, thisCase.caseID);
+		dbPowerJ.setByte(pjStms.get(DPowerJ.STM_ERR_INSERT), 2, errorID);
+		dbPowerJ.setString(pjStms.get(DPowerJ.STM_ERR_INSERT), 3, thisCase.caseNo);
+		dbPowerJ.setString(pjStms.get(DPowerJ.STM_ERR_INSERT), 4, comment);
+		dbPowerJ.execute(pjStms.get(DPowerJ.STM_ERR_INSERT));
 	}
 
 	private void saveComment(boolean isNew) {
@@ -1251,7 +1259,7 @@ class LFinals {
 		if (comment.length() > 2048) {
 			comment = comment.substring(0, 2048);
 		}
-		dbPowerJ.setString(index, 1, comment);
+		dbPowerJ.setString(pjStms.get(index), 1, comment);
 		comment = "";
 		if (coder2.hasComment()) {
 			comment = coder2.getComment();
@@ -1259,7 +1267,7 @@ class LFinals {
 				comment = comment.substring(0, 2048);
 			}
 		}
-		dbPowerJ.setString(index, 2, comment);
+		dbPowerJ.setString(pjStms.get(index), 2, comment);
 		comment = "";
 		if (coder3.hasComment()) {
 			comment = coder3.getComment();
@@ -1267,7 +1275,7 @@ class LFinals {
 				comment = comment.substring(0, 2048);
 			}
 		}
-		dbPowerJ.setString(index, 3, comment);
+		dbPowerJ.setString(pjStms.get(index), 3, comment);
 		comment = "";
 		if (coder4.hasComment()) {
 			comment = coder4.getComment();
@@ -1275,9 +1283,9 @@ class LFinals {
 				comment = comment.substring(0, 2048);
 			}
 		}
-		dbPowerJ.setString(index, 4, comment);
-		dbPowerJ.setLong(index, 5, thisCase.caseID);
-		dbPowerJ.execute(index);
+		dbPowerJ.setString(pjStms.get(index), 4, comment);
+		dbPowerJ.setLong(pjStms.get(index), 5, thisCase.caseID);
+		dbPowerJ.execute(pjStms.get(index));
 	}
 
 	private void saveOrders(boolean isNew, int i) {
@@ -1289,29 +1297,29 @@ class LFinals {
 				thisOrder.value2 = coder2.getOrder(i, thisOrder.grpID);
 				thisOrder.value3 = coder3.getOrder(i, thisOrder.grpID);
 				thisOrder.value4 = coder4.getOrder(i, thisOrder.grpID);
-				dbPowerJ.setShort(index, 1, thisOrder.qty);
-				dbPowerJ.setDouble(index, 2, thisOrder.value1);
-				dbPowerJ.setDouble(index, 3, thisOrder.value2);
-				dbPowerJ.setDouble(index, 4, thisOrder.value3);
-				dbPowerJ.setDouble(index, 5, thisOrder.value4);
-				dbPowerJ.setShort(index, 6, thisOrder.grpID);
-				dbPowerJ.setLong(index, 7, thisSpecimen.specID);
-				dbPowerJ.execute(index);
+				dbPowerJ.setShort(pjStms.get(index), 1, thisOrder.qty);
+				dbPowerJ.setDouble(pjStms.get(index), 2, thisOrder.value1);
+				dbPowerJ.setDouble(pjStms.get(index), 3, thisOrder.value2);
+				dbPowerJ.setDouble(pjStms.get(index), 4, thisOrder.value3);
+				dbPowerJ.setDouble(pjStms.get(index), 5, thisOrder.value4);
+				dbPowerJ.setShort(pjStms.get(index), 6, thisOrder.grpID);
+				dbPowerJ.setLong(pjStms.get(index), 7, thisSpecimen.specID);
+				dbPowerJ.execute(pjStms.get(index));
 			}
 		}
 		// Save Frozen sections
 		if (thisSpecimen.noFSBlks > 0 || thisSpecimen.noFSSlds > 0) {
 			index = (isNew ? DPowerJ.STM_FRZ_INSERT : DPowerJ.STM_FRZ_UPDATE);
-			dbPowerJ.setShort(index, 1, thisSpecimen.noFSBlks);
-			dbPowerJ.setShort(index, 2, thisSpecimen.noFSSlds);
-			dbPowerJ.setInt(index, 3, 0);
-			dbPowerJ.setInt(index, 4, value5fs);
-			dbPowerJ.setDouble(index, 5, coder1.getFrozen(i));
-			dbPowerJ.setDouble(index, 6, coder2.getFrozen(i));
-			dbPowerJ.setDouble(index, 7, coder3.getFrozen(i));
-			dbPowerJ.setDouble(index, 8, coder4.getFrozen(i));
-			dbPowerJ.setLong(index, 9, thisSpecimen.specID);
-			dbPowerJ.execute(index);
+			dbPowerJ.setShort(pjStms.get(index), 1, thisSpecimen.noFSBlks);
+			dbPowerJ.setShort(pjStms.get(index), 2, thisSpecimen.noFSSlds);
+			dbPowerJ.setInt(pjStms.get(index), 3, 0);
+			dbPowerJ.setInt(pjStms.get(index), 4, value5fs);
+			dbPowerJ.setDouble(pjStms.get(index), 5, coder1.getFrozen(i));
+			dbPowerJ.setDouble(pjStms.get(index), 6, coder2.getFrozen(i));
+			dbPowerJ.setDouble(pjStms.get(index), 7, coder3.getFrozen(i));
+			dbPowerJ.setDouble(pjStms.get(index), 8, coder4.getFrozen(i));
+			dbPowerJ.setLong(pjStms.get(index), 9, thisSpecimen.specID);
+			dbPowerJ.execute(pjStms.get(index));
 		}
 	}
 
@@ -1322,23 +1330,23 @@ class LFinals {
 			if (thisSpecimen.descr.length() > 64) {
 				thisSpecimen.descr = thisSpecimen.descr.substring(0, 64);
 			}
-			dbPowerJ.setLong(index, 1, thisCase.caseID);
-			dbPowerJ.setShort(index, 2, thisSpecimen.spmID);
-			dbPowerJ.setShort(index, 3, thisSpecimen.noBlocks);
-			dbPowerJ.setShort(index, 4, thisSpecimen.noSlides);
-			dbPowerJ.setShort(index, 5, thisSpecimen.noFrags);
-			dbPowerJ.setShort(index, 6, thisSpecimen.noHE);
-			dbPowerJ.setShort(index, 7, thisSpecimen.noSS);
-			dbPowerJ.setShort(index, 8, thisSpecimen.noIHC);
-			dbPowerJ.setShort(index, 9, thisSpecimen.noMOL);
-			dbPowerJ.setInt(index, 10, thisSpecimen.value5);
-			dbPowerJ.setDouble(index, 11, coder1.getValue(i));
-			dbPowerJ.setDouble(index, 12, coder2.getValue(i));
-			dbPowerJ.setDouble(index, 13, coder3.getValue(i));
-			dbPowerJ.setDouble(index, 14, coder4.getValue(i));
-			dbPowerJ.setString(index, 15, thisSpecimen.descr);
-			dbPowerJ.setLong(index, 16, thisSpecimen.specID);
-			if (dbPowerJ.execute(index) > 0) {
+			dbPowerJ.setLong(pjStms.get(index), 1, thisCase.caseID);
+			dbPowerJ.setShort(pjStms.get(index), 2, thisSpecimen.spmID);
+			dbPowerJ.setShort(pjStms.get(index), 3, thisSpecimen.noBlocks);
+			dbPowerJ.setShort(pjStms.get(index), 4, thisSpecimen.noSlides);
+			dbPowerJ.setShort(pjStms.get(index), 5, thisSpecimen.noFrags);
+			dbPowerJ.setShort(pjStms.get(index), 6, thisSpecimen.noHE);
+			dbPowerJ.setShort(pjStms.get(index), 7, thisSpecimen.noSS);
+			dbPowerJ.setShort(pjStms.get(index), 8, thisSpecimen.noIHC);
+			dbPowerJ.setShort(pjStms.get(index), 9, thisSpecimen.noMOL);
+			dbPowerJ.setInt(pjStms.get(index), 10, thisSpecimen.value5);
+			dbPowerJ.setDouble(pjStms.get(index), 11, coder1.getValue(i));
+			dbPowerJ.setDouble(pjStms.get(index), 12, coder2.getValue(i));
+			dbPowerJ.setDouble(pjStms.get(index), 13, coder3.getValue(i));
+			dbPowerJ.setDouble(pjStms.get(index), 14, coder4.getValue(i));
+			dbPowerJ.setString(pjStms.get(index), 15, thisSpecimen.descr);
+			dbPowerJ.setLong(pjStms.get(index), 16, thisSpecimen.specID);
+			if (dbPowerJ.execute(pjStms.get(index)) > 0) {
 				saveOrders(isNew, i);
 			}
 		}

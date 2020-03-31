@@ -1,4 +1,5 @@
 package ca.powerj;
+
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -8,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -18,8 +20,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 class NSpecialty extends NBase {
-	private byte newID    = 0;
-	private int  rowIndex = 0;
+	private byte newID = 0;
+	private int rowIndex = 0;
 	private OSpecialty specialty = new OSpecialty();
 	private ArrayList<OSpecialty> list = new ArrayList<OSpecialty>();
 	private ModelSpecialty model;
@@ -30,12 +32,13 @@ class NSpecialty extends NBase {
 	NSpecialty(AClient parent) {
 		super(parent);
 		setName("Specialties");
-		parent.dbPowerJ.prepareStpSpecialties();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_SPECIALTY);
 		getData();
 		createPanel();
 		programmaticChange = false;
 	}
 
+	@Override
 	boolean close() {
 		if (super.close()) {
 			list.clear();
@@ -46,15 +49,19 @@ class NSpecialty extends NBase {
 	private void createPanel() {
 		model = new ModelSpecialty();
 		tbl = new ITable(pj, model);
-		//  This class handles the ancestorAdded event and invokes the requestFocusInWindow() method
+		// This class handles the ancestorAdded event and invokes the
+		// requestFocusInWindow() method
 		tbl.addAncestorListener(new IFocusListener());
 		tbl.addFocusListener(this);
 		tbl.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			@Override
 			public void valueChanged(ListSelectionEvent e) {
-				//Ignore extra messages
-				if (e.getValueIsAdjusting()) return;
+				// Ignore extra messages
+				if (e.getValueIsAdjusting())
+					return;
 				ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-				if (lsm.isSelectionEmpty()) return;
+				if (lsm.isSelectionEmpty())
+					return;
 				int index = lsm.getMinSelectionIndex();
 				if (index > -1) {
 					// else, Selection got filtered away.
@@ -79,6 +86,7 @@ class NSpecialty extends NBase {
 		ckbWorkflow.setFont(LConstants.APP_FONT);
 		ckbWorkflow.addFocusListener(this);
 		ckbWorkflow.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (!programmaticChange) {
 					specialty.workflow = ckbWorkflow.isSelected();
@@ -91,6 +99,7 @@ class NSpecialty extends NBase {
 		ckbWorkload.setFont(LConstants.APP_FONT);
 		ckbWorkload.addFocusListener(this);
 		ckbWorkload.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (!programmaticChange) {
 					specialty.workload = ckbWorkload.isSelected();
@@ -103,6 +112,7 @@ class NSpecialty extends NBase {
 		ckbSpecimen.setFont(LConstants.APP_FONT);
 		ckbSpecimen.addFocusListener(this);
 		ckbSpecimen.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (!programmaticChange) {
 					specialty.specimen = ckbSpecimen.isSelected();
@@ -110,14 +120,13 @@ class NSpecialty extends NBase {
 				}
 			}
 		});
-		IGUI.addComponent(txtName, 0, 0, 4, 1, 1.0, 0,
-				GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(ckbWorkflow, 0, 1, 1, 1, 0.25, 0,
-				GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(ckbWorkload, 1, 1, 1, 1, 0.25, 0,
-				GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
-		IGUI.addComponent(ckbSpecimen, 2, 1, 1, 1, 0.25, 0,
-				GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(txtName, 0, 0, 4, 1, 1.0, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, pnlData);
+		IGUI.addComponent(ckbWorkflow, 0, 1, 1, 1, 0.25, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
+		IGUI.addComponent(ckbWorkload, 1, 1, 1, 1, 0.25, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
+		IGUI.addComponent(ckbSpecimen, 2, 1, 1, 1, 0.25, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST,
+				pnlData);
 		JSplitPane pnlSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		pnlSplit.setTopComponent(scrollTable);
 		pnlSplit.setBottomComponent(pnlData);
@@ -128,7 +137,7 @@ class NSpecialty extends NBase {
 	}
 
 	private void getData() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SPY_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SPY_SELECT));
 		try {
 			while (rst.next()) {
 				specialty = new OSpecialty();
@@ -136,7 +145,7 @@ class NSpecialty extends NBase {
 				specialty.name = rst.getString("SYNM").trim();
 				specialty.workflow = (rst.getString("SYFL").equalsIgnoreCase("Y"));
 				specialty.workload = (rst.getString("SYLD").equalsIgnoreCase("Y"));
-				specialty.specimen =  (rst.getString("SYSP").equalsIgnoreCase("Y"));
+				specialty.specimen = (rst.getString("SYSP").equalsIgnoreCase("Y"));
 				list.add(specialty);
 				if (newID < specialty.spyID) {
 					newID = specialty.spyID;
@@ -151,10 +160,11 @@ class NSpecialty extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
+	@Override
 	void save() {
 		byte index = DPowerJ.STM_SPY_UPDATE;
 		if (specialty.newRow) {
@@ -165,12 +175,12 @@ class NSpecialty extends NBase {
 		if (specialty.name.length() > 16) {
 			specialty.name = specialty.name.substring(0, 16);
 		}
-		pj.dbPowerJ.setString(index, 1, (specialty.workflow ? "Y" : "N"));
-		pj.dbPowerJ.setString(index, 2, (specialty.workload ? "Y" : "N"));
-		pj.dbPowerJ.setString(index, 3, (specialty.specimen ? "Y" : "N"));
-		pj.dbPowerJ.setString(index, 4, specialty.name);
-		pj.dbPowerJ.setByte(index,   5, specialty.spyID);
-		if (pj.dbPowerJ.execute(index) > 0) {
+		pj.dbPowerJ.setString(pjStms.get(index), 1, (specialty.workflow ? "Y" : "N"));
+		pj.dbPowerJ.setString(pjStms.get(index), 2, (specialty.workload ? "Y" : "N"));
+		pj.dbPowerJ.setString(pjStms.get(index), 3, (specialty.specimen ? "Y" : "N"));
+		pj.dbPowerJ.setString(pjStms.get(index), 4, specialty.name);
+		pj.dbPowerJ.setByte(pjStms.get(index), 5, specialty.spyID);
+		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			altered = false;
 			model.fireTableRowsUpdated(rowIndex, rowIndex);
 			if (specialty.newRow) {

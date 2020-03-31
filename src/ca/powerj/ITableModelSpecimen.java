@@ -1,17 +1,18 @@
 package ca.powerj;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 
 class ITableModelSpecimen extends ITableModel {
-	static final byte SPEC_LABEL    = 0;
+	static final byte SPEC_LABEL = 0;
 	static final byte SPEC_COLLECTE = 1;
 	static final byte SPEC_RECEIVED = 2;
-	static final byte SPEC_CODE     = 3;
+	static final byte SPEC_CODE = 3;
 	static final byte SPEC_DESCRIPT = 4;
-	private final String[] columns = {"Label", "Collected", "Received", "Code", "Description"};
+	private final String[] columns = { "Label", "Collected", "Received", "Code", "Description" };
 	private ArrayList<DataSpecimen> specimens = new ArrayList<DataSpecimen>();
 	protected AClient pj;
 
@@ -24,15 +25,15 @@ class ITableModelSpecimen extends ITableModel {
 		specimens.clear();
 	}
 
-	void getData(long caseID) {
-		pj.dbAP.setLong(DPowerpath.STM_CASE_SPCMNS, 1, caseID);
-		ResultSet rst = pj.dbAP.getResultSet(DPowerpath.STM_CASE_SPCMNS);
+	void getData(long caseID, PreparedStatement pstm) {
+		pj.dbAP.setLong(pstm, 1, caseID);
+		ResultSet rst = pj.dbAP.getResultSet(pstm);
 		try {
 			while (rst.next()) {
-				DataSpecimen thisRow  = new DataSpecimen();
+				DataSpecimen thisRow = new DataSpecimen();
 				thisRow.specID = rst.getLong("id");
-				thisRow.label  = rst.getByte("specimen_label");
-				thisRow.descr  = rst.getString("description");
+				thisRow.label = rst.getByte("specimen_label");
+				thisRow.descr = rst.getString("description");
 				thisRow.master = new OItem(rst.getShort("tmplt_profile_id"), rst.getString("code"));
 				thisRow.received.setTimeInMillis(rst.getTimestamp("recv_date").getTime());
 				if (rst.getTimestamp("collection_date") != null) {
@@ -45,7 +46,7 @@ class ITableModelSpecimen extends ITableModel {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, this.getClass().getName(), e);
 		} finally {
-			pj.dbAP.closeRst(rst);
+			pj.dbAP.close(rst);
 			fireTableDataChanged();
 		}
 	}
@@ -122,11 +123,11 @@ class ITableModelSpecimen extends ITableModel {
 	}
 
 	private class DataSpecimen {
-		byte     label     = 0;
-		long     specID    = 0;
-		String   descr     = "";
-		OItem master    = new OItem();
+		byte label = 0;
+		long specID = 0;
+		String descr = "";
+		OItem master = new OItem();
 		Calendar collected = Calendar.getInstance();
-		Calendar received  = Calendar.getInstance();
+		Calendar received = Calendar.getInstance();
 	}
 }

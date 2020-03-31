@@ -1,4 +1,5 @@
 package ca.powerj;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -8,8 +9,8 @@ class MFacilities {
 	private OFacility facility = new OFacility();
 	private HashMap<Short, OFacility> facilities = new HashMap<Short, OFacility>();
 
-	MFacilities(LBase parent) {
-		readDB(parent);
+	MFacilities(LBase parent, PreparedStatement pstm) {
+		readDB(parent, pstm);
 	}
 
 	void close() {
@@ -42,8 +43,8 @@ class MFacilities {
 		return false;
 	}
 
-	private void readDB(LBase pj) {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_FAC_SELECT);
+	private void readDB(LBase pj, PreparedStatement pstm) {
+		ResultSet rst = pj.dbPowerJ.getResultSet(pstm);
 		try {
 			while (rst.next()) {
 				facility = new OFacility();
@@ -54,7 +55,8 @@ class MFacilities {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, "Facilities Map", e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
+			pj.dbPowerJ.close(pstm);
 		}
 	}
 }

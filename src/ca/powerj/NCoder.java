@@ -69,19 +69,22 @@ class NCoder extends NBase {
 
 	NCoder(AClient parent, byte coderID) {
 		super(parent);
-		parent.dbPowerJ.prepareStpCoder(coderID);
 		switch (coderID) {
 		case CODER1:
 			setName(pj.setup.getString(LSetup.VAR_CODER1_NAME));
+			pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_CODER1);
 			break;
 		case CODER2:
 			setName(pj.setup.getString(LSetup.VAR_CODER2_NAME));
+			pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_CODER2);
 			break;
 		case CODER3:
 			setName(pj.setup.getString(LSetup.VAR_CODER3_NAME));
+			pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_CODER3);
 			break;
 		default:
 			setName(pj.setup.getString(LSetup.VAR_CODER4_NAME));
+			pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_CODER4);
 		}
 		createPanel();
 		getData();
@@ -225,7 +228,7 @@ class NCoder extends NBase {
 	}
 
 	private void getData() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_CD1_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CD1_SELECT));
 		try {
 			while (rst.next()) {
 				coder = new OWorkcode();
@@ -251,7 +254,7 @@ class NCoder extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 			model.fireTableDataChanged();
 		}
 	}
@@ -259,7 +262,7 @@ class NCoder extends NBase {
 	private Object[] getRules() {
 		OItem dr = new OItem();
 		ArrayList<OItem> list = new ArrayList<OItem>();
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_RUL_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_RUL_SELECT));
 		try {
 			while (rst.next()) {
 				dr = new OItem();
@@ -271,7 +274,7 @@ class NCoder extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, "Rules", e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 		return list.toArray();
 	}
@@ -397,15 +400,15 @@ class NCoder extends NBase {
 		if (coder.descr.length() > 256) {
 			coder.descr = coder.descr.substring(0, 256);
 		}
-		pj.dbPowerJ.setShort(index, 1, coder.ruleID);
-		pj.dbPowerJ.setShort(index, 2, coder.count);
-		pj.dbPowerJ.setDouble(index, 3, coder.valueA);
-		pj.dbPowerJ.setDouble(index, 4, coder.valueB);
-		pj.dbPowerJ.setDouble(index, 5, coder.valueC);
-		pj.dbPowerJ.setString(index, 6, coder.name);
-		pj.dbPowerJ.setString(index, 7, coder.descr);
-		pj.dbPowerJ.setShort(index, 8, coder.codeID);
-		if (pj.dbPowerJ.execute(index) > 0) {
+		pj.dbPowerJ.setShort(pjStms.get(index), 1, coder.ruleID);
+		pj.dbPowerJ.setShort(pjStms.get(index), 2, coder.count);
+		pj.dbPowerJ.setDouble(pjStms.get(index), 3, coder.valueA);
+		pj.dbPowerJ.setDouble(pjStms.get(index), 4, coder.valueB);
+		pj.dbPowerJ.setDouble(pjStms.get(index), 5, coder.valueC);
+		pj.dbPowerJ.setString(pjStms.get(index), 6, coder.name);
+		pj.dbPowerJ.setString(pjStms.get(index), 7, coder.descr);
+		pj.dbPowerJ.setShort(pjStms.get(index), 8, coder.codeID);
+		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			altered = false;
 			model.fireTableRowsUpdated(rowIndex, rowIndex);
 			if (coder.newRow) {

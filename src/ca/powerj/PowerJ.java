@@ -1,13 +1,9 @@
 package ca.powerj;
 
 public class PowerJ {
-	static final boolean IS_CLIENT = true;
-	static final boolean IS_DESKTOP = false;
-	static final boolean IS_SERVER = false;
-	static final boolean IS_SETUP = false;
 
 	public PowerJ(String[] args) {
-		if (IS_CLIENT) {
+		if (LConstants.IS_CLIENT) {
 			javax.swing.SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
@@ -15,7 +11,7 @@ public class PowerJ {
 				}
 			});
 		}
-		if (IS_DESKTOP) {
+		if (LConstants.IS_DESKTOP) {
 			javax.swing.SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
@@ -23,7 +19,7 @@ public class PowerJ {
 				}
 			});
 		}
-		if (IS_SETUP) {
+		if (LConstants.IS_SETUP) {
 			new ASetup(args);
 		}
 	}

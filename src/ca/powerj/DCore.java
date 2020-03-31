@@ -16,15 +16,12 @@ class DCore {
 	String dbName = "Database";
 	Connection connection = null;
 	Statement stm = null;
-	Hashtable<Byte, PreparedStatement> pstms = null;
 
 	DCore(LBase parent) {
 		this.pj = parent;
-		pstms = new Hashtable<Byte, PreparedStatement>();
 	}
 
 	void close() {
-		closeStms(true);
 		try {
 			if (connection != null) {
 				if (!connection.isClosed()) {
@@ -37,7 +34,7 @@ class DCore {
 		}
 	}
 
-	void closeRst(ResultSet rst) {
+	void close(ResultSet rst) {
 		try {
 			if (rst != null) {
 				if (!rst.isClosed())
@@ -47,7 +44,7 @@ class DCore {
 		}
 	}
 
-	void closeStm(Statement stm) {
+	void close(Statement stm) {
 		try {
 			if (stm != null) {
 				if (!stm.isClosed())
@@ -57,24 +54,16 @@ class DCore {
 		}
 	}
 
-	void closeStm(byte id) {
+	void close(PreparedStatement pstm) {
 		try {
-			if (pstms.get(id) != null) {
-				if (!pstms.get(id).isClosed())
-					pstms.get(id).close();
-				pstms.remove(id);
-			}
+			pstm.close();
 		} catch (Exception ignore) {
 		}
 	}
 
-	/** Closes the statements array. */
-	void closeStms(boolean closeAll) {
-		int after = (closeAll ? 0 : 5);
+	void close(Hashtable<Byte, PreparedStatement> pstms) {
 		for (Entry<Byte, PreparedStatement> entry : pstms.entrySet()) {
-			if (entry.getKey() > after) {
-				closeStm(entry.getValue());
-			}
+			close(entry.getValue());
 		}
 	}
 
@@ -93,10 +82,10 @@ class DCore {
 		return isConnected;
 	}
 
-	int execute(byte id) {
+	int execute(PreparedStatement pstm) {
 		noRows = 0;
 		try {
-			noRows = pstms.get(id).executeUpdate();
+			noRows = pstm.executeUpdate();
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		}
@@ -113,43 +102,43 @@ class DCore {
 		return noRows;
 	}
 
-	byte getByte(byte id) {
+	byte getByte(PreparedStatement pstm) {
 		byte b = 0;
 		ResultSet rst = null;
 		try {
-			rst = pstms.get(id).executeQuery();
+			rst = pstm.executeQuery();
 			while (rst.next()) {
 				b = rst.getByte(1);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		} finally {
-			closeRst(rst);
+			close(rst);
 		}
 		return b;
 	}
 
-	int getInt(byte id) {
+	int getInt(PreparedStatement pstm) {
 		int n = 0;
 		ResultSet rst = null;
 		try {
-			rst = pstms.get(id).executeQuery();
+			rst = pstm.executeQuery();
 			while (rst.next()) {
 				n = rst.getInt(1);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		} finally {
-			closeRst(rst);
+			close(rst);
 		}
 		return n;
 	}
 
-	long getLong(byte id) {
+	long getLong(PreparedStatement pstm) {
 		long l = 0;
 		ResultSet rst = null;
 		try {
-			rst = pstms.get(id).executeQuery();
+			rst = pstm.executeQuery();
 			while (rst.next()) {
 				if (rst.getTimestamp(1) != null) {
 					l = rst.getTimestamp(1).getTime();
@@ -158,15 +147,15 @@ class DCore {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		} finally {
-			closeRst(rst);
+			close(rst);
 		}
 		return l;
 	}
 
-	ResultSet getResultSet(byte id) {
+	ResultSet getResultSet(PreparedStatement pstm) {
 		ResultSet rst = null;
 		try {
-			rst = pstms.get(id).executeQuery();
+			rst = pstm.executeQuery();
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		}
@@ -183,47 +172,43 @@ class DCore {
 		return rst;
 	}
 
-	short getShort(byte id) {
+	short getShort(PreparedStatement pstm) {
 		short s = 0;
 		ResultSet rst = null;
 		try {
-			rst = pstms.get(id).executeQuery();
+			rst = pstm.executeQuery();
 			while (rst.next()) {
 				s = rst.getShort(1);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		} finally {
-			closeRst(rst);
+			close(rst);
 		}
 		return s;
 	}
 
-	PreparedStatement getStatement(byte id) {
-		return pstms.get(id);
-	}
-
-	String getString(byte id) {
+	String getString(PreparedStatement pstm) {
 		String s = "";
 		ResultSet rst = null;
 		try {
-			rst = getResultSet(id);
+			rst = pstm.executeQuery();
 			while (rst.next()) {
 				s = rst.getString(1);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		} finally {
-			closeRst(rst);
+			close(rst);
 		}
 		return s;
 	}
 
-	long getTime(byte id) {
+	long getTime(PreparedStatement pstm) {
 		long time = 0;
 		ResultSet rst = null;
 		try {
-			rst = getResultSet(id);
+			rst = pstm.executeQuery();
 			while (rst.next()) {
 				if (rst.getTimestamp(1) != null) {
 					time = rst.getTimestamp(1).getTime();
@@ -232,19 +217,19 @@ class DCore {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		} finally {
-			closeRst(rst);
+			close(rst);
 		}
 		return time;
 	}
 
 	CallableStatement prepareCallables(String sql) {
-		CallableStatement call = null;
+		CallableStatement cstm = null;
 		try {
-			call = connection.prepareCall(sql);
+			cstm = connection.prepareCall(sql);
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		}
-		return call;
+		return cstm;
 	}
 
 	PreparedStatement prepareStatement(String sql) {
@@ -257,70 +242,65 @@ class DCore {
 		return pstm;
 	}
 
-	void remove(byte id) {
-		closeStm(pstms.get(id));
-		pstms.remove(id);
-	}
-
-	void setByte(byte id, int param, byte b) {
+	void setByte(PreparedStatement pstm, int param, byte b) {
 		try {
-			pstms.get(id).setByte(param, b);
+			pstm.setByte(param, b);
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		}
 	}
 
-	void setDate(byte id, int param, long time) {
+	void setDate(PreparedStatement pstm, int param, long time) {
 		try {
-			pstms.get(id).setDate(param, new java.sql.Date(time));
+			pstm.setDate(param, new java.sql.Date(time));
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		}
 	}
 
-	void setDouble(byte id, int param, double d) {
+	void setDouble(PreparedStatement pstm, int param, double d) {
 		try {
-			pstms.get(id).setDouble(param, d);
+			pstm.setDouble(param, d);
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		}
 	}
 
-	void setInt(byte id, int param, int i) {
+	void setInt(PreparedStatement pstm, int param, int i) {
 		try {
-			pstms.get(id).setInt(param, i);
+			pstm.setInt(param, i);
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		}
 	}
 
-	void setLong(byte id, int param, long l) {
+	void setLong(PreparedStatement pstm, int param, long l) {
 		try {
-			pstms.get(id).setLong(param, l);
+			pstm.setLong(param, l);
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		}
 	}
 
-	void setShort(byte id, int param, short s) {
+	void setShort(PreparedStatement pstm, int param, short s) {
 		try {
-			pstms.get(id).setShort(param, s);
+			pstm.setShort(param, s);
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		}
 	}
 
-	void setString(byte id, int param, String s) {
+	void setString(PreparedStatement pstm, int param, String s) {
 		try {
-			pstms.get(id).setString(param, s);
+			pstm.setString(param, s);
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		}
 	}
 
-	void setTime(byte id, int param, long time) {
+	void setTime(PreparedStatement pstm, int param, long time) {
 		try {
-			pstms.get(id).setTimestamp(param, new Timestamp(time));
+			pstm.setTimestamp(param, new Timestamp(time));
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		}

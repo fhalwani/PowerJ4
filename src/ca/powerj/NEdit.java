@@ -2,6 +2,8 @@ package ca.powerj;
 
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
+import java.sql.PreparedStatement;
+import java.util.Hashtable;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -19,6 +21,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 class NEdit extends NBase {
+	private Hashtable<Byte, PreparedStatement> apStms = null;
 	private ITable tblEvents;
 	private ITable tblSpec;
 	private ITableModelEvent modelEvent;
@@ -27,9 +30,9 @@ class NEdit extends NBase {
 	NEdit(AClient parent) {
 		super(parent);
 		setName("Specimen Editor");
-		pj.dbPowerJ.prepareEditor();
+		pjStms = pj.dbPowerJ.prepareStatements(LConstants.ACTION_EDITOR);
 		if (!parent.offLine) {
-			pj.dbAP.prepareEditor();
+			apStms = pj.dbAP.prepareStatements(LConstants.ACTION_EDITOR);
 		}
 		createPanel();
 		programmaticChange = false;
@@ -40,8 +43,8 @@ class NEdit extends NBase {
 		if (super.close()) {
 			modelEvent.close();
 			modelSpec.close();
-			if (pj.dbAP != null) {
-				pj.dbAP.close();
+			if (pj.dbAP != null && apStms != null) {
+				pj.dbAP.close(apStms);
 			}
 		}
 		return !altered;
@@ -77,7 +80,7 @@ class NEdit extends NBase {
 		tblSpec.addFocusListener(this);
 		IComboBox cboMaster = new IComboBox();
 		cboMaster.setName("SpecMaster");
-		cboMaster.setModel(pj.dbPowerJ.getSpecimenMaster(false));
+		cboMaster.setModel(pj.dbPowerJ.getSpecimenMaster(false, pjStms.get(DPowerJ.STM_SPM_SELECT)));
 		TableColumn column = tblSpec.getColumnModel().getColumn(ITableModelSpecimen.SPEC_CODE);
 		column.setCellEditor(new DefaultCellEditor(cboMaster));
 		JScrollPane scrollSpec = IGUI.createJScrollPane(tblSpec);
@@ -100,16 +103,16 @@ class NEdit extends NBase {
 	}
 
 	private void getData(String caseNo) {
-		pj.dbAP.setString(DPowerpath.STM_CASE_NUMBER, 1, caseNo);
-		long caseID = pj.dbAP.getLong(DPowerpath.STM_CASE_NUMBER);
-		modelEvent.getData(caseID);
-		modelSpec.getData(caseID);
+		pj.dbAP.setString(apStms.get(DPowerpath.STM_CASE_NUMBER), 1, caseNo);
+		long caseID = pj.dbAP.getLong(apStms.get(DPowerpath.STM_CASE_NUMBER));
+		modelEvent.getData(caseID, apStms.get(DPowerpath.STM_CASE_EVENTS));
+		modelSpec.getData(caseID, apStms.get(DPowerpath.STM_CASE_SPCMNS));
 	}
 
 	private void save(short masterID, long specID) {
-		pj.dbAP.setShort(DPowerpath.STM_SPEC_UPDATE, 1, masterID);
-		pj.dbAP.setLong(DPowerpath.STM_SPEC_UPDATE, 2, specID);
-		if (pj.dbAP.execute(DPowerpath.STM_SPEC_UPDATE) > 0) {
+		pj.dbAP.setShort(apStms.get(DPowerpath.STM_SPEC_UPDATE), 1, masterID);
+		pj.dbAP.setLong(apStms.get(DPowerpath.STM_SPEC_UPDATE), 2, specID);
+		if (pj.dbAP.execute(apStms.get(DPowerpath.STM_SPEC_UPDATE)) > 0) {
 			altered = false;
 		}
 	}

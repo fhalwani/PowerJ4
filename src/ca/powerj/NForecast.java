@@ -56,7 +56,7 @@ class NForecast extends NBase {
 	public NForecast(AClient parent) {
 		super(parent);
 		setName("Forecast");
-		parent.dbPowerJ.prepareForecast();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_FORECAST);
 		createPanel();
 		programmaticChange = false;
 	}
@@ -201,6 +201,7 @@ class NForecast extends NBase {
 			break;
 		default:
 			if (altered && timeTo > timeFrom) {
+				altered = false;
 				WorkerData worker = new WorkerData();
 				worker.execute();
 			}
@@ -365,7 +366,6 @@ class NForecast extends NBase {
 
 		@Override
 		public void done() {
-			altered = false;
 			// Display tree results
 			OAnnualNode root = (OAnnualNode) tree.getModel().getRoot();
 			TreeNode rootNode = new DefaultMutableTreeNode(root);
@@ -443,9 +443,9 @@ class NForecast extends NBase {
 			ResultSet rst = null;
 			setName("AnnualWorker");
 			try {
-				pj.dbPowerJ.setDate(DPowerJ.STM_CSE_SL_YER, 1, timeFrom);
-				pj.dbPowerJ.setDate(DPowerJ.STM_CSE_SL_YER, 2, timeTo);
-				rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_CSE_SL_YER);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_YER), 1, timeFrom);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_YER), 2, timeTo);
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CSE_SL_YER));
 				while (rst.next()) {
 					if (facID > 0 && facID != rst.getShort("FAID")) {
 						continue;
@@ -487,7 +487,7 @@ class NForecast extends NBase {
 			} catch (SQLException e) {
 				pj.log(LConstants.ERROR_SQL, getName(), e);
 			} finally {
-				pj.dbPowerJ.closeRst(rst);
+				pj.dbPowerJ.close(rst);
 			}
 		}
 

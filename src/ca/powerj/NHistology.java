@@ -29,7 +29,7 @@ class NHistology extends NBase {
 	NHistology(AClient parent) {
 		super(parent);
 		setName("Histology");
-		pj.dbPowerJ.prepareHistology();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_HISTOLOGY);
 		getDates();
 		createPanel();
 		refresh();
@@ -143,7 +143,7 @@ class NHistology extends NBase {
 			ResultSet rst = null;
 			try {
 				rows.clear();
-				rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_PND_SELECT);
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PND_SELECT));
 				while (rst.next()) {
 					if (rst.getByte("PNST") == OCaseStatus.ID_ACCES) {
 						continue;
@@ -190,7 +190,7 @@ class NHistology extends NBase {
 			} catch (SQLException e) {
 				pj.log(LConstants.ERROR_SQL, getName(), e);
 			} finally {
-				pj.dbPowerJ.closeRst(rst);
+				pj.dbPowerJ.close(rst);
 			}
 			return null;
 		}

@@ -35,7 +35,6 @@ class DDerby extends DDesktop {
 				connection = DriverManager.getConnection("jdbc:derby:" + pj.pjSchema + ";create=false;");
 				stm = connection.createStatement();
 				execute("SET SCHEMA " + pj.pjSchema);
-				prepareBase();
 				pj.log(LConstants.ERROR_NONE, dbName, "Connected to Derby.");
 			}
 		} catch (SQLException e) {

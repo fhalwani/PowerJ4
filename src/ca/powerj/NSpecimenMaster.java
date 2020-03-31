@@ -76,7 +76,7 @@ class NSpecimenMaster extends NBase {
 	NSpecimenMaster(AClient parent) {
 		super(parent);
 		setName("Specimens");
-		parent.dbPowerJ.prepareStpSpeMstr();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_SPECMASTER);
 		getData();
 		createPanel();
 		programmaticChange = false;
@@ -200,7 +200,7 @@ class NSpecimenMaster extends NBase {
 	}
 
 	private void getData() {
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SPM_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SPM_SELECT));
 		try {
 			while (rst.next()) {
 				specimenmaster = new OSpecMaster();
@@ -218,14 +218,14 @@ class NSpecimenMaster extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
 	private Object[] getGroups() {
 		OSpecDescr group = new OSpecDescr();
 		ArrayList<OItem> list = new ArrayList<OItem>();
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SPG_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SPG_SELECT));
 		try {
 			while (rst.next()) {
 				list.add(new OItem(rst.getShort("SGID"), rst.getString("SGDC")));
@@ -238,14 +238,14 @@ class NSpecimenMaster extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 		return list.toArray();
 	}
 
 	private Object[] getTurnaround() {
 		ArrayList<OItem> list = new ArrayList<OItem>();
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_TUR_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_TUR_SELECT));
 		try {
 			while (rst.next()) {
 				list.add(new OItem(rst.getShort("TAID"), rst.getString("TANM")));
@@ -253,7 +253,7 @@ class NSpecimenMaster extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 		return list.toArray();
 	}
@@ -362,12 +362,12 @@ class NSpecimenMaster extends NBase {
 
 	@Override
 	void save() {
-		pj.dbPowerJ.setShort(DPowerJ.STM_SPM_UPDATE, 1, specimenmaster.grpID);
-		pj.dbPowerJ.setShort(DPowerJ.STM_SPM_UPDATE, 2, specimenmaster.turID);
-		pj.dbPowerJ.setString(DPowerJ.STM_SPM_UPDATE, 3, specimenmaster.name.trim());
-		pj.dbPowerJ.setString(DPowerJ.STM_SPM_UPDATE, 4, specimenmaster.descr.trim());
-		pj.dbPowerJ.setShort(DPowerJ.STM_SPM_UPDATE, 5, specimenmaster.spcID);
-		if (pj.dbPowerJ.execute(DPowerJ.STM_SPM_UPDATE) > 0) {
+		pj.dbPowerJ.setShort(pjStms.get(DPowerJ.STM_SPM_UPDATE), 1, specimenmaster.grpID);
+		pj.dbPowerJ.setShort(pjStms.get(DPowerJ.STM_SPM_UPDATE), 2, specimenmaster.turID);
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_SPM_UPDATE), 3, specimenmaster.name.trim());
+		pj.dbPowerJ.setString(pjStms.get(DPowerJ.STM_SPM_UPDATE), 4, specimenmaster.descr.trim());
+		pj.dbPowerJ.setShort(pjStms.get(DPowerJ.STM_SPM_UPDATE), 5, specimenmaster.spcID);
+		if (pj.dbPowerJ.execute(pjStms.get(DPowerJ.STM_SPM_UPDATE)) > 0) {
 			altered = false;
 		}
 	}

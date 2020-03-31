@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URISyntaxException;
+import java.sql.PreparedStatement;
 import java.util.Calendar;
+import java.util.Hashtable;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -34,12 +36,13 @@ class LBase implements Runnable {
 	String apSchema = "";
 	String apUser = "";
 	String apPass = "";
+	Hashtable<Byte, PreparedStatement> pjStms = null;
 	NBase pnlCore = null;
 	LDates dates = null;
 	LDefaults defaults = null;
 	LNumbers numbers = null;
 	LSetup setup = null;
-	DPowerJ dbPowerJ = null;;
+	DPowerJ dbPowerJ = null;
 	DPowerpath dbAP = null;
 	private ServerSocket socket = null;
 	private LLogs logger = null;
@@ -56,7 +59,7 @@ class LBase implements Runnable {
 
 	void getLastUpdate() {
 		long now = System.currentTimeMillis();
-		lastUpdate = dbPowerJ.getTime(DPowerJ.STM_PND_SL_LST);
+		lastUpdate = dbPowerJ.getTime(pjStms.get(DPowerJ.STM_PND_SL_LST));
 		nextUpdate = lastUpdate + updateInterval;
 		if (nextUpdate < now) {
 			nextUpdate = now + timerInterval;
@@ -122,6 +125,9 @@ class LBase implements Runnable {
 			} else {
 				log(LConstants.ERROR_BINARY_FILE, "Variables", "Invalid application binary file");
 			}
+			if (errorID == LConstants.ERROR_NONE) {
+				pjStms = dbPowerJ.prepareStatements(LConstants.ACTION_LBASE);
+			}
 		}
 	}
 
@@ -163,7 +169,7 @@ class LBase implements Runnable {
 			// From minutes to milliseconds
 			timerInterval = 60000 * setup.getInt(LSetup.VAR_TIMER);
 			updateInterval = 60000 * setup.getInt(LSetup.VAR_UPDATER);
-			if (PowerJ.IS_CLIENT) {
+			if (LConstants.IS_CLIENT) {
 				// Synchronize clients 2-10 minutes after server update
 				Random rand = new Random();
 				updateDelay = (rand.nextInt(9) + 2) * 30000;
@@ -216,7 +222,7 @@ class LBase implements Runnable {
 
 	@Override
 	public void run() {
-		if (PowerJ.IS_SETUP) {
+		if (LConstants.IS_SETUP) {
 			return;
 		}
 		final byte JOB_STARTUP = 1;
@@ -247,7 +253,7 @@ class LBase implements Runnable {
 						}
 						break;
 					case JOB_MONTHLY:
-						if (PowerJ.IS_SERVER) {
+						if (LConstants.IS_SERVER) {
 							if (isNewMonth()) {
 								new LWorkdays(this);
 								if (errorID == LConstants.ERROR_NONE) {
@@ -255,7 +261,7 @@ class LBase implements Runnable {
 								}
 							}
 						}
-						if (PowerJ.IS_DESKTOP) {
+						if (LConstants.IS_DESKTOP) {
 							if (isNewMonth()) {
 								new LWorkdays(this);
 								if (errorID == LConstants.ERROR_NONE) {
@@ -266,16 +272,16 @@ class LBase implements Runnable {
 						jobID = JOB_DAILY;
 						break;
 					case JOB_DAILY:
-						if (PowerJ.IS_SERVER) {
+						if (LConstants.IS_SERVER) {
 							new LSync(this);
 						}
-						if (PowerJ.IS_DESKTOP) {
+						if (LConstants.IS_DESKTOP) {
 							new LSync(this);
 						}
 						jobID = JOB_REFRESH;
 						break;
 					case JOB_REFRESH:
-						if (PowerJ.IS_SERVER) {
+						if (LConstants.IS_SERVER) {
 							if (nextUpdate - System.currentTimeMillis() < timerInterval) {
 								new LPending(isStarting, this);
 								isStarting = false;
@@ -288,7 +294,7 @@ class LBase implements Runnable {
 								jobID = JOB_SLEEP;
 							}
 						}
-						if (PowerJ.IS_DESKTOP) {
+						if (LConstants.IS_DESKTOP) {
 							if (nextUpdate - System.currentTimeMillis() < timerInterval) {
 								new LPending(isStarting, this);
 								isStarting = false;
@@ -304,7 +310,7 @@ class LBase implements Runnable {
 								jobID = JOB_SLEEP;
 							}
 						}
-						if (PowerJ.IS_CLIENT) {
+						if (LConstants.IS_CLIENT) {
 							if (nextUpdate - System.currentTimeMillis() < timerInterval) {
 								if (pnlID > 0 & pnlCore != null) {
 									pnlCore.refresh();
@@ -418,6 +424,9 @@ class LBase implements Runnable {
 			}
 		}
 		if (dbPowerJ != null) {
+			if (pjStms != null) {
+				dbPowerJ.close(pjStms);
+			}
 			dbPowerJ.close();
 		}
 		if (dbAP != null) {

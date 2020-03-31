@@ -106,7 +106,7 @@ class NSpecimenGroup extends NBase {
 	NSpecimenGroup(AClient parent) {
 		super(parent);
 		setName("Specimens");
-		parent.dbPowerJ.prepareStpSpeGroup();
+		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_SPECGROUP);
 		columns[SPG_VAL5] = pj.setup.getString(LSetup.VAR_V5_NAME);
 		columns[SPG_VAL1B] = pj.setup.getString(LSetup.VAR_CODER1_NAME) + "-B";
 		columns[SPG_VAL2B] = pj.setup.getString(LSetup.VAR_CODER2_NAME) + "-B";
@@ -120,7 +120,7 @@ class NSpecimenGroup extends NBase {
 		columns[SPG_VAL2R] = pj.setup.getString(LSetup.VAR_CODER2_NAME) + "-R";
 		columns[SPG_VAL3R] = pj.setup.getString(LSetup.VAR_CODER3_NAME) + "-R";
 		columns[SPG_VAL4R] = pj.setup.getString(LSetup.VAR_CODER4_NAME) + "-R";
-		getSpecialties();
+		getSubspecialties();
 		getData();
 		createPanel();
 		programmaticChange = false;
@@ -322,7 +322,7 @@ class NSpecimenGroup extends NBase {
 
 	private void getData() {
 
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SPG_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SPG_SELECT));
 		try {
 			while (rst.next()) {
 				specimen = new OSpecGroup();
@@ -359,7 +359,7 @@ class NSpecimenGroup extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, "Variables", e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
@@ -379,7 +379,7 @@ class NSpecimenGroup extends NBase {
 		default:
 			index = DPowerJ.STM_CD4_SELECT;
 		}
-		ResultSet rst = pj.dbPowerJ.getResultSet(index);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(index));
 		try {
 			while (rst.next()) {
 				list.add(new OItem(rst.getShort("COID"), rst.getString("CONM")));
@@ -400,14 +400,14 @@ class NSpecimenGroup extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 		return list.toArray();
 	}
 
 	private Object[] getProcedure() {
 		ArrayList<OItem> list = new ArrayList<OItem>();
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_PRO_SELECT);
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PRO_SELECT));
 		try {
 			while (rst.next()) {
 				procedures.put(rst.getByte("POID"), rst.getString("PODC"));
@@ -416,14 +416,13 @@ class NSpecimenGroup extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 		return list.toArray();
 	}
 
-	private void getSpecialties() {
-		// Get specialties of subspecialties
-		ResultSet rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_SUB_SELECT);
+	private void getSubspecialties() {
+		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SUB_SELECT));
 		try {
 			while (rst.next()) {
 				specialties.put(rst.getByte("SBID"), rst.getString("SYNM"));
@@ -431,7 +430,7 @@ class NSpecimenGroup extends NBase {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.dbPowerJ.closeRst(rst);
+			pj.dbPowerJ.close(rst);
 		}
 	}
 
@@ -604,24 +603,24 @@ class NSpecimenGroup extends NBase {
 		if (specimen.descr.length() > 64) {
 			specimen.descr = specimen.descr.substring(0, 64);
 		}
-		pj.dbPowerJ.setShort(index, 1, specimen.subID);
-		pj.dbPowerJ.setShort(index, 2, specimen.proID);
-		pj.dbPowerJ.setShort(index, 3, specimen.codes[0][0].id);
-		pj.dbPowerJ.setShort(index, 4, specimen.codes[1][0].id);
-		pj.dbPowerJ.setShort(index, 5, specimen.codes[2][0].id);
-		pj.dbPowerJ.setShort(index, 6, specimen.codes[0][1].id);
-		pj.dbPowerJ.setShort(index, 7, specimen.codes[1][1].id);
-		pj.dbPowerJ.setShort(index, 8, specimen.codes[2][1].id);
-		pj.dbPowerJ.setShort(index, 9, specimen.codes[0][2].id);
-		pj.dbPowerJ.setShort(index, 10, specimen.codes[1][2].id);
-		pj.dbPowerJ.setShort(index, 11, specimen.codes[2][2].id);
-		pj.dbPowerJ.setShort(index, 12, specimen.codes[0][3].id);
-		pj.dbPowerJ.setShort(index, 13, specimen.codes[1][3].id);
-		pj.dbPowerJ.setShort(index, 14, specimen.codes[2][3].id);
-		pj.dbPowerJ.setString(index, 15, (specimen.hasLN ? "Y" : "N"));
-		pj.dbPowerJ.setString(index, 16, specimen.descr);
-		pj.dbPowerJ.setShort(index, 17, specimen.grpID);
-		if (pj.dbPowerJ.execute(index) > 0) {
+		pj.dbPowerJ.setShort(pjStms.get(index), 1, specimen.subID);
+		pj.dbPowerJ.setShort(pjStms.get(index), 2, specimen.proID);
+		pj.dbPowerJ.setShort(pjStms.get(index), 3, specimen.codes[0][0].id);
+		pj.dbPowerJ.setShort(pjStms.get(index), 4, specimen.codes[1][0].id);
+		pj.dbPowerJ.setShort(pjStms.get(index), 5, specimen.codes[2][0].id);
+		pj.dbPowerJ.setShort(pjStms.get(index), 6, specimen.codes[0][1].id);
+		pj.dbPowerJ.setShort(pjStms.get(index), 7, specimen.codes[1][1].id);
+		pj.dbPowerJ.setShort(pjStms.get(index), 8, specimen.codes[2][1].id);
+		pj.dbPowerJ.setShort(pjStms.get(index), 9, specimen.codes[0][2].id);
+		pj.dbPowerJ.setShort(pjStms.get(index), 10, specimen.codes[1][2].id);
+		pj.dbPowerJ.setShort(pjStms.get(index), 11, specimen.codes[2][2].id);
+		pj.dbPowerJ.setShort(pjStms.get(index), 12, specimen.codes[0][3].id);
+		pj.dbPowerJ.setShort(pjStms.get(index), 13, specimen.codes[1][3].id);
+		pj.dbPowerJ.setShort(pjStms.get(index), 14, specimen.codes[2][3].id);
+		pj.dbPowerJ.setString(pjStms.get(index), 15, (specimen.hasLN ? "Y" : "N"));
+		pj.dbPowerJ.setString(pjStms.get(index), 16, specimen.descr);
+		pj.dbPowerJ.setShort(pjStms.get(index), 17, specimen.grpID);
+		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			altered = false;
 			modelList.fireTableRowsUpdated(rowIndex, rowIndex);
 			if (specimen.newRow) {

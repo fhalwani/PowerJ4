@@ -13,6 +13,9 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.sql.PreparedStatement;
+import java.util.Hashtable;
+
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -194,9 +197,10 @@ class NLogin extends JDialog implements ActionListener, FocusListener, KeyListen
 		pj.apPass = apPassword;
 		if (pj.errorID == LConstants.ERROR_NONE) {
 			pj.initDBAP();
-			pj.dbAP.prepareLogin();
-			pj.dbAP.setString(DPowerpath.STM_PERS_LOGIN, 1, apLogin);
-			pj.userID = pj.dbAP.getShort(DPowerpath.STM_PERS_LOGIN);
+			Hashtable<Byte, PreparedStatement> apStms = pj.dbAP.prepareStatements(LConstants.ACTION_LLOGIN);
+			pj.dbAP.setString(apStms.get(DPowerpath.STM_PERS_LOGIN), 1, apLogin);
+			pj.userID = pj.dbAP.getShort(apStms.get(DPowerpath.STM_PERS_LOGIN));
+			pj.dbAP.close(apStms);
 		}
 		return (pj.userID > 0);
 	}

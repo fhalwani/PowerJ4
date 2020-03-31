@@ -1,11 +1,15 @@
 package ca.powerj;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Hashtable;
 
 class LSync {
 	private final String className = "Sync";
+	private Hashtable<Byte, PreparedStatement> pjStms = null;
+	private Hashtable<Byte, PreparedStatement> apStms = null;
 	private LBase pj;
 	private DPowerJ dbPowerJ;
 	private DPowerpath dbAP;
@@ -17,9 +21,9 @@ class LSync {
 		dbPowerJ = pj.dbPowerJ;
 		pj.log(LConstants.ERROR_NONE, className,
 				pj.dates.formatter(LDates.FORMAT_DATETIME) + " - Sync Manager Started...");
-		dbAP.prepareSynchronizer();
+		apStms = dbAP.prepareStatements(LConstants.ACTION_LSYNC);
 		if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
-			dbPowerJ.prepareSynchronizer();
+			pjStms = dbPowerJ.prepareStatements(LConstants.ACTION_LSYNC);
 		}
 		if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 			getAccessions();
@@ -40,8 +44,12 @@ class LSync {
 	}
 
 	private void close() {
-		dbPowerJ.closeStms(false);
-		dbAP.closeStms(false);
+		if (dbAP != null && apStms != null) {
+			dbAP.close(apStms);
+		}
+		if (dbPowerJ != null && pjStms != null) {
+			dbPowerJ.close(pjStms);
+		}
 		LBase.busy.set(false);
 	}
 
@@ -53,14 +61,14 @@ class LSync {
 		ResultSet rstPJ = null;
 		ResultSet rstAP = null;
 		try {
-			rstPJ = pj.dbPowerJ.getResultSet(DPowerJ.STM_ACC_SELECT);
+			rstPJ = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ACC_SELECT));
 			while (rstPJ.next()) {
 				accession = new OAccession();
 				accession.accID = rstPJ.getShort("ACID");
 				accession.name = rstPJ.getString("ACNM").trim();
 				hashMap.put(accession.accID, accession);
 			}
-			rstAP = pj.dbAP.getResultSet(DPowerpath.STM_ACCESSIONS);
+			rstAP = pj.dbAP.getResultSet(apStms.get(DPowerpath.STM_ACCESSIONS));
 			while (rstAP.next()) {
 				if (rstAP.getString("name") != null) {
 					accID = rstAP.getShort("id");
@@ -90,8 +98,8 @@ class LSync {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
 			hashMap.clear();
-			pj.dbPowerJ.closeRst(rstAP);
-			pj.dbPowerJ.closeRst(rstPJ);
+			pj.dbAP.close(rstAP);
+			pj.dbPowerJ.close(rstPJ);
 		}
 	}
 
@@ -103,7 +111,7 @@ class LSync {
 		ResultSet rstPJ = null;
 		ResultSet rstAP = null;
 		try {
-			rstPJ = pj.dbPowerJ.getResultSet(DPowerJ.STM_FAC_SELECT);
+			rstPJ = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_FAC_SELECT));
 			while (rstPJ.next()) {
 				facility = new OFacility();
 				facility.facID = rstPJ.getShort("FAID");
@@ -111,7 +119,7 @@ class LSync {
 				facility.descr = rstPJ.getString("FADC").trim();
 				hashMap.put(facility.facID, facility);
 			}
-			rstAP = pj.dbAP.getResultSet(DPowerpath.STM_FACILITIES);
+			rstAP = pj.dbAP.getResultSet(apStms.get(DPowerpath.STM_FACILITIES));
 			while (rstAP.next()) {
 				if (rstAP.getString("code") != null && rstAP.getString("name") != null) {
 					facID = rstAP.getShort("id");
@@ -142,8 +150,8 @@ class LSync {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
 			hashMap.clear();
-			pj.dbPowerJ.closeRst(rstAP);
-			pj.dbPowerJ.closeRst(rstPJ);
+			pj.dbAP.close(rstAP);
+			pj.dbPowerJ.close(rstPJ);
 		}
 	}
 
@@ -155,7 +163,7 @@ class LSync {
 		ResultSet rstAP = null;
 		ResultSet rstPJ = null;
 		try {
-			rstPJ = pj.dbPowerJ.getResultSet(DPowerJ.STM_ORM_SELECT);
+			rstPJ = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ORM_SELECT));
 			while (rstPJ.next()) {
 				ordermaster = new OOrderMaster();
 				ordermaster.ordID = rstPJ.getShort("OMID");
@@ -164,7 +172,7 @@ class LSync {
 				ordermaster.descr = rstPJ.getString("OMDC").trim();
 				hashMap.put(ordermaster.ordID, ordermaster);
 			}
-			rstAP = pj.dbAP.getResultSet(DPowerpath.STM_PROCEDURES);
+			rstAP = pj.dbAP.getResultSet(apStms.get(DPowerpath.STM_PROCEDURES));
 			while (rstAP.next()) {
 				if (rstAP.getString("code") != null && rstAP.getString("description") != null) {
 					ormID = rstAP.getShort("id");
@@ -197,8 +205,8 @@ class LSync {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
 			hashMap.clear();
-			pj.dbPowerJ.closeRst(rstAP);
-			pj.dbPowerJ.closeRst(rstPJ);
+			pj.dbAP.close(rstAP);
+			pj.dbPowerJ.close(rstPJ);
 		}
 	}
 
@@ -210,7 +218,7 @@ class LSync {
 		ResultSet rstAP = null;
 		ResultSet rstPJ = null;
 		try {
-			rstPJ = pj.dbPowerJ.getResultSet(DPowerJ.STM_PRS_SELECT);
+			rstPJ = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PRS_SELECT));
 			while (rstPJ.next()) {
 				person = new OPerson();
 				person.prsID = rstPJ.getShort("PRID");
@@ -224,7 +232,7 @@ class LSync {
 				person.started.setTime(rstPJ.getDate("PRDT").getTime());
 				hashMap.put(person.prsID, person);
 			}
-			rstAP = pj.dbAP.getResultSet(DPowerpath.STM_PERSONNEL);
+			rstAP = pj.dbAP.getResultSet(apStms.get(DPowerpath.STM_PERSONNEL));
 			while (rstAP.next()) {
 				if (rstAP.getString("persnl_class_id") != null && rstAP.getString("first_name") != null
 						&& rstAP.getString("last_name") != null) {
@@ -261,8 +269,8 @@ class LSync {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
 			hashMap.clear();
-			pj.dbPowerJ.closeRst(rstAP);
-			pj.dbPowerJ.closeRst(rstPJ);
+			pj.dbAP.close(rstAP);
+			pj.dbPowerJ.close(rstPJ);
 		}
 	}
 
@@ -274,7 +282,7 @@ class LSync {
 		ResultSet rstAP = null;
 		ResultSet rstPJ = null;
 		try {
-			rstPJ = pj.dbPowerJ.getResultSet(DPowerJ.STM_SPM_SELECT);
+			rstPJ = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SPM_SELECT));
 			while (rstPJ.next()) {
 				specimenmaster = new OSpecMaster();
 				specimenmaster.spcID = rstPJ.getShort("SMID");
@@ -284,7 +292,7 @@ class LSync {
 				specimenmaster.descr = rstPJ.getString("SMDC").trim();
 				hashMap.put(specimenmaster.spcID, specimenmaster);
 			}
-			rstAP = pj.dbAP.getResultSet(DPowerpath.STM_SPECIMENS);
+			rstAP = pj.dbAP.getResultSet(apStms.get(DPowerpath.STM_SPECIMENS));
 			while (rstAP.next()) {
 				if (rstAP.getString("code") != null && rstAP.getString("description") != null) {
 					spmID = rstAP.getShort("id");
@@ -317,8 +325,8 @@ class LSync {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {
 			hashMap.clear();
-			pj.dbPowerJ.closeRst(rstAP);
-			pj.dbPowerJ.closeRst(rstPJ);
+			pj.dbAP.close(rstAP);
+			pj.dbPowerJ.close(rstPJ);
 		}
 	}
 
@@ -327,12 +335,12 @@ class LSync {
 		if (accession.name.length() > 30) {
 			accession.name = accession.name.substring(0, 30);
 		}
-		pj.dbPowerJ.setByte(index, 1, accession.spyID);
-		pj.dbPowerJ.setString(index, 2, "N");
-		pj.dbPowerJ.setString(index, 3, "N");
-		pj.dbPowerJ.setString(index, 4, accession.name);
-		pj.dbPowerJ.setShort(index, 5, accession.accID);
-		if (pj.dbPowerJ.execute(index) > 0) {
+		pj.dbPowerJ.setByte(pjStms.get(index), 1, accession.spyID);
+		pj.dbPowerJ.setString(pjStms.get(index), 2, "N");
+		pj.dbPowerJ.setString(pjStms.get(index), 3, "N");
+		pj.dbPowerJ.setString(pjStms.get(index), 4, accession.name);
+		pj.dbPowerJ.setShort(pjStms.get(index), 5, accession.accID);
+		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			return true;
 		}
 		return false;
@@ -346,12 +354,12 @@ class LSync {
 		if (facility.descr.length() > 80) {
 			facility.descr = facility.descr.substring(0, 80);
 		}
-		pj.dbPowerJ.setString(index, 1, "N");
-		pj.dbPowerJ.setString(index, 2, "N");
-		pj.dbPowerJ.setString(index, 3, facility.name);
-		pj.dbPowerJ.setString(index, 4, facility.descr);
-		pj.dbPowerJ.setShort(index, 5, facility.facID);
-		if (pj.dbPowerJ.execute(index) > 0) {
+		pj.dbPowerJ.setString(pjStms.get(index), 1, "N");
+		pj.dbPowerJ.setString(pjStms.get(index), 2, "N");
+		pj.dbPowerJ.setString(pjStms.get(index), 3, facility.name);
+		pj.dbPowerJ.setString(pjStms.get(index), 4, facility.descr);
+		pj.dbPowerJ.setShort(pjStms.get(index), 5, facility.facID);
+		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			return true;
 		}
 		return false;
@@ -365,11 +373,11 @@ class LSync {
 		if (ordermaster.descr.length() > 80) {
 			ordermaster.descr = ordermaster.descr.substring(0, 80);
 		}
-		pj.dbPowerJ.setShort(index, 1, ordermaster.grpID);
-		pj.dbPowerJ.setString(index, 2, ordermaster.name);
-		pj.dbPowerJ.setString(index, 3, ordermaster.descr);
-		pj.dbPowerJ.setShort(index, 4, ordermaster.ordID);
-		if (pj.dbPowerJ.execute(index) > 0) {
+		pj.dbPowerJ.setShort(pjStms.get(index), 1, ordermaster.grpID);
+		pj.dbPowerJ.setString(pjStms.get(index), 2, ordermaster.name);
+		pj.dbPowerJ.setString(pjStms.get(index), 3, ordermaster.descr);
+		pj.dbPowerJ.setShort(pjStms.get(index), 4, ordermaster.ordID);
+		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			return true;
 		}
 		return false;
@@ -387,15 +395,15 @@ class LSync {
 			person.initials = person.firstname.substring(0, 1).toUpperCase()
 					+ person.lastname.substring(0, 1).toUpperCase();
 		}
-		pj.dbPowerJ.setInt(index, 1, person.access);
-		pj.dbPowerJ.setDate(index, 2, person.started.getTime());
-		pj.dbPowerJ.setString(index, 3, person.code);
-		pj.dbPowerJ.setString(index, 4, "Y");
-		pj.dbPowerJ.setString(index, 5, person.initials);
-		pj.dbPowerJ.setString(index, 6, person.lastname);
-		pj.dbPowerJ.setString(index, 7, person.firstname);
-		pj.dbPowerJ.setShort(index, 8, person.prsID);
-		if (pj.dbPowerJ.execute(index) > 0) {
+		pj.dbPowerJ.setInt(pjStms.get(index), 1, person.access);
+		pj.dbPowerJ.setDate(pjStms.get(index), 2, person.started.getTime());
+		pj.dbPowerJ.setString(pjStms.get(index), 3, person.code);
+		pj.dbPowerJ.setString(pjStms.get(index), 4, "Y");
+		pj.dbPowerJ.setString(pjStms.get(index), 5, person.initials);
+		pj.dbPowerJ.setString(pjStms.get(index), 6, person.lastname);
+		pj.dbPowerJ.setString(pjStms.get(index), 7, person.firstname);
+		pj.dbPowerJ.setShort(pjStms.get(index), 8, person.prsID);
+		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			return true;
 		}
 		return false;
@@ -403,12 +411,12 @@ class LSync {
 
 	private boolean save(boolean newRow, OSpecMaster specimenmaster) {
 		byte index = (newRow ? DPowerJ.STM_SPM_INSERT : DPowerJ.STM_SPM_UPDATE);
-		pj.dbPowerJ.setShort(index, 1, specimenmaster.grpID);
-		pj.dbPowerJ.setShort(index, 2, specimenmaster.turID);
-		pj.dbPowerJ.setString(index, 3, specimenmaster.name.trim());
-		pj.dbPowerJ.setString(index, 4, specimenmaster.descr.trim());
-		pj.dbPowerJ.setShort(index, 5, specimenmaster.spcID);
-		if (pj.dbPowerJ.execute(index) > 0) {
+		pj.dbPowerJ.setShort(pjStms.get(index), 1, specimenmaster.grpID);
+		pj.dbPowerJ.setShort(pjStms.get(index), 2, specimenmaster.turID);
+		pj.dbPowerJ.setString(pjStms.get(index), 3, specimenmaster.name.trim());
+		pj.dbPowerJ.setString(pjStms.get(index), 4, specimenmaster.descr.trim());
+		pj.dbPowerJ.setShort(pjStms.get(index), 5, specimenmaster.spcID);
+		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			return true;
 		}
 		return false;

@@ -1,15 +1,17 @@
 package ca.powerj;
+
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 
 class ITableModelEvent extends ITableModel {
-	private final byte EVNT_TIME     = 0;
+	private final byte EVNT_TIME = 0;
 	private final byte EVNT_MATERIAL = 1;
 	private final byte EVNT_LOCATION = 2;
 	private final byte EVNT_DESCRIPT = 3;
-	private final String[] columns   = {"Time", "Material", "Location", "Description"};
+	private final String[] columns = { "Time", "Material", "Location", "Description" };
 	private ArrayList<DataEvent> events = new ArrayList<DataEvent>();
 	protected AClient pj;
 
@@ -22,10 +24,10 @@ class ITableModelEvent extends ITableModel {
 		events.clear();
 	}
 
-	void getData(long caseID) {
+	void getData(long caseID, PreparedStatement pstm) {
 		String strMaterial = "";
-		pj.dbAP.setLong(DPowerpath.STM_CASE_EVENTS, 1, caseID);
-		ResultSet rst = pj.dbAP.getResultSet(DPowerpath.STM_CASE_EVENTS);
+		pj.dbAP.setLong(pstm, 1, caseID);
+		ResultSet rst = pj.dbAP.getResultSet(pstm);
 		try {
 			events.clear();
 			while (rst.next()) {
@@ -35,8 +37,7 @@ class ITableModelEvent extends ITableModel {
 				} else if (strMaterial.equals("B")) {
 					strMaterial = "Block ";
 				} else if (strMaterial.equals("L")) {
-					if (rst.getString("event_type").trim().
-							toLowerCase().equals("folder_scanned")) {
+					if (rst.getString("event_type").trim().toLowerCase().equals("folder_scanned")) {
 						// Skip these, meaningless
 						continue;
 					}
@@ -45,7 +46,7 @@ class ITableModelEvent extends ITableModel {
 					strMaterial = "";
 				}
 				strMaterial += rst.getString("material_label").trim();
-				DataEvent thisRow  = new DataEvent();
+				DataEvent thisRow = new DataEvent();
 				thisRow.material = strMaterial;
 				thisRow.location = rst.getString("event_location");
 				thisRow.description = rst.getString("event_description");
@@ -55,7 +56,7 @@ class ITableModelEvent extends ITableModel {
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, this.getClass().getName(), e);
 		} finally {
-			pj.dbAP.closeRst(rst);
+			pj.dbAP.close(rst);
 			fireTableDataChanged();
 		}
 	}
