@@ -5,7 +5,6 @@ import java.awt.Dimension;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -15,9 +14,8 @@ class NTurnaround extends NBase {
 			"Dec" };
 	private short[] filters = { 0, 0, 0, 0, 0 };
 	private int firstYear = 9999;
+	private int lastYear = 0;
 	private ArrayList<OTurnSum> rows = new ArrayList<OTurnSum>();
-	private HashMap<Integer, String> years = new HashMap<Integer, String>();
-	private HashMap<Integer, String> months = new HashMap<Integer, String>();
 	private IChartDial chartDial;
 	private IChartBar chartBar;
 	private IChartLine chartLine;
@@ -36,8 +34,6 @@ class NTurnaround extends NBase {
 	boolean close() {
 		super.close();
 		rows.clear();
-		months.clear();
-		years.clear();
 		if (chartBar != null) {
 			chartBar.close();
 		}
@@ -82,9 +78,6 @@ class NTurnaround extends NBase {
 	}
 
 	private void getData() {
-		int year = 0;
-		int month = 0;
-		String str = "";
 		OTurnSum row = new OTurnSum();
 		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CSE_SL_TAT));
 		firstYear = 9999;
@@ -103,35 +96,11 @@ class NTurnaround extends NBase {
 				row.micro = rst.getInt("MITA");
 				row.route = rst.getInt("ROTA");
 				row.diagn = rst.getInt("FNTA");
-				// Some are not initialized (December 31, 1969)
-				if (row.diagn < 0)
-					row.diagn = 0;
-				if (row.route < 0)
-					row.route = 0;
-				if (row.micro < 0)
-					row.micro = 0;
-				if (row.embed < 0)
-					row.embed = 0;
-				if (row.gross < 0)
-					row.gross = 0;
+				if (firstYear > row.year)
+					firstYear = row.year;
+				if (lastYear < row.year)
+					lastYear = row.year;
 				rows.add(row);
-				if (year != row.year) {
-					year = row.year;
-					str = years.get(year);
-					if (str == null) {
-						years.put(year, Integer.toString(year));
-					}
-					if (firstYear > year) {
-						firstYear = year;
-					}
-				}
-				if (month != row.month) {
-					month = row.month;
-					str = months.get(month);
-					if (str == null) {
-						months.put(month, Integer.toString(month));
-					}
-				}
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
@@ -167,9 +136,9 @@ class NTurnaround extends NBase {
 			pj.log(LConstants.ERROR_UNEXPECTED, getName(), "Invalid filter setting");
 			return;
 		}
-		String[] aYears = new String[years.size()];
+		String[] aYears = new String[lastYear - firstYear + 1];
 		for (byte b = 0; b < aYears.length; b++) {
-			aYears[b] = years.get(firstYear + b);
+			aYears[b] = Integer.toString(firstYear + b);
 		}
 		double[][] totalYears = new double[aYears.length][2];
 		double[][][] totalMonths = new double[aYears.length][aMonths.length][2];
@@ -228,19 +197,13 @@ class NTurnaround extends NBase {
 			maxData = 24;
 			break;
 		case OCaseStatus.ID_EMBED:
+		case OCaseStatus.ID_MICRO:
+		case OCaseStatus.ID_ROUTE:
+		case OCaseStatus.ID_HISTO:
 			maxData = 48;
 			break;
-		case OCaseStatus.ID_MICRO:
-			maxData = 72;
-			break;
-		case OCaseStatus.ID_ROUTE:
-			maxData = 96;
-			break;
-		case OCaseStatus.ID_HISTO:
-			maxData = 96;
-			break;
 		default:
-			maxData = 120;
+			maxData = 72;
 		}
 		while (maxData < yCurrent[0]) {
 			maxData += 24;
