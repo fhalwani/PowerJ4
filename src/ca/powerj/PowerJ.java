@@ -2,7 +2,7 @@ package ca.powerj;
 
 public class PowerJ {
 
-	public PowerJ(String[] args) {
+	public PowerJ(final String[] args) {
 		if (LConstants.IS_CLIENT) {
 			javax.swing.SwingUtilities.invokeLater(new Runnable() {
 				@Override

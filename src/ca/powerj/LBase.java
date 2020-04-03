@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 class LBase implements Runnable {
 	static AtomicBoolean stopped = new AtomicBoolean(true);
-	static AtomicBoolean busy = new AtomicBoolean(true);
+	static AtomicBoolean busy = new AtomicBoolean(false);
 	boolean autoLogin = false;
 	boolean offLine = false;
 	byte pnlID = 0;
@@ -166,9 +166,8 @@ class LBase implements Runnable {
 			apSchema = setup.getString(LSetup.VAR_AP_DATABASE);
 			apUser = setup.getString(LSetup.VAR_AP_LOGIN);
 			apPass = setup.getString(LSetup.VAR_AP_PASSWORD);
-			// From minutes to milliseconds
-			timerInterval = 60000 * setup.getInt(LSetup.VAR_TIMER);
-			updateInterval = 60000 * setup.getInt(LSetup.VAR_UPDATER);
+			timerInterval = setup.getInt(LSetup.VAR_TIMER);
+			updateInterval = setup.getInt(LSetup.VAR_UPDATER);
 			if (LConstants.IS_CLIENT) {
 				// Synchronize clients 2-10 minutes after server update
 				Random rand = new Random();
@@ -185,9 +184,8 @@ class LBase implements Runnable {
 	}
 
 	private boolean isNewMonth() {
-		int lastRun = setup.getInt(LSetup.VAR_V5_INTERVAL);
 		Calendar calNow = Calendar.getInstance();
-		return (lastRun != calNow.get(Calendar.MONTH));
+		return (setup.getInt(LSetup.VAR_MONTH_RUN) != calNow.get(Calendar.MONTH));
 	}
 
 	void log(byte severity, String message) {
@@ -290,7 +288,8 @@ class LBase implements Runnable {
 								LFinals worker = new LFinals(this);
 								isUpToDate = worker.isUpToDate();
 								worker.close();
-							} else if (nextUpdate - System.currentTimeMillis() > (updateInterval * 5)) {
+							} else if (nextUpdate - System.currentTimeMillis() > 3600000) {
+								// Sleep if 6 hours nor more
 								jobID = JOB_SLEEP;
 							}
 						}
@@ -307,7 +306,7 @@ class LBase implements Runnable {
 //								isUpToDate = worker.isUpToDate();
 								isUpToDate = true;
 //								worker.close();
-							} else if (nextUpdate - System.currentTimeMillis() > (updateInterval * 5)) {
+							} else if (nextUpdate - System.currentTimeMillis() > 3600000) {
 								jobID = JOB_SLEEP;
 							}
 						}
@@ -317,7 +316,7 @@ class LBase implements Runnable {
 									pnlCore.refresh();
 								}
 								setNextUpdate();
-							} else if (nextUpdate - System.currentTimeMillis() > (updateInterval * 5)) {
+							} else if (nextUpdate - System.currentTimeMillis() > 3600000) {
 								jobID = JOB_SLEEP;
 							}
 						}

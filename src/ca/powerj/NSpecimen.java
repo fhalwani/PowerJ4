@@ -78,7 +78,7 @@ class NSpecimen extends NBase {
 		tree.setFocusable(true);
 		tree.tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
 			@Override
-			public void valueChanged(TreeSelectionEvent e) {
+			public void valueChanged(final TreeSelectionEvent e) {
 				javax.swing.SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {

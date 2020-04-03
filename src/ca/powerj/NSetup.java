@@ -142,8 +142,8 @@ class NSetup extends NBase implements ItemListener {
 		panel.setLayout(new GridBagLayout());
 		panel.setOpaque(true);
 		border = BorderFactory.createBevelBorder(BevelBorder.LOWERED);
-		// Range 10-120 minutes (4 columns)
-		ITextInteger intField = new ITextInteger(pj.numbers, 10, 120);
+		// Range 5-180 minutes (4 columns)
+		ITextInteger intField = new ITextInteger(pj.numbers, 5, 180);
 		intField.setName("Updater");
 		intField.addFocusListener(this);
 		intField.getDocument().addDocumentListener(this);

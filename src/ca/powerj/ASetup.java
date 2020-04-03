@@ -77,10 +77,11 @@ class ASetup {
 		try {
 			switch (dbID) {
 			case DB_DERBY:
+				Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
 				// Define physical location of Derby Database
 				Properties p = System.getProperties();
 				p.setProperty("derby.system.home", appDir);
-				url = "jdbc:derby:" + dbSchema + ";create=true;";
+				url = "jdbc:derby:" + appDir + dbSchema + ";create=true;";
 				break;
 			case DB_MARIA:
 				url = "jdbc:mariadb://" + dbHost + ":" + dbPort + "?user=" + dbUser + "&password=" + dbPass;
@@ -89,7 +90,7 @@ class ASetup {
 				url = "jdbc:postgresql://" + dbHost + ":" + dbPort + "/?user=" + dbUser + "&password=" + dbPass;
 				break;
 			default:
-				// Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+				Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 				url = "jdbc:sqlserver://" + dbHost + ":" + dbPort + ";user=" + dbUser + ";password=" + dbPass + ";";
 			}
 			DriverManager.setLoginTimeout(15);
@@ -142,12 +143,14 @@ class ASetup {
 		} catch (InterruptedException e) {
 		} catch (SQLException e) {
 			log(LConstants.ERROR_SQL, dbName, e);
+		} catch (ClassNotFoundException e) {
+			log(LConstants.ERROR_UNEXPECTED, dbName, e);
 		}
 	}
 
 	private void createLogin() {
 		SecureRandom randomNo = new SecureRandom();
-		ArrayList<Object> list = new ArrayList<>();
+		ArrayList<Object> list = new ArrayList<Object>();
 		// Add ASCII Decimal values to ArrayList
 		list.add((char) 32);
 		list.add((char) 33);
@@ -176,8 +179,8 @@ class ASetup {
 		buffer.setLength(0);
 		// Password length should be 23 characters
 		for (int length = 0; length < 23; length++) {
-			char c = (char) list.get(randomNo.nextInt(list.size()));
-			buffer.append(c);
+			String s = (String) list.get(randomNo.nextInt(list.size()));
+			buffer.append(s);
 		}
 		sysPassClient = buffer.toString();
 		if (dbID == DB_POSTG) {

@@ -88,68 +88,65 @@ class ZTest {
 		}
 		switch (cmd) {
 		case 1:
-			deleteCases();
+			backupDerby();
 			break;
 		case 2:
-			exportFacilities();
+			compressDerby();
 			break;
 		case 3:
-			exportServices();
+			deleteCases();
 			break;
 		case 4:
-			importServices();
+			exportFacilities();
 			break;
 		case 5:
-			listPending();
-			break;
-		case 6:
 			exportServices();
 			break;
+		case 6:
+			extrapolate();
+			break;
 		case 7:
-			listWorkdays();
+			getDate();
 			break;
 		case 8:
-			updateComment();
+			importServices();
 			break;
 		case 9:
-			updateMasterSpec();
+			interpolate();
 			break;
 		case 10:
-			updateView();
+			listPending();
 			break;
 		case 11:
-			updateSpecGroups();
+			listWorkdays();
 			break;
 		case 12:
+			predict();
+			break;
+		case 13:
 			testToolbar();
 			toShort();
 			break;
-		case 13:
-			predict();
-			break;
 		case 14:
-			interpolate();
+			updateComment();
 			break;
 		case 15:
-			extrapolate();
+			updateMasterSpec();
 			break;
 		case 16:
-			updatePersonnel();
-			break;
-		case 17:
 			updatePassword();
 			break;
-		case 18:
-			getDate();
+		case 17:
+			updatePersonnel();
 			break;
-		case 19:
+		case 18:
 			updateSetup();
 			break;
-		case 20:
-			compressDerby();
+		case 19:
+			updateSpecGroups();
 			break;
-		case 21:
-			backupDerby();
+		case 20:
+			updateView();
 			break;
 		default:
 		}
@@ -243,7 +240,7 @@ class ZTest {
 			DriverManager.setLoginTimeout(15);
 			connection = DriverManager.getConnection("jdbc:derby:" + _SCHEMA + ";create=false;");
 			stm = connection.createStatement();
-//			stm.executeUpdate("SET SCHEMA " + _SCHEMA);
+			stm.executeUpdate("SET SCHEMA " + _SCHEMA);
 		} catch (SQLException e) {
 			e.printStackTrace(System.out);
 		}

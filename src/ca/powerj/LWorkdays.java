@@ -55,6 +55,7 @@ class LWorkdays {
 			dbPowerJ.close(rst);
 			if (calDate.getTimeInMillis() < maxDate.getTimeInMillis()) {
 				addWorkdays(dayID, dayNo, calDate, maxDate.getTimeInMillis());
+				pj.setup.setInt(LSetup.VAR_MONTH_RUN, pj.dates.setMidnight(null).get(Calendar.MONTH));
 			}
 			close();
 		}

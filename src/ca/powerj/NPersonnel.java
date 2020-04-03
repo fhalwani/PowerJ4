@@ -342,7 +342,7 @@ class NPersonnel extends NBase implements ItemListener {
 	}
 
 	@Override
-	void setFilter(short id, short value) {
+	void setFilter(short id, final short value) {
 		RowFilter<AbstractTableModel, Integer> rowFilter = null;
 		if (id == IToolBar.TB_PRS && value > 0) {
 			rowFilter = new RowFilter<AbstractTableModel, Integer>() {

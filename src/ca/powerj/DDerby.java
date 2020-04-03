@@ -18,26 +18,31 @@ class DDerby extends DDesktop {
 		try {
 			DriverManager.getConnection("jdbc:derby:;shutdown=true");
 		} catch (SQLException e) {
-			if (!e.getSQLState().equals("XJ015")) {
+//			if (!e.getSQLState().equals("XJ015")) {
 				// Else, normal shut down
-				pj.log(LConstants.ERROR_SQL, dbName, e);
-			}
+//				pj.log(LConstants.ERROR_SQL, dbName, e);
+//			}
 		}
 	}
 
 	/** Opens the Derby connection. */
 	private void setConnection() {
+		Properties p = System.getProperties();
 		try {
 			if (connection == null || connection.isClosed()) {
-				Properties p = System.getProperties();
+				Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
 				p.setProperty("derby.system.home", pj.appDir);
 				DriverManager.setLoginTimeout(15);
-				connection = DriverManager.getConnection("jdbc:derby:" + pj.pjSchema + ";create=false;");
+				connection = DriverManager.getConnection("jdbc:derby:" + pj.appDir + pj.pjSchema + ";create=false;");
 				stm = connection.createStatement();
 				execute("SET SCHEMA " + pj.pjSchema);
 				pj.log(LConstants.ERROR_NONE, dbName, "Connected to Derby.");
 			}
 		} catch (SQLException e) {
+			System.out.println("Path: " + pj.appDir);
+			System.out.println("Derby: " + p.getProperty("derby.system.home"));
+			pj.log(LConstants.ERROR_SQL, dbName, e);
+		} catch (ClassNotFoundException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		}
 	}

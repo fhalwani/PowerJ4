@@ -1,6 +1,7 @@
 package ca.powerj;
 
 import java.io.IOException;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -58,6 +59,31 @@ class ZSchedule extends LBase {
 
 	public ZSchedule() {
 		super();
+	}
+
+	private void deleteMonth() {
+		int wdid = 99999;
+		for (int i = 0; i < workdays.size(); i++) {
+			if (wdid > workdays.get(i).wdid) {
+				wdid = workdays.get(i).wdid;
+			}
+		}
+		wdid--;
+		System.out.printf("wdid: %d \n", wdid);
+		// TODO Delete old schedule if revised
+		String sql = "DELETE FROM Schedules WHERE WDID > ?";
+		PreparedStatement pstm = null;
+		try {
+			pstm = dbPowerJ.prepareStatement(sql);
+			pstm.setInt(1, wdid);
+//			int n = pstm.executeUpdate();
+//			System.out.printf("Deleted %d rows\n", n);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			errorID = LConstants.ERROR_SQL;
+		} finally {
+			dbPowerJ.close(pstm);
+		}
 	}
 
 	private void getData() {
@@ -121,17 +147,20 @@ class ZSchedule extends LBase {
 	void init(String[] args) {
 		super.init(args);
 		// TODO Fix before each file
-		filePath = "/data/fawaz/Schedules/schedule-2020-03.pdf";
+		filePath = "C:\\Users\\fhalwani\\Documents\\Toh\\2020\\schedules\\schedule-2020-04.pdf";
 		startLine = 7; // Usually starts at line 6 (On call General)
 		noDays = 35; // 28 (4 weeks) or 35 (5 weeks)
 		startDate.set(Calendar.YEAR, 2020);
-		startDate.set(Calendar.MONTH, Calendar.MARCH);
-		startDate.set(Calendar.DAY_OF_MONTH, 2);
+		startDate.set(Calendar.MONTH, Calendar.APRIL);
+		startDate.set(Calendar.DAY_OF_MONTH, 6);
 		if (errorID == LConstants.ERROR_NONE) {
 			pjStms = dbPowerJ.prepareStatements(LConstants.ACTION_SCHEDULE);
 			getDates();
 			getPersons();
 			getData();
+		}
+		if (errorID == LConstants.ERROR_NONE) {
+			deleteMonth();
 		}
 		if (errorID == LConstants.ERROR_NONE) {
 			serviceNames = new String[rows.length];
@@ -398,7 +427,7 @@ class ZSchedule extends LBase {
 					case 2:
 					case 3:
 					case 4:
-//					case 7:
+					case 7:
 					case 8:
 					case 9:
 					case 10:
@@ -454,11 +483,11 @@ class ZSchedule extends LBase {
 //					case 25:
 //					case 28:
 //					case 29:
-					case 30:
-					case 31:
-					case 32:
-						dayBrst3[dayID] = 1;
-						break;
+//					case 30:
+//					case 31:
+//					case 32:
+//						dayBrst3[dayID] = 1;
+//						break;
 					default:
 						dayBrst3[dayID] = 0;
 					}
@@ -491,13 +520,6 @@ class ZSchedule extends LBase {
 //					case 23:
 //					case 24:
 //					case 25:
-//					case 28:
-//					case 29:
-//					case 30:
-//					case 31:
-//					case 32:
-//						dayCyto1B[dayID] = 1;
-//						break;
 					default:
 						dayCyto1B[dayID] = 0;
 					}
@@ -549,27 +571,27 @@ class ZSchedule extends LBase {
 				workday = workdays.get(dayID);
 				if (workday.wdtp.equalsIgnoreCase("D")) {
 					switch (dayID) {
-//					case 0:
+					case 0:
 					case 1:
-//					case 2:
+					case 2:
 					case 3:
-//					case 4:
-//					case 7:
-//					case 8:
+					case 4:
+					case 7:
+					case 8:
 					case 9:
 					case 10:
-//					case 11:
+					case 11:
 					case 14:
 					case 15:
 					case 16:
-//					case 17:
+					case 17:
 					case 18:
 					case 21:
 					case 22:
 					case 23:
 					case 24:
-//					case 25:
-//					case 28:
+					case 25:
+					case 28:
 					case 29:
 					case 30:
 					case 31:
@@ -594,27 +616,27 @@ class ZSchedule extends LBase {
 //					case 3:
 //					case 4:
 //					case 7:
-					case 8:
+//					case 8:
 //					case 9:
 //					case 10:
 //					case 11:
-					case 14:
-					case 15:
+//					case 14:
+//					case 15:
 //					case 16:
 //					case 17:
 //					case 18:
-					case 21:
+//					case 21:
 //					case 22:
 //					case 23:
 //					case 24:
 //					case 25:
 //					case 28:
 //					case 29:
-					case 30:
-					case 31:
+//					case 30:
+//					case 31:
 //					case 32:
-						dayGI3[dayID] = 1;
-						break;
+//						dayGI3[dayID] = 1;
+//						break;
 					default:
 						dayGI3[dayID] = 0;
 					}
@@ -647,8 +669,8 @@ class ZSchedule extends LBase {
 					case 23:
 					case 24:
 					case 25:
-//					case 28:
-//					case 29:
+					case 28:
+					case 29:
 					case 30:
 					case 31:
 					case 32:
@@ -668,7 +690,7 @@ class ZSchedule extends LBase {
 					switch (dayID) {
 					case 0:
 					case 1:
-//					case 2:
+					case 2:
 					case 3:
 					case 4:
 					case 7:
@@ -685,7 +707,7 @@ class ZSchedule extends LBase {
 					case 22:
 					case 23:
 					case 24:
-//					case 25:
+					case 25:
 					case 28:
 					case 29:
 					case 30:
@@ -725,13 +747,13 @@ class ZSchedule extends LBase {
 //					case 23:
 //					case 24:
 //					case 25:
-					case 28:
-					case 29:
-					case 30:
-					case 31:
-					case 32:
-						dayGY3[dayID] = 1;
-						break;
+//					case 28:
+//					case 29:
+//					case 30:
+//					case 31:
+//					case 32:
+//						dayGY3[dayID] = 1;
+//						break;
 					default:
 						dayGY3[dayID] = 0;
 					}
@@ -806,10 +828,10 @@ class ZSchedule extends LBase {
 //					case 28:
 //					case 29:
 //					case 30:
-					case 31:
+//					case 31:
 //					case 32:
-						dayBK1[dayID] = 1;
-						break;
+//						dayBK1[dayID] = 1;
+//						break;
 					default:
 						dayBK1[dayID] = 0;
 					}

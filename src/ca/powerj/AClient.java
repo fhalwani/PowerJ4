@@ -222,18 +222,20 @@ class AClient extends LBase implements Runnable, WindowListener {
 			}
 		} else if (!autoLogin) {
 			NLogin login = new NLogin(this, frame);
-			if (login.cancel) {
-				errorID = LConstants.ERROR_ACCESS;
-				new NDialog(frame, JOptionPane.WARNING_MESSAGE, LConstants.APP_NAME, "Access denied.");
-				quit();
-			} else if (!login.validateLogin()) {
-				errorID = LConstants.ERROR_ACCESS;
-				new NDialog(frame, JOptionPane.WARNING_MESSAGE, LConstants.APP_NAME, "Access denied.");
-				quit();
-			} else if (!setLogin()) {
-				errorID = LConstants.ERROR_ACCESS;
-				new NDialog(frame, JOptionPane.WARNING_MESSAGE, LConstants.APP_NAME, "Access denied.");
-				quit();
+			if (errorID == LConstants.ERROR_NONE) {
+				if (login.cancel) {
+					errorID = LConstants.ERROR_ACCESS;
+					new NDialog(frame, JOptionPane.WARNING_MESSAGE, LConstants.APP_NAME, "Access denied.");
+					quit();
+				} else if (!login.validateLogin()) {
+					errorID = LConstants.ERROR_ACCESS;
+					new NDialog(frame, JOptionPane.WARNING_MESSAGE, LConstants.APP_NAME, "Access denied.");
+					quit();
+				} else if (!setLogin()) {
+					errorID = LConstants.ERROR_ACCESS;
+					new NDialog(frame, JOptionPane.WARNING_MESSAGE, LConstants.APP_NAME, "Access denied.");
+					quit();
+				}
 			}
 			// Kill Dialog
 			login.dispose();
@@ -275,21 +277,23 @@ class AClient extends LBase implements Runnable, WindowListener {
 		if (closePanel()) {
 			if (super.stopWorker()) {
 				if (defaults != null) {
-					if (frame.isVisible()) {
-						Point location = frame.getLocationOnScreen();
-						if (location.x >= 0 && location.y >= 0) {
-							defaults.setInt("mainx", location.x);
-							defaults.setInt("mainy", location.y);
+					if (frame != null) {
+						if (frame.isVisible()) {
+							Point location = frame.getLocationOnScreen();
+							if (location.x >= 0 && location.y >= 0) {
+								defaults.setInt("mainx", location.x);
+								defaults.setInt("mainy", location.y);
+							}
+							Dimension size = frame.getSize();
+							if (size.width >= 600 && size.height >= 100) {
+								defaults.setInt("mainw", size.width);
+								defaults.setInt("mainh", size.height);
+							}
 						}
-						Dimension size = frame.getSize();
-						if (size.width >= 600 && size.height >= 100) {
-							defaults.setInt("mainw", size.width);
-							defaults.setInt("mainh", size.height);
-						}
+						frame.dispose();
 					}
 					defaults.close();
 				}
-				frame.dispose();
 				System.exit(0);
 			} else {
 				display(LConstants.ERROR_NONE, LConstants.APP_NAME, "Updates are in progross, please wait...");

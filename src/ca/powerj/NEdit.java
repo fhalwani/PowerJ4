@@ -1,6 +1,8 @@
 package ca.powerj;
 
 import java.awt.Dimension;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.sql.PreparedStatement;
 import java.util.Hashtable;
@@ -12,6 +14,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.TableModelEvent;
@@ -57,7 +60,21 @@ class NEdit extends NBase {
 		textField.addAncestorListener(new IFocusListener());
 		textField.setName("CaseNo");
 		textField.setMaximumSize(textField.getPreferredSize());
-		textField.addFocusListener(this);
+		textField.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				if (altered) {
+					altered = false;
+					try {
+						JTextField tf = (JTextField) e.getSource();
+						Document doc = tf.getDocument();
+						String caseNo = doc.getText(0, doc.getLength());
+						getData(caseNo);
+					} catch (BadLocationException ignore) {
+					}
+				}
+			}
+		});
 		textField.getDocument().addDocumentListener(this);
 		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_C, "Case No:");
 		label.setLabelFor(textField);
@@ -71,7 +88,7 @@ class NEdit extends NBase {
 		modelSpec.addTableModelListener(new TableModelListener() {
 			@Override
 			public void tableChanged(TableModelEvent e) {
-				if (e.getType() == TableModelEvent.UPDATE) {
+				if (e.getType() == TableModelEvent.UPDATE && (!programmaticChange)) {
 					save(modelSpec.getMasterID(e.getFirstRow()), modelSpec.getSpecID(e.getColumn()));
 				}
 			}
@@ -103,10 +120,17 @@ class NEdit extends NBase {
 	}
 
 	private void getData(String caseNo) {
-		pj.dbAP.setString(apStms.get(DPowerpath.STM_CASE_NUMBER), 1, caseNo);
-		long caseID = pj.dbAP.getLong(apStms.get(DPowerpath.STM_CASE_NUMBER));
-		modelEvent.getData(caseID, apStms.get(DPowerpath.STM_CASE_EVENTS));
-		modelSpec.getData(caseID, apStms.get(DPowerpath.STM_CASE_SPCMNS));
+		if (caseNo != null) {
+			caseNo = caseNo.trim().toUpperCase();
+			if (caseNo.length() > 10) {
+				programmaticChange = true;
+				pj.dbAP.setString(apStms.get(DPowerpath.STM_CASE_NUMBER), 1, caseNo);
+				long caseID = pj.dbAP.getLong(apStms.get(DPowerpath.STM_CASE_NUMBER));
+				modelEvent.getData(caseID, apStms.get(DPowerpath.STM_CASE_EVENTS));
+				modelSpec.getData(caseID, apStms.get(DPowerpath.STM_CASE_SPCMNS));
+				programmaticChange = false;
+			}
+		}
 	}
 
 	private void save(short masterID, long specID) {
@@ -119,21 +143,7 @@ class NEdit extends NBase {
 
 	@Override
 	void trackDocument(DocumentEvent e) {
-		if (!programmaticChange) {
-			if (!pj.offLine) {
-				try {
-					Document doc = e.getDocument();
-					String caseNo = doc.getText(0, doc.getLength());
-					if (caseNo != null) {
-						caseNo = caseNo.trim().toUpperCase();
-						if (caseNo.length() == 12) {
-							altered = true;
-							getData(caseNo);
-						}
-					}
-				} catch (BadLocationException ignore) {
-				}
-			}
-		}
+		if (!programmaticChange)
+			altered = true;
 	}
 }

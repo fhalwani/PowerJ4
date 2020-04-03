@@ -197,6 +197,8 @@ class NLogin extends JDialog implements ActionListener, FocusListener, KeyListen
 		pj.apPass = apPassword;
 		if (pj.errorID == LConstants.ERROR_NONE) {
 			pj.initDBAP();
+		}
+		if (pj.errorID == LConstants.ERROR_NONE) {
 			Hashtable<Byte, PreparedStatement> apStms = pj.dbAP.prepareStatements(LConstants.ACTION_LLOGIN);
 			pj.dbAP.setString(apStms.get(DPowerpath.STM_PERS_LOGIN), 1, apLogin);
 			pj.userID = pj.dbAP.getShort(apStms.get(DPowerpath.STM_PERS_LOGIN));

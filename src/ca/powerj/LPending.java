@@ -496,7 +496,7 @@ class LPending {
 	}
 
 	private void getLastUpdate() {
-		long accession = dbPowerJ.getLong(pjStms.get(DPowerJ.STM_PND_SL_LST));
+		long accession = dbPowerJ.getTime(pjStms.get(DPowerJ.STM_PND_SL_LST));
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MONTH, -2);
 		cal.set(Calendar.HOUR_OF_DAY, 0);

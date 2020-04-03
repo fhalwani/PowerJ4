@@ -302,7 +302,8 @@ class NOrderGroup extends NBase {
 		Component c = (Component) e.getSource();
 		if (c instanceof IComboBox) {
 			IComboBox cc = (IComboBox) c;
-			int i = (int) cc.getClientProperty("Tip");
+			String s = (String) cc.getClientProperty("Tip");
+			int i = Integer.valueOf(s);
 			setToolTip(i);
 			return;
 		}

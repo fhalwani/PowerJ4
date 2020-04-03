@@ -140,9 +140,7 @@ class DCore {
 		try {
 			rst = pstm.executeQuery();
 			while (rst.next()) {
-				if (rst.getTimestamp(1) != null) {
-					l = rst.getTimestamp(1).getTime();
-				}
+				l = rst.getLong(1);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);

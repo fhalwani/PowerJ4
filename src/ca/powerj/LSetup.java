@@ -51,11 +51,101 @@ class LSetup {
 	}
 
 	byte getByte(byte key) {
-		return pj.numbers.parseByte(getString(key));
+		byte value = pj.numbers.parseByte(getString(key));
+		switch (key) {
+		case VAR_OPENING:
+			if (value < 0) {
+				value = 0;
+			} else if (value > 12) {
+				value = 12;
+			}
+			break;
+		case VAR_CLOSING:
+			if (value < 13) {
+				value = 13;
+			} else if (value > 23) {
+				value = 23;
+			}
+			break;
+		case VAR_V5_INTERVAL:
+			// Update every 1-12 months
+			if (value < 1) {
+				value = 1;
+			} else if (value > 12) {
+				value = 12;
+			}
+			break;
+		case VAR_V5_UPDATE:
+			// Update using aggregate data from the last 1-3 years
+			if (value < 1) {
+				value = 1;
+			} else if (value > 3) {
+				value = 3;
+			}
+			break;
+		default:
+		}
+		return value;
 	}
 
 	int getInt(byte key) {
-		return pj.numbers.parseInt(getString(key));
+		int value = pj.numbers.parseInt(getString(key));
+		switch (key) {
+		case VAR_MONTH_RUN:
+			// Month number of the last update
+			if (value < 1) {
+				value = 1;
+			} else if (value > 12) {
+				value = 12;
+			}
+			break;
+		case VAR_ROUTE_TIME:
+			// routing time (range 10 am - 6 pm)
+			if (value < 36000000) {
+				value = 36000000;
+			} else if (value > 64800000) {
+				value = 64800000;
+			}
+			break;
+		case VAR_TIMER:
+			if (value < 1) {
+				value = 1;
+			} else if (value > 10) {
+				value = 10;
+			}
+			// From minutes to milliseconds
+			value *= 60000;
+			break;
+		case VAR_UPDATER:
+			if (value < 5) {
+				// Minimum every 5 minutes to prevent deadlocks
+				value = 5;
+			} else if (value > 180) {
+				// Max every 3 hours
+				value = 180;
+			}
+			// From minutes to milliseconds
+			value *= 60000;
+			break;
+		case VAR_V5_FROZEN:
+			// Workload in seconds (range 1-30 minutes)
+			if (value < 60) {
+				value = 60;
+			} else if (value > 1800) {
+				value = 1800;
+			}
+			break;
+		case VAR_V5_FTE:
+			// Annual Workload in seconds (range 3000000-9999999 minutes)
+			if (value < 3000000) {
+				value = 3000000;
+			} else if (value > 9999999) {
+				value = 9999999;
+			}
+			break;
+		default:
+		}
+		return value;
 	}
 
 	long getLong(byte key) {
@@ -91,8 +181,8 @@ class LSetup {
 	boolean setByte(byte key, byte value) {
 		switch (key) {
 		case VAR_OPENING:
-			if (value < 1) {
-				value = 1;
+			if (value < 0) {
+				value = 0;
 			} else if (value > 12) {
 				value = 12;
 			}
@@ -127,25 +217,53 @@ class LSetup {
 
 	boolean setInt(byte key, int value) {
 		switch (key) {
+		case VAR_MONTH_RUN:
+			// Month number of the last update
+			if (value < 1) {
+				value = 1;
+			} else if (value > 12) {
+				value = 12;
+			}
+			break;
+		case VAR_ROUTE_TIME:
+			// routing time (range 10 am - 6 pm)
+			if (value < 36000000) {
+				value = 36000000;
+			} else if (value > 64800000) {
+				value = 64800000;
+			}
+			break;
 		case VAR_TIMER:
-			// Minimum every 1 minute to prevent client freeze
 			if (value < 1) {
 				value = 1;
 			} else if (value > 10) {
 				value = 10;
 			}
-			// From minutes to milliseconds
-			value *= 60000;
 			break;
 		case VAR_UPDATER:
-			// Minimum every 5 minutes to prevent deadlocks
 			if (value < 5) {
+				// Minimum every 5 minutes to prevent deadlocks
 				value = 5;
-			} else if (value > 180) {
-				value = 180;
+			} else if (value > 1440) {
+				// Max every 24 hours
+				value = 1440;
 			}
-			// From minutes to milliseconds
-			value *= 60000;
+			break;
+		case VAR_V5_FROZEN:
+			// Workload in seconds (range 1-30 minutes)
+			if (value < 60) {
+				value = 60;
+			} else if (value > 1800) {
+				value = 1800;
+			}
+			break;
+		case VAR_V5_FTE:
+			// Annual Workload in seconds (range 3000000-9999999 minutes)
+			if (value < 3000000) {
+				value = 3000000;
+			} else if (value > 9999999) {
+				value = 9999999;
+			}
 			break;
 		default:
 		}
