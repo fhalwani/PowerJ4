@@ -311,6 +311,8 @@ class NWorkload extends NBase {
 			if (alteredRows) {
 				setCharts(tree.getTree().getPathForRow(0));
 			}
+			pj.statusBar.setMessage("Workload " + pj.dates.formatter(timeFrom, LDates.FORMAT_DATELONG) + " - "
+					+ pj.dates.formatter(timeTo, LDates.FORMAT_DATELONG));
 			pj.setBusy(false);
 		}
 

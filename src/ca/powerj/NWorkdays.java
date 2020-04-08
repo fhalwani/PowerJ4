@@ -100,7 +100,7 @@ class NWorkdays extends NBase {
 		Calendar calMax = pj.dates.setMidnight(null);
 		Calendar calStart = Calendar.getInstance();
 		Calendar calEnd = Calendar.getInstance();
-		calMax.set(Calendar.DAY_OF_MONTH, 1);
+		calMax.add(Calendar.DAY_OF_YEAR, -1);
 		timeFrom = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
 		timeTo = calMax.getTimeInMillis();
 		calMin.setTimeInMillis(timeFrom);
@@ -126,7 +126,7 @@ class NWorkdays extends NBase {
 		if (fileName.length() == 0)
 			return;
 		final float[] widths = new float[headers.size()];
-		String str = "Workdays - " + pj.dates.formatter(timeFrom, LDates.FORMAT_DATELONG) + " - "
+		String str = "Workdays " + pj.dates.formatter(timeFrom, LDates.FORMAT_DATELONG) + " - "
 				+ pj.dates.formatter(timeTo, LDates.FORMAT_DATELONG);
 		LPdf pdfLib = new LPdf();
 		HashMap<String, Font> fonts = pdfLib.getFonts();
@@ -246,7 +246,7 @@ class NWorkdays extends NBase {
 			Row xlsRow = sheet.createRow(0);
 			xlsRow.setHeightInPoints(45);
 			Cell xlsCell = xlsRow.createCell(0);
-			xlsCell.setCellValue("Workdays - " + pj.dates.formatter(timeFrom, LDates.FORMAT_DATELONG) + " - "
+			xlsCell.setCellValue("Workdays " + pj.dates.formatter(timeFrom, LDates.FORMAT_DATELONG) + " - "
 					+ pj.dates.formatter(timeTo, LDates.FORMAT_DATELONG));
 			xlsCell.setCellStyle(styles.get("title"));
 			sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, headers.size() - 1));
@@ -497,6 +497,8 @@ class NWorkdays extends NBase {
 				}
 				chartBar.setChart(x, y, "Workdays Distribution");
 			}
+			pj.statusBar.setMessage("Workdays " + pj.dates.formatter(timeFrom, LDates.FORMAT_DATELONG) + " - "
+					+ pj.dates.formatter(timeTo, LDates.FORMAT_DATELONG));
 			pj.setBusy(false);
 		}
 	}

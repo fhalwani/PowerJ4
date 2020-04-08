@@ -672,8 +672,10 @@ class NBacklog extends NBase {
 
 		@Override
 		protected Void doInBackground() throws Exception {
+			double counter = 0;
 			OWorkday workday = new OWorkday();
 			ArrayList<OWorkday> workdays = new ArrayList<OWorkday>();
+			ArrayList<ArrayList<Double>> workflow = new ArrayList<ArrayList<Double>>();
 			Calendar calStart = pj.dates.setMidnight(null);
 			workday = new OWorkday();
 			workday.date.setTime(calStart.getTimeInMillis());
@@ -693,17 +695,12 @@ class NBacklog extends NBase {
 							: (o1.date.getTime() > o2.date.getTime() ? 1 : 0));
 				}
 			});
-			ArrayList<ArrayList<Double>> workflow = new ArrayList<ArrayList<Double>>();
 			for (int x = 0; x < 3; x++) {
 				workflow.add(new ArrayList<Double>());
 				for (int y = 0; y < workdays.size(); y++) {
 					workflow.get(x).add(0d);
 				}
 			}
-			long start = 0;
-			long end = 0;
-			byte status = OCaseStatus.ID_ACCES;
-			double counter = 0;
 			yPie = new double[3];
 			for (OCasePending pending : pendings) {
 				if (filters[FILTER_FAC] == 0 || filters[FILTER_FAC] == pending.facID) {
@@ -725,62 +722,212 @@ class NBacklog extends NBase {
 									}
 								}
 								switch (filters[FILTER_STA]) {
-								case OCaseStatus.ID_HISTO:
-									start = pending.grossed.getTimeInMillis();
-									end = pending.routed.getTimeInMillis();
-									status = OCaseStatus.ID_ROUTE;
+								case OCaseStatus.ID_ACCES:
+									for (int x = workdays.size() - 1; x >= 0; x--) {
+										if (pending.accessed.getTimeInMillis() > workdays.get(x).date.getTime()) {
+											// Date In
+											counter = 1.0 + workflow.get(0).get(x);
+											workflow.get(0).set(x, counter);
+											break;
+										}
+									}
+									if (pending.statusID == OCaseStatus.ID_ACCES) {
+										// Still Pending
+										counter = 1.0 + workflow.get(2).get(workdays.size() - 1);
+										workflow.get(2).set(workdays.size() - 1, counter);
+									} else {
+										for (int x = workdays.size() - 1; x >= 0; x--) {
+											if (pending.grossed.getTimeInMillis() > workdays.get(x).date.getTime()) {
+												// Date Out
+												counter = 1.0 + workflow.get(1).get(x);
+												workflow.get(1).set(x, counter);
+												break;
+											}
+										}
+									}
 									break;
 								case OCaseStatus.ID_GROSS:
-									start = pending.accessed.getTimeInMillis();
-									end = pending.grossed.getTimeInMillis();
-									status = OCaseStatus.ID_GROSS;
+									if (pending.statusID > OCaseStatus.ID_ACCES) {
+										for (int x = workdays.size() - 1; x >= 0; x--) {
+											if (pending.grossed.getTimeInMillis() > workdays.get(x).date.getTime()) {
+												// Date In
+												counter = 1.0 + workflow.get(0).get(x);
+												workflow.get(0).set(x, counter);
+												break;
+											}
+										}
+										if (pending.statusID == OCaseStatus.ID_GROSS) {
+											// Still Pending
+											counter = 1.0 + workflow.get(2).get(workdays.size() - 1);
+											workflow.get(2).set(workdays.size() - 1, counter);
+										} else {
+											for (int x = workdays.size() - 1; x >= 0; x--) {
+												if (pending.embeded.getTimeInMillis() > workdays.get(x).date
+														.getTime()) {
+													// Date Out
+													counter = 1.0 + workflow.get(1).get(x);
+													workflow.get(1).set(x, counter);
+													break;
+												}
+											}
+										}
+									}
 									break;
 								case OCaseStatus.ID_EMBED:
-									start = pending.grossed.getTimeInMillis();
-									end = pending.embeded.getTimeInMillis();
-									status = OCaseStatus.ID_EMBED;
+									if (pending.statusID > OCaseStatus.ID_GROSS) {
+										for (int x = workdays.size() - 1; x >= 0; x--) {
+											if (pending.embeded.getTimeInMillis() > workdays.get(x).date.getTime()) {
+												// Date In
+												counter = 1.0 + workflow.get(0).get(x);
+												workflow.get(0).set(x, counter);
+												break;
+											}
+										}
+										if (pending.statusID == OCaseStatus.ID_EMBED) {
+											// Still Pending
+											counter = 1.0 + workflow.get(2).get(workdays.size() - 1);
+											workflow.get(2).set(workdays.size() - 1, counter);
+										} else {
+											for (int x = workdays.size() - 1; x >= 0; x--) {
+												if (pending.microed.getTimeInMillis() > workdays.get(x).date
+														.getTime()) {
+													// Date Out
+													counter = 1.0 + workflow.get(1).get(x);
+													workflow.get(1).set(x, counter);
+													break;
+												}
+											}
+										}
+									}
 									break;
 								case OCaseStatus.ID_MICRO:
-									start = pending.embeded.getTimeInMillis();
-									end = pending.microed.getTimeInMillis();
-									status = OCaseStatus.ID_MICRO;
+									if (pending.statusID > OCaseStatus.ID_EMBED) {
+										for (int x = workdays.size() - 1; x >= 0; x--) {
+											if (pending.microed.getTimeInMillis() > workdays.get(x).date.getTime()) {
+												// Date In
+												counter = 1.0 + workflow.get(0).get(x);
+												workflow.get(0).set(x, counter);
+												break;
+											}
+										}
+										if (pending.statusID == OCaseStatus.ID_MICRO) {
+											// Still Pending
+											counter = 1.0 + workflow.get(2).get(workdays.size() - 1);
+											workflow.get(2).set(workdays.size() - 1, counter);
+										} else {
+											for (int x = workdays.size() - 1; x >= 0; x--) {
+												if (pending.routed.getTimeInMillis() > workdays.get(x).date.getTime()) {
+													// Date Out
+													counter = 1.0 + workflow.get(1).get(x);
+													workflow.get(1).set(x, counter);
+													break;
+												}
+											}
+										}
+									}
 									break;
 								case OCaseStatus.ID_ROUTE:
-									start = pending.microed.getTimeInMillis();
-									end = pending.routed.getTimeInMillis();
-									status = OCaseStatus.ID_ROUTE;
+									if (pending.statusID > OCaseStatus.ID_MICRO) {
+										for (int x = workdays.size() - 1; x >= 0; x--) {
+											if (pending.routed.getTimeInMillis() > workdays.get(x).date.getTime()) {
+												// Date In
+												counter = 1.0 + workflow.get(0).get(x);
+												workflow.get(0).set(x, counter);
+												break;
+											}
+										}
+										if (pending.statusID == OCaseStatus.ID_ROUTE) {
+											// Still Pending
+											counter = 1.0 + workflow.get(2).get(workdays.size() - 1);
+											workflow.get(2).set(workdays.size() - 1, counter);
+										} else {
+											for (int x = workdays.size() - 1; x >= 0; x--) {
+												if (pending.finaled.getTimeInMillis() > workdays.get(x).date
+														.getTime()) {
+													// Date Out
+													counter = 1.0 + workflow.get(1).get(x);
+													workflow.get(1).set(x, counter);
+													break;
+												}
+											}
+										}
+									}
 									break;
 								case OCaseStatus.ID_DIAGN:
-									start = pending.routed.getTimeInMillis();
-									end = pending.finaled.getTimeInMillis();
-									status = OCaseStatus.ID_DIAGN;
+									if (pending.statusID > OCaseStatus.ID_ROUTE) {
+										for (int x = workdays.size() - 1; x >= 0; x--) {
+											if (pending.finaled.getTimeInMillis() > workdays.get(x).date.getTime()) {
+												// Date In
+												counter = 1.0 + workflow.get(0).get(x);
+												workflow.get(0).set(x, counter);
+												break;
+											}
+										}
+										if (pending.statusID == OCaseStatus.ID_DIAGN) {
+											// Still Pending
+											counter = 1.0 + workflow.get(2).get(workdays.size() - 1);
+											workflow.get(2).set(workdays.size() - 1, counter);
+										} else {
+											for (int x = workdays.size() - 1; x >= 0; x--) {
+												if (pending.finaled.getTimeInMillis() > workdays.get(x).date
+														.getTime()) {
+													// Date Out
+													counter = 1.0 + workflow.get(1).get(x);
+													workflow.get(1).set(x, counter);
+													break;
+												}
+											}
+										}
+									}
 									break;
-								case OCaseStatus.ID_FINAL:
-									start = pending.routed.getTimeInMillis();
-									end = pending.finaled.getTimeInMillis();
-									status = OCaseStatus.ID_FINAL;
+								case OCaseStatus.ID_HISTO:
+									if (pending.statusID > OCaseStatus.ID_ACCES) {
+										for (int x = workdays.size() - 1; x >= 0; x--) {
+											if (pending.grossed.getTimeInMillis() > workdays.get(x).date.getTime()) {
+												// Date In
+												counter = 1.0 + workflow.get(0).get(x);
+												workflow.get(0).set(x, counter);
+												break;
+											}
+										}
+										if (pending.statusID < OCaseStatus.ID_ROUTE) {
+											// Still Pending
+											counter = 1.0 + workflow.get(2).get(workdays.size() - 1);
+											workflow.get(2).set(workdays.size() - 1, counter);
+										} else {
+											for (int x = workdays.size() - 1; x >= 0; x--) {
+												if (pending.routed.getTimeInMillis() > workdays.get(x).date.getTime()) {
+													// Date Out
+													counter = 1.0 + workflow.get(1).get(x);
+													workflow.get(1).set(x, counter);
+													break;
+												}
+											}
+										}
+									}
 									break;
 								default:
-									start = pending.accessed.getTimeInMillis();
-									end = pending.finaled.getTimeInMillis();
-									status = OCaseStatus.ID_FINAL;
-								}
-								for (int x = workdays.size() - 1; x >= 0; x--) {
-									if (start > workdays.get(x).date.getTime()) {
-										counter = 1.0 + workflow.get(0).get(x);
-										workflow.get(0).set(x, counter);
-										break;
-									}
-								}
-								if (pending.statusID < status) {
-									counter = 1.0 + workflow.get(2).get(workdays.size() - 1);
-									workflow.get(2).set(workdays.size() - 1, counter);
-								} else {
+									// All pending cases
 									for (int x = workdays.size() - 1; x >= 0; x--) {
-										if (end > workdays.get(x).date.getTime()) {
-											counter = 1.0 + workflow.get(1).get(x);
-											workflow.get(1).set(x, counter);
+										if (pending.accessed.getTimeInMillis() > workdays.get(x).date.getTime()) {
+											// Date In
+											counter = 1.0 + workflow.get(0).get(x);
+											workflow.get(0).set(x, counter);
 											break;
+										}
+									}
+									if (pending.statusID < OCaseStatus.ID_FINAL) {
+										// Still Pending
+										counter = 1.0 + workflow.get(2).get(workdays.size() - 1);
+										workflow.get(2).set(workdays.size() - 1, counter);
+									} else {
+										for (int x = workdays.size() - 1; x >= 0; x--) {
+											if (pending.finaled.getTimeInMillis() > workdays.get(x).date.getTime()) {
+												// Date Out
+												counter = 1.0 + workflow.get(1).get(x);
+												workflow.get(1).set(x, counter);
+												break;
+											}
 										}
 									}
 								}
