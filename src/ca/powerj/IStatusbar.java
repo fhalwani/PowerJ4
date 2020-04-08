@@ -1,6 +1,8 @@
 package ca.powerj;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -29,21 +31,12 @@ class IStatusbar extends JPanel {
 		bar = new JProgressBar(0, 100);
 		bar.setVisible(false);
 		bar.setValue(0);
-		IGUI.addComponent(label, 0, 0, 1, 1, 0.7, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.EAST, this);
-		IGUI.addComponent(bar, 1, 0, 1, 1, 0.3, 0,
-				GridBagConstraints.HORIZONTAL,
-				GridBagConstraints.WEST, this);
+		IGUI.addComponent(label, 0, 0, 1, 1, 0.7, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST, this);
+		IGUI.addComponent(bar, 1, 0, 1, 1, 0.3, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, this);
 	}
 
 	void setMessage(String s) {
-		final String m = s;
-		javax.swing.SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				label.setText(" " + m + " ");
-			}
-		});
+		label.setText(" " + s);
 	}
 
 	void setProgress(int value) {

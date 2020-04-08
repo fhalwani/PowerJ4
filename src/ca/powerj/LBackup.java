@@ -778,189 +778,56 @@ class LBackup {
 		return in.replaceAll("\\", "\\\\");
 	}
 
-	private void delete() throws SQLException, FileNotFoundException, NumberFormatException {
-		pj.log(LConstants.ERROR_NONE, "Packing tables.");
-		for (int i = 0; i < 29; i++) {
-			switch (i) {
-			case 0:
-				input = "DELETE FROM Errors";
-				break;
-			case 1:
-				input = "DELETE FROM Comments";
-				break;
-			case 2:
-				input = "DELETE FROM Additionals";
-				break;
-			case 3:
-				input = "DELETE FROM Frozens";
-				break;
-			case 4:
-				input = "DELETE FROM Orders";
-				break;
-			case 5:
-				input = "DELETE FROM Specimens";
-				break;
-			case 6:
-				input = "DELETE FROM Cases";
-				break;
-			case 7:
-				input = "DELETE FROM Pending";
-				break;
-			case 8:
-				input = "DELETE FROM Schedules";
-				break;
-			case 9:
-				input = "DELETE FROM Services";
-				break;
-			case 10:
-				input = "DELETE FROM SpeciMaster";
-				break;
-			case 11:
-				input = "DELETE FROM OrderMaster";
-				break;
-			case 12:
-				input = "DELETE FROM OrderGroups";
-				break;
-			case 13:
-				input = "DELETE FROM OrderTypes";
-				break;
-			case 14:
-				input = "DELETE FROM SpeciGroups";
-				break;
-			case 15:
-				input = "DELETE FROM Accessions";
-				break;
-			case 16:
-				input = "DELETE FROM Subspecial";
-				break;
-			case 17:
-				input = "DELETE FROM Coder4";
-				break;
-			case 18:
-				input = "DELETE FROM Coder3";
-				break;
-			case 19:
-				input = "DELETE FROM Coder2";
-				break;
-			case 20:
-				input = "DELETE FROM Coder1";
-				break;
-			case 21:
-				input = "DELETE FROM Turnaround";
-				break;
-			case 22:
-				input = "DELETE FROM Specialties";
-				break;
-			case 23:
-				input = "DELETE FROM Rules";
-				break;
-			case 24:
-				input = "DELETE FROM Procedures";
-				break;
-			case 25:
-				input = "DELETE FROM Persons";
-				break;
-			case 26:
-				input = "DELETE FROM Facilities";
-				break;
-			case 27:
-				input = "DELETE FROM Workdays";
-				break;
-			default:
-				input = "DELETE FROM Setup";
-			}
-			pj.dbPowerJ.execute(input);
-			try {
-				Thread.sleep(LConstants.SLEEP_TIME);
-			} catch (InterruptedException e) {
-			}
-		}
-	}
-
 	void restore() {
 		try {
 			pj.setBusy(true);
 			if (getDir()) {
-//				delete();
-				for (int i = 0; i < 26; i++) {
+				for (int i = 0; i < 15; i++) {
 					switch (i) {
 					case 0:
-//						restoreSetup();
-						break;
-					case 1:
-//						restoreWorkdays();
-						break;
-					case 2:
 						restoreFacilities();
 						break;
-					case 3:
+					case 1:
 						restorePersons();
 						break;
-					case 4:
-//						restoreProcedures();
-						break;
-					case 5:
-//						restoreRules();
-						break;
-					case 6:
-//						restoreSpecialties();
-						break;
-					case 7:
-//						restoreTurnaround();
-						break;
-					case 8:
-//						restoreCoders();
-						break;
-					case 9:
-//						restoreSubspecial();
-						break;
-					case 10:
-//						restoreOrderTypes();
-						break;
-					case 11:
-//						restoreOrderGroups();
-						break;
-					case 12:
-//						restoreSpeciGroups();
-						break;
-					case 13:
+					case 2:
 						restoreAccessions();
 						break;
-					case 14:
+					case 3:
 						restoreOrderMaster();
 						break;
-					case 15:
+					case 4:
 						restoreSpeciMaster();
 						break;
-					case 16:
+					case 5:
 						restoreServices();
 						break;
-					case 17:
+					case 6:
 						restoreSchedules();
 						break;
-					case 18:
-//						restorePending();
+					case 7:
+						restorePending();
 						break;
-					case 19:
-//						restoreCases();
+					case 8:
+						restoreCases();
 						break;
-					case 20:
-//						restoreSpecimens();
+					case 9:
+						restoreSpecimens();
 						break;
-					case 21:
-//						restoreOrders();
+					case 10:
+						restoreOrders();
 						break;
-					case 22:
-//						restoreFrozens();
+					case 11:
+						restoreFrozens();
 						break;
-					case 23:
-//						restoreAdditionals();
+					case 12:
+						restoreAdditionals();
 						break;
-					case 24:
-//						restoreComments();
+					case 13:
+						restoreComments();
 						break;
 					default:
-//						restoreErrors();
+						restoreErrors();
 					}
 					try {
 						Thread.sleep(LConstants.SLEEP_TIME);
@@ -1112,41 +979,6 @@ class LBackup {
 		}
 	}
 
-	private void restoreCoders() throws SQLException, FileNotFoundException, NumberFormatException {
-		final String[] tables = { "Coder1", "Coder2", "Coder3", "Coder4" };
-		for (int i = 0; i < 4; i++) {
-			fileName = dataDir + tables[i].toLowerCase() + ".txt";
-			file = new File(fileName);
-			if (file.exists()) {
-				noRows = 0;
-				scanner = new Scanner(new FileReader(fileName));
-				pstm = pj.dbPowerJ.prepareStatement("INSERT INTO " + tables[i]
-						+ " (COID, RUID, COQY, COV1, COV2, COV3, CONM, CODC) " + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-				while (scanner.hasNextLine()) {
-					input = scanner.nextLine();
-					if (input.length() > 1) {
-						if (!input.startsWith("-")) {
-							columns = input.split(tab);
-							pstm.setShort(1, Short.valueOf(columns[0]));
-							pstm.setShort(2, Short.valueOf(columns[1]));
-							pstm.setShort(3, Short.valueOf(columns[2]));
-							pstm.setDouble(4, Double.valueOf(columns[3]));
-							pstm.setDouble(5, Double.valueOf(columns[4]));
-							pstm.setDouble(6, Double.valueOf(columns[5]));
-							pstm.setString(7, columns[6]);
-							pstm.setString(8, columns[7]);
-							pstm.executeUpdate();
-							noRows++;
-						}
-					}
-				}
-				pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to %s Table.", noRows, tables[i]));
-				scanner.close();
-				pstm.close();
-			}
-		}
-	}
-
 	private void restoreComments() throws SQLException, FileNotFoundException, NumberFormatException {
 		fileName = dataDir + "comments.txt";
 		file = new File(fileName);
@@ -1265,39 +1097,6 @@ class LBackup {
 		}
 	}
 
-	private void restoreOrderGroups() throws SQLException, FileNotFoundException, NumberFormatException {
-		fileName = dataDir + "ordergroups.txt";
-		file = new File(fileName);
-		if (file.exists()) {
-			noRows = 0;
-			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO OrderGroups (OGID, OTID, OGC1, OGC2, OGC3, "
-					+ "OGC4, OGC5, OGNM, OGDC) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-			while (scanner.hasNextLine()) {
-				input = scanner.nextLine();
-				if (input.length() > 1) {
-					if (!input.startsWith("-")) {
-						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setShort(2, Short.valueOf(columns[1]));
-						pstm.setShort(3, Short.valueOf(columns[2]));
-						pstm.setShort(4, Short.valueOf(columns[3]));
-						pstm.setShort(5, Short.valueOf(columns[4]));
-						pstm.setShort(6, Short.valueOf(columns[5]));
-						pstm.setInt(7, Integer.valueOf(columns[6]));
-						pstm.setString(8, columns[7]);
-						pstm.setString(9, columns[8]);
-						pstm.executeUpdate();
-						noRows++;
-					}
-				}
-			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Order Groups Table.", noRows));
-			scanner.close();
-			pstm.close();
-		}
-	}
-
 	private void restoreOrderMaster() throws SQLException, FileNotFoundException, NumberFormatException {
 		fileName = dataDir + "ordermaster.txt";
 		file = new File(fileName);
@@ -1351,31 +1150,6 @@ class LBackup {
 				}
 			}
 			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Orders Table.", noRows));
-			scanner.close();
-			pstm.close();
-		}
-	}
-
-	private void restoreOrderTypes() throws SQLException, FileNotFoundException, NumberFormatException {
-		fileName = dataDir + "ordertypes.txt";
-		file = new File(fileName);
-		if (file.exists()) {
-			noRows = 0;
-			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO OrderTypes (OTID, OTNM) VALUES (?, ?)");
-			while (scanner.hasNextLine()) {
-				input = scanner.nextLine();
-				if (input.length() > 1) {
-					if (!input.startsWith("-")) {
-						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setString(2, columns[1]);
-						pstm.executeUpdate();
-						noRows++;
-					}
-				}
-			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Order Types Table.", noRows));
 			scanner.close();
 			pstm.close();
 		}
@@ -1466,58 +1240,6 @@ class LBackup {
 		}
 	}
 
-	private void restoreProcedures() throws SQLException, FileNotFoundException, NumberFormatException {
-		fileName = dataDir + "procedures.txt";
-		file = new File(fileName);
-		if (file.exists()) {
-			noRows = 0;
-			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Procedures (POID, PONM, PODC) VALUES (?, ?, ?)");
-			while (scanner.hasNextLine()) {
-				input = scanner.nextLine();
-				if (input.length() > 1) {
-					if (!input.startsWith("-")) {
-						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setString(2, columns[1]);
-						pstm.setString(3, columns[2]);
-						pstm.executeUpdate();
-						noRows++;
-					}
-				}
-			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Procedures Table.", noRows));
-			scanner.close();
-			pstm.close();
-		}
-	}
-
-	private void restoreRules() throws SQLException, FileNotFoundException, NumberFormatException {
-		fileName = dataDir + "rules.txt";
-		file = new File(fileName);
-		if (file.exists()) {
-			noRows = 0;
-			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Rules (RUID, RUNM, RUDC) VALUES (?, ?, ?)");
-			while (scanner.hasNextLine()) {
-				input = scanner.nextLine();
-				if (input.length() > 1) {
-					if (!input.startsWith("-")) {
-						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setString(2, columns[1]);
-						pstm.setString(3, columns[2]);
-						pstm.executeUpdate();
-						noRows++;
-					}
-				}
-			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %1$d rows to Rules Table.", noRows));
-			scanner.close();
-			pstm.close();
-		}
-	}
-
 	private void restoreSchedules() throws SQLException, FileNotFoundException, NumberFormatException {
 		fileName = dataDir + "schedules.txt";
 		file = new File(fileName);
@@ -1569,103 +1291,6 @@ class LBackup {
 				}
 			}
 			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Services Table.", noRows));
-			scanner.close();
-			pstm.close();
-		}
-	}
-
-	private void restoreSetup() throws SQLException, FileNotFoundException, NumberFormatException {
-		fileName = dataDir + "setup.txt";
-		file = new File(fileName);
-		if (file.exists()) {
-			noRows = 0;
-			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Setup (STID, STVA) VALUES (?, ?)");
-			while (scanner.hasNextLine()) {
-				input = scanner.nextLine();
-				if (input.length() > 1) {
-					if (!input.startsWith("-")) {
-						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setString(2, columns[1]);
-						pstm.executeUpdate();
-						noRows++;
-					}
-				}
-			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Setup Table.", noRows));
-			scanner.close();
-			pstm.close();
-		}
-	}
-
-	private void restoreSpecialties() throws SQLException, FileNotFoundException, NumberFormatException {
-		fileName = dataDir + "specialties.txt";
-		file = new File(fileName);
-		if (file.exists()) {
-			noRows = 0;
-			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ
-					.prepareStatement("INSERT INTO Specialties (SYID, SYFL, SYLD, SYSP, SYNM) VALUES (?, ?, ?, ?, ?)");
-			while (scanner.hasNextLine()) {
-				input = scanner.nextLine();
-				if (input.length() > 1) {
-					if (!input.startsWith("-")) {
-						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setString(2, columns[1]);
-						pstm.setString(3, columns[2]);
-						pstm.setString(4, columns[3]);
-						pstm.setString(5, columns[4]);
-						pstm.executeUpdate();
-						noRows++;
-					}
-				}
-			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Specialties Table.", noRows));
-			scanner.close();
-			pstm.close();
-		}
-	}
-
-	private void restoreSpeciGroups() throws SQLException, FileNotFoundException, NumberFormatException {
-		fileName = dataDir + "specimengroups.txt";
-		file = new File(fileName);
-		if (file.exists()) {
-			noRows = 0;
-			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO SpeciGroups (SGID, SBID, POID, SG1B, SG1M, "
-					+ "SG1R, SG2B, SG2M, SG2R, SG3B, SG3M, SG3R, SG4B, SG4M, SG4R, SGV5, SGLN, SGDC) VALUES "
-					+ "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-			while (scanner.hasNextLine()) {
-				input = scanner.nextLine();
-				if (input.length() > 1) {
-					if (!input.startsWith("-")) {
-						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setShort(2, Short.valueOf(columns[1]));
-						pstm.setShort(3, Short.valueOf(columns[2]));
-						pstm.setShort(4, Short.valueOf(columns[3]));
-						pstm.setShort(5, Short.valueOf(columns[4]));
-						pstm.setShort(6, Short.valueOf(columns[5]));
-						pstm.setShort(7, Short.valueOf(columns[6]));
-						pstm.setShort(8, Short.valueOf(columns[7]));
-						pstm.setShort(9, Short.valueOf(columns[8]));
-						pstm.setShort(10, Short.valueOf(columns[9]));
-						pstm.setShort(11, Short.valueOf(columns[10]));
-						pstm.setShort(12, Short.valueOf(columns[11]));
-						pstm.setShort(13, Short.valueOf(columns[12]));
-						pstm.setShort(14, Short.valueOf(columns[13]));
-						pstm.setShort(15, Short.valueOf(columns[14]));
-						pstm.setInt(16, Integer.valueOf(columns[15]));
-						pstm.setString(17, columns[16]);
-						pstm.setString(18, columns[17]);
-						pstm.executeUpdate();
-						noRows++;
-					}
-				}
-			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Specimen Groups Table.", noRows));
 			scanner.close();
 			pstm.close();
 		}
@@ -1737,91 +1362,6 @@ class LBackup {
 				}
 			}
 			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Specimens Table.", noRows));
-			scanner.close();
-			pstm.close();
-		}
-	}
-
-	private void restoreSubspecial() throws SQLException, FileNotFoundException, NumberFormatException {
-		fileName = dataDir + "subspecialties.txt";
-		file = new File(fileName);
-		if (file.exists()) {
-			noRows = 0;
-			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Subspecial (SBID, SYID, SBNM, SBDC) VALUES (?, ?, ?, ?)");
-			while (scanner.hasNextLine()) {
-				input = scanner.nextLine();
-				if (input.length() > 1) {
-					if (!input.startsWith("-")) {
-						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setShort(2, Short.valueOf(columns[1]));
-						pstm.setString(3, columns[2]);
-						pstm.setString(4, columns[3]);
-						pstm.executeUpdate();
-						noRows++;
-					}
-				}
-			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Subspecialties Table.", noRows));
-			scanner.close();
-			pstm.close();
-		}
-	}
-
-	private void restoreTurnaround() throws SQLException, FileNotFoundException, NumberFormatException {
-		fileName = dataDir + "turnaround.txt";
-		file = new File(fileName);
-		if (file.exists()) {
-			noRows = 0;
-			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement(
-					"INSERT INTO Turnaround (TAID, GRSS, EMBD, MICR, ROUT, FINL, TANM) VALUES (?, ?, ?, ?, ?, ?, ?)");
-			while (scanner.hasNextLine()) {
-				input = scanner.nextLine();
-				if (input.length() > 1) {
-					if (!input.startsWith("-")) {
-						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setShort(2, Short.valueOf(columns[1]));
-						pstm.setShort(3, Short.valueOf(columns[2]));
-						pstm.setShort(4, Short.valueOf(columns[3]));
-						pstm.setShort(5, Short.valueOf(columns[4]));
-						pstm.setShort(6, Short.valueOf(columns[5]));
-						pstm.setString(7, columns[6]);
-						pstm.executeUpdate();
-						noRows++;
-					}
-				}
-			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Turnaround Table.", noRows));
-			scanner.close();
-			pstm.close();
-		}
-	}
-
-	private void restoreWorkdays() throws SQLException, FileNotFoundException, NumberFormatException {
-		fileName = dataDir + "workdays.txt";
-		file = new File(fileName);
-		if (file.exists()) {
-			noRows = 0;
-			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Workdays (WDID, WDNO, WDTP, WDDT) VALUES (?, ?, ?, ?)");
-			while (scanner.hasNextLine()) {
-				input = scanner.nextLine();
-				if (input.length() > 1) {
-					if (!input.startsWith("-")) {
-						columns = input.split(tab);
-						pstm.setInt(1, Integer.valueOf(columns[0]));
-						pstm.setInt(2, Integer.valueOf(columns[1]));
-						pstm.setString(3, columns[2]);
-						pstm.setTimestamp(4, new Timestamp(Long.valueOf(columns[3])));
-						pstm.executeUpdate();
-						noRows++;
-					}
-				}
-			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Workdays Table.", noRows));
 			scanner.close();
 			pstm.close();
 		}
