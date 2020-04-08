@@ -245,13 +245,19 @@ class AClient extends LBase implements Runnable, WindowListener {
 		if (errorID == LConstants.ERROR_NONE) {
 			if (userID == -222 && autoLogin) {
 				userAccess[LConstants.ACCESS_GROSS] = true;
+				userAccess[LConstants.ACCESS_SCHED] = true;
 			} else if (userID == -111 && autoLogin) {
 				userAccess[LConstants.ACCESS_HISTO] = true;
+				userAccess[LConstants.ACCESS_EMBED] = true;
+				userAccess[LConstants.ACCESS_ROUTE] = true;
+				userAccess[LConstants.ACCESS_SCHED] = true;
 			}
 			setActions();
 			createFrame();
-			// start the thread
 			startWorker();
+			if ((userID == -222 || userID == -111) && autoLogin) {
+				setView(LConstants.ACTION_BACKLOG);
+			}
 		}
 	}
 

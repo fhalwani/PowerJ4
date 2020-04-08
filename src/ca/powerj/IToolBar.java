@@ -1,4 +1,5 @@
 package ca.powerj;
+
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -7,25 +8,26 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Calendar;
+
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 
 class IToolBar extends JToolBar {
-	static final byte TB_FAC    = 1;
-	static final byte TB_ORG    = 2;
-	static final byte TB_ORT    = 3;
-	static final byte TB_PRO    = 4;
-	static final byte TB_PRS    = 5;
-	static final byte TB_SPG    = 6;
-	static final byte TB_SPY    = 7;
-	static final byte TB_STA    = 8;
-	static final byte TB_SUB    = 9;
-	static final byte TB_FROM   = 10;
-	static final byte TB_TO     = 11;
-	static final byte TB_GO     = 12;
-	static final byte TB_SPIN   = 13;
+	static final byte TB_FAC = 1;
+	static final byte TB_ORG = 2;
+	static final byte TB_ORT = 3;
+	static final byte TB_PRO = 4;
+	static final byte TB_PRS = 5;
+	static final byte TB_SPG = 6;
+	static final byte TB_SPY = 7;
+	static final byte TB_STA = 8;
+	static final byte TB_SUB = 9;
+	static final byte TB_FROM = 10;
+	static final byte TB_TO = 11;
+	static final byte TB_GO = 12;
+	static final byte TB_SPIN = 13;
 	static final byte TB_FILTER = 14;
 	AClient pj;
 	NBase pnlCore;
@@ -52,7 +54,9 @@ class IToolBar extends JToolBar {
 			addSpecialty();
 			addSubspecialty();
 			addProcedure();
-			addStatus();
+			if (!((pj.userID == -222 || pj.userID == -111) && pj.autoLogin)) {
+				addStatus();
+			}
 			break;
 		case LConstants.ACTION_DISTRIBUTE:
 			addFacility();
@@ -121,13 +125,15 @@ class IToolBar extends JToolBar {
 		case LConstants.ACTION_FORECAST:
 			addFacility();
 			addDates(start, end, min, max);
-			if (rows) addRows();
+			if (rows)
+				addRows();
 			addGo();
 			break;
 		case LConstants.ACTION_SPECIMEN:
 			addFacility();
 			addDates(start, end, min, max);
-			if (rows) addRows();
+			if (rows)
+				addRows();
 			addGo();
 			break;
 		case LConstants.ACTION_WORKDAYS:
@@ -138,9 +144,11 @@ class IToolBar extends JToolBar {
 			break;
 		default:
 			// Workload
-			if (rows) addFacility();
+			if (rows)
+				addFacility();
 			addDates(start, end, min, max);
-			if (rows) addRows();
+			if (rows)
+				addRows();
 			addGo();
 			break;
 		}
@@ -155,7 +163,7 @@ class IToolBar extends JToolBar {
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					IComboDate cbo = (IComboDate) e.getSource();
-	    			pnlCore.setFilter(TB_FROM, cbo.getValue());
+					pnlCore.setFilter(TB_FROM, cbo.getValue());
 				}
 			}
 		});
@@ -170,7 +178,7 @@ class IToolBar extends JToolBar {
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					IComboDate cbo = (IComboDate) e.getSource();
-	    			pnlCore.setFilter(TB_TO, cbo.getValue());
+					pnlCore.setFilter(TB_TO, cbo.getValue());
 				}
 			}
 		});
@@ -185,13 +193,14 @@ class IToolBar extends JToolBar {
 		cbo.setName("Facilities");
 		cbo.setModel(pj.dbPowerJ.getFacilities(true));
 		cbo.addItemListener(new ItemListener() {
-	        public void itemStateChanged(ItemEvent e) {
-	    		if (e.getStateChange() == ItemEvent.SELECTED) {
-	    			IComboBox cb = (IComboBox)e.getSource();
-	    			pnlCore.setFilter(TB_FAC, cb.getIndex());
-	    		}
-	        }
-	    });
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					IComboBox cb = (IComboBox) e.getSource();
+					pnlCore.setFilter(TB_FAC, cb.getIndex());
+				}
+			}
+		});
 		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_F, "Facility:");
 		label.setLabelFor(cbo);
 		add(label);
@@ -203,7 +212,7 @@ class IToolBar extends JToolBar {
 		button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-    			pnlCore.setFilter(TB_FILTER, TB_FILTER);
+				pnlCore.setFilter(TB_FILTER, TB_FILTER);
 			}
 		});
 		add(button);
@@ -214,7 +223,7 @@ class IToolBar extends JToolBar {
 		button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-    			pnlCore.setFilter(TB_GO, TB_GO);
+				pnlCore.setFilter(TB_GO, TB_GO);
 			}
 		});
 		add(button);
@@ -225,13 +234,14 @@ class IToolBar extends JToolBar {
 		cbo.setName("OrderGroups");
 		cbo.setModel(pj.dbPowerJ.getOrderGroupArray(true));
 		cbo.addItemListener(new ItemListener() {
-	        public void itemStateChanged(ItemEvent e) {
-	    		if (e.getStateChange() == ItemEvent.SELECTED) {
-	    			IComboBox cb = (IComboBox)e.getSource();
-	    			pnlCore.setFilter(TB_ORG, cb.getIndex());
-	    		}
-	        }
-	    });
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					IComboBox cb = (IComboBox) e.getSource();
+					pnlCore.setFilter(TB_ORG, cb.getIndex());
+				}
+			}
+		});
 		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_G, "Groups:");
 		label.setLabelFor(cbo);
 		add(label);
@@ -243,13 +253,14 @@ class IToolBar extends JToolBar {
 		cbo.setName("OrderTypes");
 		cbo.setModel(pj.dbPowerJ.getOrderTypes(true));
 		cbo.addItemListener(new ItemListener() {
-	        public void itemStateChanged(ItemEvent e) {
-	    		if (e.getStateChange() == ItemEvent.SELECTED) {
-	    			IComboBox cb = (IComboBox)e.getSource();
-	    			pnlCore.setFilter(TB_ORT, cb.getIndex());
-	    		}
-	        }
-	    });
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					IComboBox cb = (IComboBox) e.getSource();
+					pnlCore.setFilter(TB_ORT, cb.getIndex());
+				}
+			}
+		});
 		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_T, "Types:");
 		label.setLabelFor(cbo);
 		add(label);
@@ -261,13 +272,14 @@ class IToolBar extends JToolBar {
 		cbo.setName("Persons");
 		cbo.setModel(pj.dbPowerJ.getPersonCodes(true));
 		cbo.addItemListener(new ItemListener() {
-	        public void itemStateChanged(ItemEvent e) {
-	    		if (e.getStateChange() == ItemEvent.SELECTED) {
-	    			IComboBox cb = (IComboBox)e.getSource();
-	    			pnlCore.setFilter(TB_PRS, cb.getIndex());
-	    		}
-	        }
-	    });
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					IComboBox cb = (IComboBox) e.getSource();
+					pnlCore.setFilter(TB_PRS, cb.getIndex());
+				}
+			}
+		});
 		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_P, "Personnel:");
 		label.setLabelFor(cbo);
 		add(label);
@@ -279,13 +291,14 @@ class IToolBar extends JToolBar {
 		cbo.setName("Procedures");
 		cbo.setModel(pj.dbPowerJ.getProcedures(true));
 		cbo.addItemListener(new ItemListener() {
-	        public void itemStateChanged(ItemEvent e) {
-	    		if (e.getStateChange() == ItemEvent.SELECTED) {
-	    			IComboBox cb = (IComboBox)e.getSource();
-	    			pnlCore.setFilter(TB_PRO, cb.getIndex());
-	    		}
-	        }
-	    });
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					IComboBox cb = (IComboBox) e.getSource();
+					pnlCore.setFilter(TB_PRO, cb.getIndex());
+				}
+			}
+		});
 		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_P, "Procedures:");
 		label.setLabelFor(cbo);
 		add(label);
@@ -301,7 +314,7 @@ class IToolBar extends JToolBar {
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					IComboRows cbo = (IComboRows) e.getSource();
-	    			pnlCore.setFilter(cbo.getValue());
+					pnlCore.setFilter(cbo.getValue());
 				}
 			}
 		});
@@ -316,13 +329,14 @@ class IToolBar extends JToolBar {
 		cbo.setName("Specialties");
 		cbo.setModel(pj.dbPowerJ.getSpecialties(true));
 		cbo.addItemListener(new ItemListener() {
-	        public void itemStateChanged(ItemEvent e) {
-	    		if (e.getStateChange() == ItemEvent.SELECTED) {
-	    			IComboBox cb = (IComboBox)e.getSource();
-	    			pnlCore.setFilter(TB_SPY, cb.getIndex());
-	    		}
-	        }
-	    });
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					IComboBox cb = (IComboBox) e.getSource();
+					pnlCore.setFilter(TB_SPY, cb.getIndex());
+				}
+			}
+		});
 		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_S, "Specialties:");
 		label.setLabelFor(cbo);
 		add(label);
@@ -334,7 +348,7 @@ class IToolBar extends JToolBar {
 		button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-    			pnlCore.setFilter(TB_SPIN, TB_SPIN);
+				pnlCore.setFilter(TB_SPIN, TB_SPIN);
 			}
 		});
 		add(button);
@@ -345,13 +359,14 @@ class IToolBar extends JToolBar {
 		cbo.setName("Subspecialties");
 		cbo.setModel(pj.dbPowerJ.getSubspecialties(true));
 		cbo.addItemListener(new ItemListener() {
-	        public void itemStateChanged(ItemEvent e) {
-	    		if (e.getStateChange() == ItemEvent.SELECTED) {
-	    			IComboBox cb = (IComboBox)e.getSource();
-	    			pnlCore.setFilter(TB_SUB, cb.getIndex());
-	    		}
-	        }
-	    });
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					IComboBox cb = (IComboBox) e.getSource();
+					pnlCore.setFilter(TB_SUB, cb.getIndex());
+				}
+			}
+		});
 		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_B, "Subspecialties:");
 		label.setLabelFor(cbo);
 		add(label);
@@ -368,13 +383,14 @@ class IToolBar extends JToolBar {
 		cbo.setName("Status");
 		cbo.setModel(list.toArray());
 		cbo.addItemListener(new ItemListener() {
-	        public void itemStateChanged(ItemEvent e) {
-	    		if (e.getStateChange() == ItemEvent.SELECTED) {
-	    			IComboBox cb = (IComboBox)e.getSource();
-	    			pnlCore.setFilter(TB_STA, cb.getIndex());
-	    		}
-	        }
-	    });
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					IComboBox cb = (IComboBox) e.getSource();
+					pnlCore.setFilter(TB_STA, cb.getIndex());
+				}
+			}
+		});
 		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_T, "Status:");
 		label.setLabelFor(cbo);
 		add(label);

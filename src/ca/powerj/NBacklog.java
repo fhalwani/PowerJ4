@@ -79,6 +79,11 @@ class NBacklog extends NBase {
 		setName("Backlog");
 		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_BACKLOG);
 		columns[12] = pj.setup.getString(LSetup.VAR_V5_NAME);
+		if (pj.userID == -222 && pj.autoLogin) {
+			filters[FILTER_STA] = OCaseStatus.ID_ACCES;
+		} else if (pj.userID == -111 && pj.autoLogin) {
+			filters[FILTER_STA] = OCaseStatus.ID_HISTO;
+		}
 		getTats();
 		createPanel();
 		refresh();
@@ -1042,7 +1047,7 @@ class NBacklog extends NBase {
 					sorter.sort();
 				}
 			}
-			pj.statusBar.setMessage("No Rows: " + pj.numbers.formatNumber(tblCases.getRowCount()));
+			pj.statusBar.setMessage(String.format("%s cases", pj.numbers.formatNumber(tblCases.getRowCount())));
 			pj.setBusy(false);
 		}
 	}

@@ -269,6 +269,7 @@ class NHistology extends NBase {
 
 		@Override
 		public void done() {
+			int noEmbed = 0, noMicro = 0, noSlides = 0;
 			if (dates.size() > 0) {
 				// Since the earliest date is used as a buffer, we drop it
 				String[] xDates = new String[dates.size() - 1];
@@ -287,7 +288,13 @@ class NHistology extends NBase {
 					chartMicro.setChart(xDates, legend, yMicro, "Microtomy Blocks");
 					chartRoute.setChart(xDates, legend, yRoute, "Routing Slides");
 				}
+				noEmbed = (int) yEmbed[2][dates.size() - 2];
+				noMicro = (int) yMicro[2][dates.size() - 2];
+				noSlides = (int) yRoute[2][dates.size() - 2];
+
 			}
+			pj.statusBar.setMessage(String.format("%s embed, %s microtomy, %s slides", pj.numbers.formatNumber(noEmbed),
+					pj.numbers.formatNumber(noMicro), pj.numbers.formatNumber(noSlides)));
 			pj.setBusy(false);
 		}
 	}

@@ -77,6 +77,8 @@ class NRouting extends NBase {
 	private short[] filters = { 0, 0, 0 };
 	private int routeTime = 0;
 	private int rowIndex = 0;
+	private int noCases = 0, noSlides = 0;
+	private double noFTE = 0.0;
 	private double v5FTE = 0.0;
 	private String[] colCases = { "NO", "CASE", "FAC", "SPY", "SUB", "PROC", "SPEC", "SPECS", "BLKS", "SLDS", "",
 			"ACCESS", "ROUTE", "BY", "TO" };
@@ -1001,6 +1003,9 @@ class NRouting extends NBase {
 			HashMap<Short, OWorkflow> hashMap = new HashMap<Short, OWorkflow>();
 			OWorkflow staff = new OWorkflow();
 			summary.clear();
+			noCases = 0;
+			noSlides = 0;
+			noFTE = 0;
 			for (OCasePending pending : cases) {
 				if (filters[0] == 0 || filters[0] == pending.facID) {
 					if (filters[1] == 0 || filters[1] == pending.spyID) {
@@ -1017,6 +1022,8 @@ class NRouting extends NBase {
 							staff.noSpecs += pending.noSpec;
 							staff.noSldes += pending.noSlides;
 							staff.value5 += pending.value5;
+							noCases++;
+							noSlides += pending.noSlides;
 						}
 					}
 				}
@@ -1025,6 +1032,7 @@ class NRouting extends NBase {
 				staff = entry.getValue();
 				staff.ftIn = (1.00 * staff.value5 / v5FTE);
 				summary.add(staff);
+				noFTE += staff.ftIn;
 			}
 			hashMap.clear();
 			Collections.sort(summary, new Comparator<OWorkflow>() {
@@ -1052,6 +1060,8 @@ class NRouting extends NBase {
 				}
 				chartBar.setChart(x, y, pj.dates.formatter(dates.get(rowIndex), LDates.FORMAT_DATE));
 			}
+			pj.statusBar.setMessage(String.format("%s cases, %s slides, %s FTE", pj.numbers.formatNumber(noCases),
+					pj.numbers.formatNumber(noSlides), pj.numbers.formatDouble(2, noFTE)));
 			pj.setBusy(false);
 		}
 	}
