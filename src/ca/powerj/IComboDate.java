@@ -1,10 +1,12 @@
 package ca.powerj;
+
 import java.awt.Component;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DateFormat;
 import java.util.Calendar;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
@@ -30,22 +32,25 @@ class IComboDate extends JComboBox {
 		Dimension dim = new Dimension(120, 24);
 		setPreferredSize(dim);
 		setMaximumSize(dim);
-		pnlMonth = new IPanelMonth(value, minDate, maxDate);
+		pnlMonth = new IPanelMonth(value, min, max);
 		comboModel.addElement(value);
 		setModel(comboModel);
 		setRenderer(new DefaultListCellRenderer() {
-			public Component getListCellRendererComponent(JList list, Object value,
-					int index, boolean isSelected, boolean hasFocus) {
+			@Override
+			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+					boolean hasFocus) {
 				super.getListCellRendererComponent(list, value, index, isSelected, hasFocus);
-				setText(formatter.format(((Calendar)value).getTime()));
+				setText(formatter.format(((Calendar) value).getTime()));
 				return this;
 			}
 		});
 		popupMenu.add(pnlMonth);
 		addPopupMenuListener(new PopupMenuListener() {
+			@Override
 			public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
 				final boolean popupShown = popupMenu.isShowing();
 				javax.swing.SwingUtilities.invokeLater(new Runnable() {
+					@Override
 					public void run() {
 						hidePopup();
 						if (popupShown) {
@@ -57,10 +62,17 @@ class IComboDate extends JComboBox {
 					}
 				});
 			}
-			public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {}
-			public void popupMenuCanceled(PopupMenuEvent pme) {}
+
+			@Override
+			public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
+			}
+
+			@Override
+			public void popupMenuCanceled(PopupMenuEvent pme) {
+			}
 		});
 		pnlMonth.addPropertyChangeListener(new PropertyChangeListener() {
+			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				String property = e.getPropertyName();
 				if ("Confirm".equals(property)) {

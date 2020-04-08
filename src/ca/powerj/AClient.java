@@ -441,7 +441,6 @@ class AClient extends LBase implements Runnable, WindowListener {
 			statusBar.setProgress(-1);
 		} else {
 			frame.setCursor(Cursor.getDefaultCursor());
-			statusBar.setMessage("");
 			statusBar.setProgress(100);
 		}
 	}
