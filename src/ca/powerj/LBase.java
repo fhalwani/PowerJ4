@@ -244,8 +244,12 @@ class LBase implements Runnable {
 					switch (jobID) {
 					case JOB_REFRESH:
 						log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is refreshing...");
-						if (LConstants.IS_SERVER) {
-							if (firstRun) {
+						if (firstRun) {
+							if (LConstants.IS_CLIENT) {
+								firstRun = false;
+								isUpToDate = true;
+							}
+							if (!LConstants.IS_CLIENT) {
 								if (isNewMonth()) {
 									new LWorkdays(this);
 									if (errorID == LConstants.ERROR_NONE) {
@@ -254,29 +258,19 @@ class LBase implements Runnable {
 								}
 								new LSync(this);
 							}
+						}
+						if (LConstants.IS_CLIENT) {
 							if (nextUpdate - System.currentTimeMillis() < timerInterval) {
-								new LPending(firstRun, this);
-								firstRun = false;
+								if (pnlID > 0 & pnlCore != null) {
+									pnlCore.refresh();
+								}
 								setNextUpdate();
-							} else if (!isUpToDate) {
-								LFinals worker = new LFinals(this);
-								isUpToDate = worker.isUpToDate();
-								worker.close();
 							} else if (nextUpdate - System.currentTimeMillis() > 600000) {
 								// Sleep if nextUpdate is in 1 hours or more
 								jobID = JOB_SLEEP;
 							}
 						}
-						if (LConstants.IS_DESKTOP) {
-							if (firstRun) {
-								if (isNewMonth()) {
-									new LWorkdays(this);
-									if (errorID == LConstants.ERROR_NONE) {
-										new LValue5(this);
-									}
-								}
-								new LSync(this);
-							}
+						if (!LConstants.IS_CLIENT) {
 							if (nextUpdate - System.currentTimeMillis() < timerInterval) {
 								new LPending(firstRun, this);
 								firstRun = false;
@@ -294,37 +288,15 @@ class LBase implements Runnable {
 								jobID = JOB_SLEEP;
 							}
 						}
-						if (LConstants.IS_CLIENT) {
-							if (firstRun) {
-								firstRun = false;
-							}
-							if (nextUpdate - System.currentTimeMillis() < timerInterval) {
-								if (pnlID > 0 & pnlCore != null) {
-									pnlCore.refresh();
-								}
-								setNextUpdate();
-							} else if (nextUpdate - System.currentTimeMillis() > 600000) {
-								// Sleep if nextUpdate is in 1 hours or more
-								jobID = JOB_SLEEP;
-							}
-						}
 						break;
 					case JOB_SLEEP:
 						log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is going to sleep...");
 						jobID = JOB_SLEEPING;
-						// Desktop cannot close dbPowerJ (Derby)
-						if (LConstants.IS_SERVER) {
-							if (dbAP != null) {
-								dbAP.close();
-							}
-							if (dbPowerJ != null) {
-								dbPowerJ.close();
-							}
+						if (dbAP != null) {
+							dbAP.close();
 						}
-						if (LConstants.IS_CLIENT) {
-							if (dbAP != null) {
-								dbAP.close();
-							}
+						// Desktop cannot close dbPowerJ (Derby)
+						if (!LConstants.IS_DESKTOP) {
 							if (dbPowerJ != null) {
 								dbPowerJ.close();
 							}
@@ -340,18 +312,12 @@ class LBase implements Runnable {
 						jobID = JOB_REFRESH;
 						firstRun = true;
 						isUpToDate = false;
-						// Desktop did not close dbPowerJ (Derby)
-						if (LConstants.IS_SERVER) {
+						// Desktop cannot close dbPowerJ (Derby)
+						if (!LConstants.IS_DESKTOP) {
 							initDBPJ();
-							if (errorID == LConstants.ERROR_NONE) {
-								initDBAP();
-							}
 						}
-						if (LConstants.IS_CLIENT) {
-							initDBPJ();
-							if (errorID == LConstants.ERROR_NONE) {
-								initDBAP();
-							}
+						if (errorID == LConstants.ERROR_NONE) {
+							initDBAP();
 						}
 						break;
 					default:
