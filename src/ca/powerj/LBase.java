@@ -243,7 +243,6 @@ class LBase implements Runnable {
 				if (!offLine) {
 					switch (jobID) {
 					case JOB_REFRESH:
-						log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is refreshing...");
 						if (firstRun) {
 							if (LConstants.IS_CLIENT) {
 								firstRun = false;
@@ -262,10 +261,11 @@ class LBase implements Runnable {
 						if (LConstants.IS_CLIENT) {
 							if (nextUpdate - System.currentTimeMillis() < timerInterval) {
 								if (pnlID > 0 & pnlCore != null) {
+									log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is refreshing...");
 									pnlCore.refresh();
 								}
 								setNextUpdate();
-							} else if (nextUpdate - System.currentTimeMillis() > 600000) {
+							} else if (nextUpdate - System.currentTimeMillis() > 3400000) {
 								// Sleep if nextUpdate is in 1 hours or more
 								jobID = JOB_SLEEP;
 							}
@@ -275,6 +275,7 @@ class LBase implements Runnable {
 								new LPending(firstRun, this);
 								firstRun = false;
 								if (pnlID > 0 && pnlCore != null) {
+									log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is refreshing...");
 									pnlCore.refresh();
 								}
 								setNextUpdate();
@@ -283,7 +284,7 @@ class LBase implements Runnable {
 //								isUpToDate = worker.isUpToDate();
 								isUpToDate = true;
 //								worker.close();
-							} else if (nextUpdate - System.currentTimeMillis() > 600000) {
+							} else if (nextUpdate - System.currentTimeMillis() > 3400000) {
 								// Sleep if nextUpdate is in 1 hours or more
 								jobID = JOB_SLEEP;
 							}
@@ -293,11 +294,13 @@ class LBase implements Runnable {
 						log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is going to sleep...");
 						jobID = JOB_SLEEPING;
 						if (dbAP != null) {
+							log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is closing dbAP...");
 							dbAP.close();
 						}
 						// Desktop cannot close dbPowerJ (Derby)
 						if (!LConstants.IS_DESKTOP) {
 							if (dbPowerJ != null) {
+								log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is closing dbPowerJ...");
 								dbPowerJ.close();
 							}
 						}
@@ -314,9 +317,11 @@ class LBase implements Runnable {
 						isUpToDate = false;
 						// Desktop cannot close dbPowerJ (Derby)
 						if (!LConstants.IS_DESKTOP) {
+							log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is connecting dbPowerJ...");
 							initDBPJ();
 						}
 						if (errorID == LConstants.ERROR_NONE) {
+							log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is connecting dbAP...");
 							initDBAP();
 						}
 						break;
