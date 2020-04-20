@@ -229,7 +229,7 @@ class NRouting extends NBase {
 		} else {
 			endDate.setTimeInMillis(yesterday.getTimeInMillis());
 		}
-		endDate.set(Calendar.HOUR, hours);
+		endDate.set(Calendar.HOUR_OF_DAY, hours);
 		endDate.set(Calendar.MINUTE, minutes);
 		dates.clear();
 		do {
@@ -237,7 +237,7 @@ class NRouting extends NBase {
 			thisDate.setTimeInMillis(endDate.getTimeInMillis());
 			dates.add(thisDate);
 			endDate.setTimeInMillis(pj.dates.getPreviousBusinessDay(thisDate));
-			endDate.set(Calendar.HOUR, hours);
+			endDate.set(Calendar.HOUR_OF_DAY, hours);
 			endDate.set(Calendar.MINUTE, minutes);
 		} while (dates.size() < 6);
 	}

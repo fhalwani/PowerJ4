@@ -310,7 +310,7 @@ class NDaily extends NBase {
 	@Override
 	void refresh() {
 		// Must initialize a new instance each time
-		WorkerList worker = new WorkerList();
+		WorkerData worker = new WorkerData();
 		worker.execute();
 	}
 
@@ -554,7 +554,7 @@ class NDaily extends NBase {
 		}
 	}
 
-	private class WorkerList extends SwingWorker<Void, Void> {
+	private class WorkerData extends SwingWorker<Void, Void> {
 		private ArrayList<OWorkflow> lstPersons = new ArrayList<OWorkflow>();
 
 		@Override
@@ -574,17 +574,16 @@ class NDaily extends NBase {
 			ResultSet rst = null;
 			try {
 				pendings.clear();
-				mapPersons.clear();
 				// Cases routed from yesterday till today at cutoff time
-				endRoute.set(Calendar.HOUR, hours);
+				startRoute.setTimeInMillis(pj.dates.getPreviousBusinessDay(endRoute));
+				endRoute.set(Calendar.HOUR_OF_DAY, hours);
 				endRoute.set(Calendar.MINUTE, minutes);
 				endRoute.set(Calendar.SECOND, 0);
-				startRoute.setTimeInMillis(pj.dates.getPreviousBusinessDay(endRoute));
-				startRoute.set(Calendar.HOUR, hours);
+				startRoute.set(Calendar.HOUR_OF_DAY, hours);
 				startRoute.set(Calendar.MINUTE, minutes);
 				startRoute.set(Calendar.SECOND, 0);
 				// Cases finalized today all day
-				startFinal.set(Calendar.HOUR, 0);
+				startFinal.set(Calendar.HOUR_OF_DAY, 0);
 				startFinal.set(Calendar.MINUTE, 0);
 				startFinal.set(Calendar.SECOND, 0);
 				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PND_SELECT));
