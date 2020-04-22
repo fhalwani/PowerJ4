@@ -209,13 +209,11 @@ class LPending {
 				}
 				rst.close();
 				if (!list.get(i).cancel) {
-					if (list.get(i).statusID < OCaseStatus.ID_ROUTE) {
-						// delete abandoned cases
-						if (pj.dates.getBusinessDays(list.get(i).accessed, now) > 40) {
-							if (deleteCase(list.get(i).caseID) > 0) {
-								list.get(i).cancel = true;
-								noUpdates++;
-							}
+					// delete abandoned cases after 6 months (130 business days) 
+					if (pj.dates.getBusinessDays(list.get(i).accessed, now) > 130) {
+						if (deleteCase(list.get(i).caseID) > 0) {
+							list.get(i).cancel = true;
+							noUpdates++;
 						}
 					}
 				}

@@ -561,6 +561,7 @@ class NDaily extends NBase {
 		protected Void doInBackground() throws Exception {
 			byte statusID = 0;
 			short finalID = 0;
+			int buffer = 0;
 			int hours = routeTime / 3600000;
 			int minutes = (routeTime % 3600000) / 60000;
 			OWorkflow person = new OWorkflow();
@@ -616,9 +617,13 @@ class NDaily extends NBase {
 							pending.cutoff = (short) (turnaround.gross + turnaround.embed + turnaround.micro
 									+ turnaround.route + turnaround.diagn);
 							if (pending.cutoff > 0) {
-								pending.delay = (short) ((100 * pending.passed) / pending.cutoff);
+								buffer = (100 * pending.passed) / pending.cutoff;
+								if (buffer < 10000) {
+									// Else, assume the case was abandoned & avoid overflow exception
+									pending.delay = (short) buffer;
+									pendings.add(pending);
+								}
 							}
-							pendings.add(pending);
 						}
 						if (person.prsID != finalID) {
 							person = mapPersons.get(finalID);

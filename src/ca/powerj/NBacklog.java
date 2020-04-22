@@ -604,7 +604,6 @@ class NBacklog extends NBase {
 					pending.routed.setTimeInMillis(0);
 					pending.finaled.setTimeInMillis(0);
 					pending.cutoff = turnaround.gross;
-					pending.passed = pj.dates.getBusinessHours(pending.accessed, calToday);
 					turnaround = turnarounds.get(pending.turID);
 					if (pending.statusID > OCaseStatus.ID_ACCES) {
 						pending.grossed.setTimeInMillis(rst.getTimestamp("GRED").getTime());
@@ -629,15 +628,17 @@ class NBacklog extends NBase {
 					}
 					if (pending.statusID == OCaseStatus.ID_FINAL) {
 						pending.passed = pending.finalTAT;
+					} else {
+						pending.passed = pj.dates.getBusinessHours(pending.accessed, calToday);
 					}
 					if (pending.cutoff > 0) {
 						buffer = (100 * pending.passed) / pending.cutoff;
-						if (buffer > Short.MAX_VALUE) {
-							buffer = Short.MAX_VALUE;
+						if (buffer < 10000) {
+							// Else, assume the case was abandoned & avoid overflow exception
+							pending.delay = (short) buffer;
+							pendings.add(pending);
 						}
-						pending.delay = (short) buffer;
 					}
-					pendings.add(pending);
 				}
 				Collections.sort(pendings, new Comparator<OCasePending>() {
 					@Override
