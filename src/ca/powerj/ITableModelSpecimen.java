@@ -30,11 +30,15 @@ class ITableModelSpecimen extends ITableModel {
 		ResultSet rst = pj.dbAP.getResultSet(pstm);
 		try {
 			while (rst.next()) {
+				OItem item = new OItem(rst.getShort("tmplt_profile_id"), " ");
+				if (rst.getString("code") != null) {
+					item.name = rst.getString("code");
+				}
 				DataSpecimen thisRow = new DataSpecimen();
 				thisRow.specID = rst.getLong("id");
 				thisRow.label = rst.getByte("specimen_label");
 				thisRow.descr = rst.getString("description");
-				thisRow.master = new OItem(rst.getShort("tmplt_profile_id"), rst.getString("code"));
+				thisRow.master = item;
 				thisRow.received.setTimeInMillis(rst.getTimestamp("recv_date").getTime());
 				if (rst.getTimestamp("collection_date") != null) {
 					thisRow.collected.setTimeInMillis(rst.getTimestamp("collection_date").getTime());
@@ -115,11 +119,10 @@ class ITableModelSpecimen extends ITableModel {
 
 	@Override
 	public void setValueAt(Object value, int row, int col) {
-		OItem master = specimens.get(row).master;
-		if (!master.equals(value)) {
-			master = (OItem) value;
-			fireTableCellUpdated(row, col);
-		}
+		OItem item = (OItem) value;
+		specimens.get(row).master.id = item.id;
+		specimens.get(row).master.name = item.name;
+		fireTableCellUpdated(row, col);
 	}
 
 	private class DataSpecimen {

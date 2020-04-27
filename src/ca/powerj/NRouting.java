@@ -74,7 +74,8 @@ class NRouting extends NBase {
 	private final byte FILTER_FAC = 0;
 	private final byte FILTER_SPY = 1;
 	private final byte FILTER_SUB = 2;
-	private short[] filters = { 0, 0, 0 };
+	private final byte FILTER_INT = 3;
+	private short[] filters = { 0, 0, 0, 1 };
 	private int routeTime = 0;
 	private int rowIndex = 0;
 	private int noCases = 0, noSlides = 0;
@@ -104,7 +105,6 @@ class NRouting extends NBase {
 		if (v5FTE < 1.00) {
 			v5FTE = 1.00;
 		}
-		getDates();
 		refresh();
 		createPanel();
 		setFilter(IToolBar.TB_FAC, filters[0]);
@@ -206,40 +206,6 @@ class NRouting extends NBase {
 		setOpaque(true);
 		add(new IToolBar(this), BorderLayout.NORTH);
 		add(pnlSplit, BorderLayout.CENTER);
-	}
-
-	private void getDates() {
-		boolean startTomorrow = false;
-		int hours = routeTime / 3600000;
-		int minutes = (routeTime % 3600000) / 60000;
-		Calendar tomorrow = Calendar.getInstance();
-		Calendar yesterday = Calendar.getInstance();
-		Calendar endDate = Calendar.getInstance();
-		// Tomorrow may be a weekend or off-day
-		tomorrow.setTimeInMillis(pj.dates.getNextBusinessDay(tomorrow));
-		// Today may be a weekend or off-day
-		yesterday.setTimeInMillis(pj.dates.getPreviousBusinessDay(tomorrow));
-		if (endDate.get(Calendar.HOUR_OF_DAY) > hours) {
-			startTomorrow = true;
-		} else if (endDate.get(Calendar.HOUR_OF_DAY) == hours && endDate.get(Calendar.MINUTE) >= minutes) {
-			startTomorrow = true;
-		}
-		if (startTomorrow) {
-			endDate.setTimeInMillis(tomorrow.getTimeInMillis());
-		} else {
-			endDate.setTimeInMillis(yesterday.getTimeInMillis());
-		}
-		endDate.set(Calendar.HOUR_OF_DAY, hours);
-		endDate.set(Calendar.MINUTE, minutes);
-		dates.clear();
-		do {
-			Calendar thisDate = Calendar.getInstance();
-			thisDate.setTimeInMillis(endDate.getTimeInMillis());
-			dates.add(thisDate);
-			endDate.setTimeInMillis(pj.dates.getPreviousBusinessDay(thisDate));
-			endDate.set(Calendar.HOUR_OF_DAY, hours);
-			endDate.set(Calendar.MINUTE, minutes);
-		} while (dates.size() < 6);
 	}
 
 	@Override
@@ -487,6 +453,11 @@ class NRouting extends NBase {
 		case IToolBar.TB_SUB:
 			filters[FILTER_SUB] = value;
 			break;
+		case IToolBar.TB_INTERVAL:
+			filters[FILTER_INT] = value;
+			WorkerData worker = new WorkerData();
+			worker.execute();
+			return;
 		default:
 			pj.log(LConstants.ERROR_UNEXPECTED, getName(), "Invalid filter setting");
 			return;
@@ -943,10 +914,17 @@ class NRouting extends NBase {
 
 		@Override
 		protected Void doInBackground() throws Exception {
+			getDates();
+			getCases();
+			return null;
+		}
+
+		private void getCases() {
 			ResultSet rst = null;
 			pj.setBusy(true);
 			try {
 				cases.clear();
+				getDates();
 				pj.dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_SL_ROU), 1, dates.get(rowIndex + 1).getTimeInMillis());
 				pj.dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_SL_ROU), 2, dates.get(rowIndex).getTimeInMillis());
 				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PND_SL_ROU));
@@ -979,17 +957,61 @@ class NRouting extends NBase {
 			} finally {
 				pj.dbPowerJ.close(rst);
 			}
-			return null;
+		}
+
+		private void getDates() {
+			int hours = routeTime / 3600000;
+			int minutes = (routeTime % 3600000) / 60000;
+			boolean startTomorrow = false;
+			Calendar tomorrow = Calendar.getInstance();
+			Calendar yesterday = Calendar.getInstance();
+			Calendar endDate = Calendar.getInstance();
+			// Tomorrow may be a weekend or off-day
+			tomorrow.setTimeInMillis(pj.dates.getNextBusinessDay(tomorrow));
+			// Today may be a weekend or off-day
+			yesterday.setTimeInMillis(pj.dates.getPreviousBusinessDay(tomorrow));
+			if (endDate.get(Calendar.HOUR_OF_DAY) > hours) {
+				startTomorrow = true;
+			} else if (endDate.get(Calendar.HOUR_OF_DAY) == hours && endDate.get(Calendar.MINUTE) >= minutes) {
+				startTomorrow = true;
+			}
+			if (startTomorrow) {
+				endDate.setTimeInMillis(tomorrow.getTimeInMillis());
+			} else {
+				endDate.setTimeInMillis(yesterday.getTimeInMillis());
+			}
+			endDate.set(Calendar.HOUR_OF_DAY, hours);
+			endDate.set(Calendar.MINUTE, minutes);
+			dates.clear();
+			if (filters[FILTER_INT] == IToolBar.TB_DAILY) {
+				do {
+					Calendar thisDate = Calendar.getInstance();
+					thisDate.setTimeInMillis(endDate.getTimeInMillis());
+					dates.add(thisDate);
+					endDate.setTimeInMillis(pj.dates.getPreviousBusinessDay(thisDate));
+					endDate.set(Calendar.HOUR_OF_DAY, hours);
+					endDate.set(Calendar.MINUTE, minutes);
+				} while (dates.size() < 6);
+			} else {
+				do {
+					Calendar thisDate = Calendar.getInstance();
+					thisDate.setTimeInMillis(endDate.getTimeInMillis());
+					dates.add(thisDate);
+					endDate.add(Calendar.DAY_OF_YEAR, -7);
+				} while (dates.size() < 4);
+			}
 		}
 
 		@Override
 		public void done() {
+			// Display results
+			if (modelDate != null) {
+				modelDate.fireTableDataChanged();
+			}
 			if (modelCases != null) {
-				// Display results
 				modelCases.fireTableDataChanged();
 			}
 			pj.setBusy(false);
-			// Must initialize a new instance each time
 			WorkerSummary worker = new WorkerSummary();
 			worker.execute();
 		}

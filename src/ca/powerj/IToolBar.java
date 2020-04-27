@@ -9,8 +9,10 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JRadioButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 
@@ -29,6 +31,9 @@ class IToolBar extends JToolBar {
 	static final byte TB_GO = 12;
 	static final byte TB_SPIN = 13;
 	static final byte TB_FILTER = 14;
+	static final byte TB_INTERVAL = 15;
+	static final byte TB_DAILY = 1;
+	static final byte TB_WEEKLY = 2;
 	AClient pj;
 	NBase pnlCore;
 
@@ -92,6 +97,7 @@ class IToolBar extends JToolBar {
 			addFacility();
 			addSpecialty();
 			addSubspecialty();
+			addDayWeek();
 			break;
 		case LConstants.ACTION_SCHEDULE:
 			addFacility();
@@ -188,6 +194,33 @@ class IToolBar extends JToolBar {
 		add(cboEnd);
 	}
 
+	private void addDayWeek() {
+		ActionListener btnListener = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (e.getActionCommand().equals("Weekly")) {
+					pnlCore.setFilter(TB_INTERVAL, TB_WEEKLY);
+				} else {
+					pnlCore.setFilter(TB_INTERVAL, TB_DAILY);
+				}
+			}
+		};
+		JRadioButton btnDaily = new JRadioButton("Daily");
+		btnDaily.setMnemonic(KeyEvent.VK_D);
+		btnDaily.setSelected(true);
+		btnDaily.setActionCommand("Daily");
+		btnDaily.addActionListener(btnListener);
+		JRadioButton btnWeekly = new JRadioButton("Weekly");
+		btnWeekly.setMnemonic(KeyEvent.VK_W);
+		btnWeekly.setActionCommand("Weekly");
+		btnWeekly.addActionListener(btnListener);
+		ButtonGroup buttons = new ButtonGroup();
+		buttons.add(btnDaily);
+		buttons.add(btnWeekly);
+		add(btnDaily);
+		add(btnWeekly);
+	}
+
 	private void addFacility() {
 		IComboBox cbo = new IComboBox();
 		cbo.setName("Facilities");
@@ -209,9 +242,19 @@ class IToolBar extends JToolBar {
 
 	private void addFilter() {
 		JButton button = IGUI.createJButton(48, KeyEvent.VK_I, "Filter");
+		button.putClientProperty("status", "off");
 		button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				JButton btn = (JButton) e.getSource();
+				String status = (String) btn.getClientProperty("status");
+				if (status.equals("off")) {
+					btn.putClientProperty("status", "on");
+					btn.setIcon(IGUI.getIcon(48, "nofilter"));
+				} else {
+					btn.putClientProperty("status", "off");
+					btn.setIcon(IGUI.getIcon(48, "filter"));
+				}
 				pnlCore.setFilter(TB_FILTER, TB_FILTER);
 			}
 		});

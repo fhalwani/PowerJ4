@@ -89,7 +89,7 @@ class NEdit extends NBase {
 			@Override
 			public void tableChanged(TableModelEvent e) {
 				if (e.getType() == TableModelEvent.UPDATE && (!programmaticChange)) {
-					save(modelSpec.getMasterID(e.getFirstRow()), modelSpec.getSpecID(e.getColumn()));
+					save(modelSpec.getMasterID(e.getFirstRow()), modelSpec.getSpecID(e.getFirstRow()));
 				}
 			}
 		});

@@ -149,23 +149,56 @@ class LPending {
 			dbAP.setTime(apStms.get(DPowerpath.STM_CASES_ACCESS), 1, pj.lastUpdate);
 			rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASES_ACCESS));
 			while (rst.next()) {
+				if (rst.getString("accession_no") == null
+					|| rst.getShort("acc_type_id") == 0
+					|| rst.getShort("facility_id") == 0
+					|| rst.getTimestamp("created_date").getTime() == 0) {
+					// This is the tail of the table where a case is currently being added
+					// So we stop & continue on the next run
+					break;
+				}
 				if (accessions.doworkflow(rst.getShort("acc_type_id"))
 						&& facilities.doworkflow(rst.getShort("facility_id"))) {
 					thisCase = new OCasePending();
 					thisCase.caseID = rst.getLong("id");
 					thisCase.facID = rst.getShort("facility_id");
-					thisCase.accessed.setTimeInMillis(rst.getTimestamp("created_date").getTime());
-					thisCase.grossed.setTimeInMillis(0);
-					thisCase.embeded.setTimeInMillis(0);
-					thisCase.microed.setTimeInMillis(0);
-					thisCase.routed.setTimeInMillis(0);
-					thisCase.finaled.setTimeInMillis(0);
 					thisCase.caseNo = rst.getString("accession_no");
+					thisCase.accessed.setTimeInMillis(rst.getTimestamp("created_date").getTime());
 					getSpecimens();
-					if (thisCase.noSpec > 0) {
-						if (insertCase() > 0) {
-							noUpdates++;
-						}
+					if (thisCase.noSpec == 0 || thisCase.mainSpec == 0) {
+						continue;
+					}
+					// The specimens cannot be processed here because FSEC cases will have the rest 
+					// of their specimens entered in 3-18 hours
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 1, thisCase.facID);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 2, thisCase.subID);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 3, thisCase.procID);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 4, thisCase.mainSpec);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 5, thisCase.grossID);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 6, thisCase.embedID);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 7, thisCase.microID);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 8, thisCase.routeID);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 9, thisCase.finalID);
+					dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_INSERT), 10, thisCase.grossTAT);
+					dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_INSERT), 11, thisCase.embedTAT);
+					dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_INSERT), 12, thisCase.microTAT);
+					dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_INSERT), 13, thisCase.routeTAT);
+					dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_INSERT), 14, thisCase.finalTAT);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 15, thisCase.statusID);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 16, thisCase.noSpec);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 17, thisCase.noBlocks);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 18, thisCase.noSlides);
+					dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_INSERT), 19, thisCase.value5);
+					dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_INSERT), 20, thisCase.accessed.getTimeInMillis());
+					dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_INSERT), 21, thisCase.grossed.getTimeInMillis());
+					dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_INSERT), 22, thisCase.embeded.getTimeInMillis());
+					dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_INSERT), 23, thisCase.microed.getTimeInMillis());
+					dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_INSERT), 24, thisCase.routed.getTimeInMillis());
+					dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_INSERT), 25, thisCase.finaled.getTimeInMillis());
+					dbPowerJ.setString(pjStms.get(DPowerJ.STM_PND_INSERT), 26, thisCase.caseNo);
+					dbPowerJ.setLong(pjStms.get(DPowerJ.STM_PND_INSERT), 27, thisCase.caseID);
+					if (dbPowerJ.execute(pjStms.get(DPowerJ.STM_PND_INSERT)) > 0) {
+						noUpdates++;
 					}
 				}
 				if (pj.abort()) {
@@ -318,7 +351,7 @@ class LPending {
 			for (int i = 0; i < list.size(); i++) {
 				thisCase = list.get(i);
 				if (!thisCase.cancel) {
-					if (thisCase.statusID < OCaseStatus.ID_EMBED) {
+					if (thisCase.statusID == OCaseStatus.ID_GROSS) {
 						getSpecimens();
 						if (thisCase.noSpec > 0) {
 							dbAP.setLong(apStms.get(DPowerpath.STM_CASE_EMBEDED), 1, thisCase.caseID);
@@ -328,20 +361,31 @@ class LPending {
 								noBlocks++;
 								if (noBlocks >= thisCase.noBlocks) {
 									thisCase.statusID = OCaseStatus.ID_EMBED;
-									thisCase.embeded.setTimeInMillis(rst.getTimestamp("event_date").getTime());
+									thisCase.noBlocks = noBlocks;
 									thisCase.embedID = rst.getShort("personnel_id");
+									thisCase.embeded.setTimeInMillis(rst.getTimestamp("event_date").getTime());
 									thisCase.update = true;
 								}
 							}
 							rst.close();
 							if (thisCase.update) {
-								if (updateEmbeded() > 0) {
+								thisCase.embedTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.embeded);
+								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 1, thisCase.subID);
+								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 2, thisCase.procID);
+								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 3, thisCase.mainSpec);
+								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 4, thisCase.embedID);
+								dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_EMB), 5, thisCase.embedTAT);
+								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 6, thisCase.statusID);
+								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 7, thisCase.noSpec);
+								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 8, thisCase.noBlocks);
+								dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_EMB), 9, thisCase.value5);
+								dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_UP_EMB), 10, thisCase.embeded.getTimeInMillis());
+								dbPowerJ.setLong(pjStms.get(DPowerJ.STM_PND_UP_EMB), 11, thisCase.caseID);
+								if (dbPowerJ.execute(pjStms.get(DPowerJ.STM_PND_UP_EMB)) > 0) {
 									thisCase.update = false;
 									noUpdates++;
 								}
 							}
-						} else if (deleteCase(thisCase.caseID) > 0) {
-							thisCase.cancel = true;
 						}
 					}
 				}
@@ -406,7 +450,14 @@ class LPending {
 					}
 					rst.close();
 					if (thisCase.update) {
-						if (updateFinal() > 0) {
+						thisCase.finalTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.finaled);
+						dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_FIN), 1, thisCase.finalID);
+						dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_FIN), 2, thisCase.finalTAT);
+						dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_FIN), 3, thisCase.statusID);
+						dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_FIN), 4, thisCase.noSlides);
+						dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_UP_FIN), 5, thisCase.finaled.getTimeInMillis());
+						dbPowerJ.setLong(pjStms.get(DPowerJ.STM_PND_UP_FIN), 6, thisCase.caseID);
+						if (dbPowerJ.execute(pjStms.get(DPowerJ.STM_PND_UP_FIN)) > 0) {
 							thisCase.update = false;
 							noUpdates++;
 						}
@@ -441,7 +492,7 @@ class LPending {
 			for (int i = 0; i < list.size(); i++) {
 				thisCase = list.get(i);
 				if (!thisCase.cancel) {
-					if (thisCase.statusID < OCaseStatus.ID_GROSS) {
+					if (thisCase.statusID == OCaseStatus.ID_ACCES) {
 						getSpecimens();
 						if (thisCase.noSpec > 0) {
 							dbAP.setLong(apStms.get(DPowerpath.STM_CASE_PROCESS), 1, thisCase.caseID);
@@ -453,8 +504,8 @@ class LPending {
 										if (descr.contains("gross") || descr.contains("screening")
 												|| descr.contains("provisional")) {
 											thisCase.statusID = OCaseStatus.ID_GROSS;
-											thisCase.grossed.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
 											thisCase.grossID = rst.getShort("assigned_to_id");
+											thisCase.grossed.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
 											thisCase.update = true;
 											break;
 										}
@@ -463,13 +514,23 @@ class LPending {
 							}
 							rst.close();
 							if (thisCase.update) {
-								if (updateGrossed() > 0) {
+								thisCase.grossTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.grossed);
+								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 1, thisCase.subID);
+								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 2, thisCase.procID);
+								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 3, thisCase.mainSpec);
+								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 4, thisCase.grossID);
+								dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_GRS), 5, thisCase.grossTAT);
+								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 6, thisCase.statusID);
+								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 7, thisCase.noSpec);
+								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 8, thisCase.noBlocks);
+								dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_GRS), 9, thisCase.value5);
+								dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_UP_GRS), 10, thisCase.grossed.getTimeInMillis());
+								dbPowerJ.setLong(pjStms.get(DPowerJ.STM_PND_UP_GRS), 11, thisCase.caseID);
+								if (dbPowerJ.execute(pjStms.get(DPowerJ.STM_PND_UP_GRS)) > 0) {
 									thisCase.update = false;
 									noUpdates++;
 								}
 							}
-						} else if (deleteCase(thisCase.caseID) > 0) {
-							thisCase.cancel = true;
 						}
 					}
 				}
@@ -496,7 +557,7 @@ class LPending {
 	private void getLastUpdate() {
 		long accession = dbPowerJ.getTime(pjStms.get(DPowerJ.STM_PND_SL_LST));
 		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.MONTH, -2);
+		cal.add(Calendar.DAY_OF_YEAR, -30);
 		cal.set(Calendar.HOUR_OF_DAY, 0);
 		cal.set(Calendar.MINUTE, 0);
 		cal.set(Calendar.SECOND, 0);
@@ -517,7 +578,7 @@ class LPending {
 			for (int i = 0; i < list.size(); i++) {
 				thisCase = list.get(i);
 				if (!thisCase.cancel) {
-					if (thisCase.statusID < OCaseStatus.ID_MICRO) {
+					if (thisCase.statusID == OCaseStatus.ID_EMBED) {
 						noBlocks = 0;
 						dbAP.setLong(apStms.get(DPowerpath.STM_CASE_MICROTO), 1, thisCase.caseID);
 						rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_MICROTO));
@@ -525,15 +586,24 @@ class LPending {
 							noBlocks++;
 							if (noBlocks >= thisCase.noBlocks) {
 								thisCase.statusID = OCaseStatus.ID_MICRO;
-								thisCase.microed.setTimeInMillis(rst.getTimestamp("event_date").getTime());
+								thisCase.noBlocks = noBlocks;
 								thisCase.microID = rst.getShort("personnel_id");
+								thisCase.microed.setTimeInMillis(rst.getTimestamp("event_date").getTime());
 								thisCase.update = true;
 							}
 						}
 						rst.close();
 						if (thisCase.update) {
 							thisCase.noSlides = getNoSlides();
-							if (updateMicrotomed() > 0) {
+							thisCase.microTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.microed);
+							dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_MIC), 1, thisCase.microID);
+							dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_MIC), 2, thisCase.microTAT);
+							dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_MIC), 3, thisCase.statusID);
+							dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_MIC), 4, thisCase.noBlocks);
+							dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_MIC), 5, thisCase.noSlides);
+							dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_UP_MIC), 6, thisCase.microed.getTimeInMillis());
+							dbPowerJ.setLong(pjStms.get(DPowerJ.STM_PND_UP_MIC), 7, thisCase.caseID);
+							if (dbPowerJ.execute(pjStms.get(DPowerJ.STM_PND_UP_MIC)) > 0) {
 								thisCase.update = false;
 								noUpdates++;
 							}
@@ -609,15 +679,22 @@ class LPending {
 						rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_ROUTING));
 						while (rst.next()) {
 							thisCase.statusID = OCaseStatus.ID_ROUTE;
-							thisCase.routed.setTimeInMillis(rst.getTimestamp("event_date").getTime());
 							thisCase.routeID = rst.getShort("personnel_id");
+							thisCase.routed.setTimeInMillis(rst.getTimestamp("event_date").getTime());
 							thisCase.update = true;
 							break;
 						}
 						rst.close();
 						if (thisCase.update) {
 							thisCase.noSlides = getNoSlides();
-							if (updateRouted() > 0) {
+							thisCase.routeTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.routed);
+							dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_ROU), 1, thisCase.routeID);
+							dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_ROU), 2, thisCase.routeTAT);
+							dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_ROU), 3, thisCase.statusID);
+							dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_ROU), 4, thisCase.noSlides);
+							dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_UP_ROU), 5, thisCase.routed.getTimeInMillis());
+							dbPowerJ.setLong(pjStms.get(DPowerJ.STM_PND_UP_ROU), 6, thisCase.caseID);
+							if (dbPowerJ.execute(pjStms.get(DPowerJ.STM_PND_UP_ROU)) > 0) {
 								thisCase.update = false;
 								noUpdates++;
 							}
@@ -660,6 +737,9 @@ class LPending {
 			dbAP.setLong(apStms.get(DPowerpath.STM_CASE_SPCMNS), 1, thisCase.caseID);
 			rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_SPCMNS));
 			while (rst.next()) {
+				if (rst.getShort("tmplt_profile_id") == 0) {
+					continue;
+				}
 				if (masterSpecimens.matchSpecimens(rst.getShort("tmplt_profile_id"))) {
 					noBlocks = getNoBlocks(rst.getInt("id"));
 					thisCase.noSpec++;
@@ -695,102 +775,5 @@ class LPending {
 		} finally {
 			dbAP.close(rst);
 		}
-	}
-
-	private int insertCase() {
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 1, thisCase.facID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 2, thisCase.subID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 3, thisCase.procID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 4, thisCase.mainSpec);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 5, thisCase.grossID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 6, thisCase.embedID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 7, thisCase.microID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 8, thisCase.routeID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 9, thisCase.finalID);
-		dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_INSERT), 10, thisCase.grossTAT);
-		dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_INSERT), 11, thisCase.embedTAT);
-		dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_INSERT), 12, thisCase.microTAT);
-		dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_INSERT), 13, thisCase.routeTAT);
-		dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_INSERT), 14, thisCase.finalTAT);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 15, thisCase.statusID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 16, thisCase.noSpec);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 17, thisCase.noBlocks);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 18, thisCase.noSlides);
-		dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_INSERT), 19, thisCase.value5);
-		dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_INSERT), 20, thisCase.accessed.getTimeInMillis());
-		dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_INSERT), 21, thisCase.grossed.getTimeInMillis());
-		dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_INSERT), 22, thisCase.embeded.getTimeInMillis());
-		dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_INSERT), 23, thisCase.microed.getTimeInMillis());
-		dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_INSERT), 24, thisCase.routed.getTimeInMillis());
-		dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_INSERT), 25, thisCase.finaled.getTimeInMillis());
-		dbPowerJ.setString(pjStms.get(DPowerJ.STM_PND_INSERT), 26, thisCase.caseNo);
-		dbPowerJ.setLong(pjStms.get(DPowerJ.STM_PND_INSERT), 27, thisCase.caseID);
-		return dbPowerJ.execute(pjStms.get(DPowerJ.STM_PND_INSERT));
-	}
-
-	private int updateEmbeded() {
-		thisCase.embedTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.embeded);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 1, thisCase.subID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 2, thisCase.procID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 3, thisCase.mainSpec);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 4, thisCase.embedID);
-		dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_EMB), 5, thisCase.embedTAT);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 6, thisCase.statusID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 7, thisCase.noSpec);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 8, thisCase.noBlocks);
-		dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_EMB), 9, thisCase.value5);
-		dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_UP_EMB), 10, thisCase.embeded.getTimeInMillis());
-		dbPowerJ.setLong(pjStms.get(DPowerJ.STM_PND_UP_EMB), 11, thisCase.caseID);
-		return dbPowerJ.execute(pjStms.get(DPowerJ.STM_PND_UP_EMB));
-	}
-
-	private int updateFinal() {
-		thisCase.finalTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.finaled);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_FIN), 1, thisCase.finalID);
-		dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_FIN), 2, thisCase.finalTAT);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_FIN), 3, thisCase.statusID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_FIN), 4, thisCase.noSlides);
-		dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_UP_FIN), 5, thisCase.finaled.getTimeInMillis());
-		dbPowerJ.setLong(pjStms.get(DPowerJ.STM_PND_UP_FIN), 6, thisCase.caseID);
-		return dbPowerJ.execute(pjStms.get(DPowerJ.STM_PND_UP_FIN));
-	}
-
-	private int updateGrossed() {
-		thisCase.grossTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.grossed);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 1, thisCase.subID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 2, thisCase.procID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 3, thisCase.mainSpec);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 4, thisCase.grossID);
-		dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_GRS), 5, thisCase.grossTAT);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 6, thisCase.statusID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 7, thisCase.noSpec);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 8, thisCase.noBlocks);
-		dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_GRS), 9, thisCase.value5);
-		dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_UP_GRS), 10, thisCase.grossed.getTimeInMillis());
-		dbPowerJ.setLong(pjStms.get(DPowerJ.STM_PND_UP_GRS), 11, thisCase.caseID);
-		return dbPowerJ.execute(pjStms.get(DPowerJ.STM_PND_UP_GRS));
-	}
-
-	private int updateMicrotomed() {
-		thisCase.microTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.microed);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_MIC), 1, thisCase.microID);
-		dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_MIC), 2, thisCase.microTAT);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_MIC), 3, thisCase.statusID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_MIC), 4, thisCase.noBlocks);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_MIC), 5, thisCase.noSlides);
-		dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_UP_MIC), 6, thisCase.microed.getTimeInMillis());
-		dbPowerJ.setLong(pjStms.get(DPowerJ.STM_PND_UP_MIC), 7, thisCase.caseID);
-		return dbPowerJ.execute(pjStms.get(DPowerJ.STM_PND_UP_MIC));
-	}
-
-	private int updateRouted() {
-		thisCase.routeTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.routed);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_ROU), 1, thisCase.routeID);
-		dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_ROU), 2, thisCase.routeTAT);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_ROU), 3, thisCase.statusID);
-		dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_ROU), 4, thisCase.noSlides);
-		dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_UP_ROU), 5, thisCase.routed.getTimeInMillis());
-		dbPowerJ.setLong(pjStms.get(DPowerJ.STM_PND_UP_ROU), 6, thisCase.caseID);
-		return dbPowerJ.execute(pjStms.get(DPowerJ.STM_PND_UP_ROU));
 	}
 }
