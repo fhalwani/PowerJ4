@@ -23,8 +23,6 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -132,11 +130,7 @@ class NSchedule extends NBase {
 			}
 		};
 		tblSchedule.addFocusListener(this);
-		TableColumnModel columns = tblSchedule.getColumnModel();
-		for (int i = 1; i < columns.getColumnCount(); i++) {
-			TableColumn column = columns.getColumn(i);
-			column.setCellEditor(new DefaultCellEditor(cboPersons));
-		}
+		tblSchedule.setDefaultEditor(OItem.class, new DefaultCellEditor(cboPersons));
 		JScrollPane scrollSchedule = IGUI.createJScrollPane(tblSchedule);
 		scrollSchedule.setMinimumSize(new Dimension(800, 900));
 		JSplitPane pnlSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -512,15 +506,6 @@ class NSchedule extends NBase {
 				getScheduleStaff();
 			}
 			modelSchedule.fireTableStructureChanged();
-			TableColumnModel columns = tblSchedule.getColumnModel();
-			for (int i = 1; i < columns.getColumnCount(); i++) {
-				TableColumn column = columns.getColumn(i);
-				if (byService) {
-					column.setCellEditor(new DefaultCellEditor(cboPersons));
-				} else {
-					column.setCellEditor(null);
-				}
-			}
 		}
 	}
 
@@ -657,7 +642,7 @@ class NSchedule extends NBase {
 
 		@Override
 		public Class<?> getColumnClass(int col) {
-			if (col == 0 || byService) {
+			if (col == 0 || !byService) {
 				return String.class;
 			}
 			return OItem.class;

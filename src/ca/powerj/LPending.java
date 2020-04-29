@@ -418,32 +418,30 @@ class LPending {
 			for (int i = 0; i < list.size(); i++) {
 				thisCase = list.get(i);
 				if (!thisCase.cancel) {
+					// QCH Cytology does not have histology nor routing
 					dbAP.setLong(apStms.get(DPowerpath.STM_CASE_PROCESS), 1, thisCase.caseID);
 					rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_PROCESS));
 					while (rst.next()) {
-						if (rst.getString("description") != null) {
-							descr = rst.getString("description").trim().toLowerCase();
-							if (descr.equals("final")) {
-								if (rst.getTimestamp("completed_date") != null) {
-									thisCase.statusID = OCaseStatus.ID_FINAL;
-									thisCase.finaled.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
+						if (rst.getShort("assigned_to_id") > 0) {
+							if (rst.getString("description") != null) {
+								descr = rst.getString("description").trim().toLowerCase();
+								if (descr.equals("final")) {
 									thisCase.finalID = rst.getShort("assigned_to_id");
 									thisCase.noSlides = getNoSlides();
 									thisCase.update = true;
-								} else if (thisCase.statusID >= OCaseStatus.ID_ROUTE) {
+									if (rst.getTimestamp("completed_date") != null) {
+										thisCase.statusID = OCaseStatus.ID_FINAL;
+										thisCase.finaled.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
+									}
+									break;
+								} else if (descr.contains("microscopic") || descr.contains("pathologist")) {
 									thisCase.finalID = rst.getShort("assigned_to_id");
+									thisCase.noSlides = getNoSlides();
 									thisCase.update = true;
-								}
-								break;
-							} else if (descr.contains("microscopic") || descr.contains("pathologist")) {
-								if (rst.getTimestamp("completed_date") != null) {
-									thisCase.statusID = OCaseStatus.ID_DIAGN;
-									thisCase.finaled.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
-									thisCase.finalID = rst.getShort("assigned_to_id");
-									thisCase.update = true;
-								} else if (thisCase.statusID >= OCaseStatus.ID_ROUTE) {
-									thisCase.finalID = rst.getShort("assigned_to_id");
-									thisCase.update = true;
+									if (rst.getTimestamp("completed_date") != null) {
+										thisCase.statusID = OCaseStatus.ID_DIAGN;
+										thisCase.finaled.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
+									}
 								}
 							}
 						}
@@ -557,7 +555,7 @@ class LPending {
 	private void getLastUpdate() {
 		long accession = dbPowerJ.getTime(pjStms.get(DPowerJ.STM_PND_SL_LST));
 		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.DAY_OF_YEAR, -30);
+		cal.add(Calendar.DAY_OF_YEAR, -45);
 		cal.set(Calendar.HOUR_OF_DAY, 0);
 		cal.set(Calendar.MINUTE, 0);
 		cal.set(Calendar.SECOND, 0);
@@ -668,6 +666,7 @@ class LPending {
 
 	/** Update Routing status of cases. */
 	private void getRouted() {
+		short noSlides = 0;
 		ResultSet rst = null;
 		try {
 			noUpdates = 0;
@@ -682,7 +681,11 @@ class LPending {
 							thisCase.routeID = rst.getShort("personnel_id");
 							thisCase.routed.setTimeInMillis(rst.getTimestamp("event_date").getTime());
 							thisCase.update = true;
-							break;
+							noSlides++;
+							if (noSlides == thisCase.noSlides) {
+								// Skip post-routing IHC orders
+								break;
+							}
 						}
 						rst.close();
 						if (thisCase.update) {

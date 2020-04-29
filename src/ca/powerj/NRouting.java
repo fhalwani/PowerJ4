@@ -929,6 +929,10 @@ class NRouting extends NBase {
 				pj.dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_SL_ROU), 2, dates.get(rowIndex).getTimeInMillis());
 				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PND_SL_ROU));
 				while (rst.next()) {
+					if (rst.getShort("FNID") == 0) {
+						// Not assigned yet
+						continue;
+					}
 					pending = new OCasePending();
 					pending.spyID = rst.getByte("SYID");
 					pending.subID = rst.getByte("SBID");
