@@ -112,16 +112,16 @@ class LBase implements Runnable {
 		if (!isConnected) {
 			if (pjArch.equals("DERBY")) {
 				// Open local database
-				dbPowerJ = new DDerby(this);
+//				dbPowerJ = new DDerby(this);
 			} else if (pjArch.equals("MSSQL")) {
 				// Open Microsoft SQL Server database
 				dbPowerJ = new DMicrosoft(this);
 			} else if (pjArch.equals("MARIADB")) {
 				// Open MySQL Server database
-				dbPowerJ = new DMaria(this);
+//				dbPowerJ = new DMaria(this);
 			} else if (pjArch.equals("POSTGRES")) {
 				// Open PostgreSQL Server database
-				dbPowerJ = new DPostgres(this);
+//				dbPowerJ = new DPostgres(this);
 			} else {
 				log(LConstants.ERROR_BINARY_FILE, "Variables", "Invalid application binary file");
 			}
@@ -230,7 +230,6 @@ class LBase implements Runnable {
 		byte jobID = JOB_REFRESH;
 		boolean firstRun = true;
 		boolean isUpToDate = false;
-		log(LConstants.ERROR_NONE, "Worker thread started.");
 		initDBPJ();
 		if (errorID == LConstants.ERROR_NONE) {
 			initDBAP();
@@ -251,9 +250,9 @@ class LBase implements Runnable {
 							if (!LConstants.IS_CLIENT) {
 								if (isNewMonth()) {
 									new LWorkdays(this);
-									if (errorID == LConstants.ERROR_NONE) {
-										new LValue5(this);
-									}
+//									if (errorID == LConstants.ERROR_NONE) {
+//										new LValue5(this);
+//									}
 								}
 								new LSync(this);
 							}
@@ -261,7 +260,6 @@ class LBase implements Runnable {
 						if (LConstants.IS_CLIENT) {
 							if (nextUpdate - System.currentTimeMillis() < timerInterval) {
 								if (pnlID > 0 & pnlCore != null) {
-									log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is refreshing...");
 									pnlCore.refresh();
 								}
 								setNextUpdate();
@@ -275,15 +273,13 @@ class LBase implements Runnable {
 								new LPending(firstRun, this);
 								firstRun = false;
 								if (pnlID > 0 && pnlCore != null) {
-									log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is refreshing...");
 									pnlCore.refresh();
 								}
 								setNextUpdate();
 							} else if (!isUpToDate) {
-//								LFinals worker = new LFinals(this);
-//								isUpToDate = worker.isUpToDate();
-								isUpToDate = true;
-//								worker.close();
+								LFinals worker = new LFinals(this);
+								isUpToDate = worker.isUpToDate();
+								worker.close();
 							} else if (nextUpdate - System.currentTimeMillis() > 3400000) {
 								// Sleep if nextUpdate is in 1 hours or more
 								jobID = JOB_SLEEP;
@@ -291,16 +287,13 @@ class LBase implements Runnable {
 						}
 						break;
 					case JOB_SLEEP:
-						log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is going to sleep...");
 						jobID = JOB_SLEEPING;
 						if (dbAP != null) {
-							log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is closing dbAP...");
 							dbAP.close();
 						}
 						// Desktop cannot close dbPowerJ (Derby)
 						if (!LConstants.IS_DESKTOP) {
 							if (dbPowerJ != null) {
-								log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is closing dbPowerJ...");
 								dbPowerJ.close();
 							}
 						}
@@ -311,17 +304,14 @@ class LBase implements Runnable {
 						}
 						break;
 					case JOB_WAKEUP:
-						log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is waking up...");
 						jobID = JOB_REFRESH;
 						firstRun = true;
 						isUpToDate = false;
 						// Desktop cannot close dbPowerJ (Derby)
 						if (!LConstants.IS_DESKTOP) {
-							log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is connecting dbPowerJ...");
 							initDBPJ();
 						}
 						if (errorID == LConstants.ERROR_NONE) {
-							log(LConstants.ERROR_NONE, LConstants.APP_NAME, "Worker thread is connecting dbAP...");
 							initDBAP();
 						}
 						break;
@@ -335,6 +325,9 @@ class LBase implements Runnable {
 				} catch (InterruptedException ignore) {
 				}
 			}
+		}
+		if (errorID != LConstants.ERROR_NONE) {
+			stopWorker();
 		}
 	}
 
@@ -394,9 +387,6 @@ class LBase implements Runnable {
 	 * Cleanly stop the engine.
 	 */
 	boolean stopWorker() {
-		if (isBusy()) {
-			return false;
-		}
 		stopped.set(true);
 		synchronized (this) {
 			notifyAll();

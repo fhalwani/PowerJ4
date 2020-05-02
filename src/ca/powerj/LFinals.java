@@ -10,6 +10,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class LFinals {
+	static final byte ADDL_ADEND = 1;
+	static final byte ADDL_COREL = 2;
+	static final byte ADDL_ORDER = 3;
 	private short noFrags = 0, noLesions = 0, number = 0;
 	private int value5fs = 0;
 	private int index = 0;
@@ -111,16 +114,25 @@ class LFinals {
 					// For Debug
 					getCase(caseNo);
 				} else {
-					getLastUpdate();
+					getLastCase();
 					getMaxDate();
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 						doCases();
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
-						doAmendments();
+						getLastAdditional(ADDL_ADEND);
+					}
+					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
+						doAdenda();
+					}
+					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
+						getLastAdditional(ADDL_ORDER);
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 						doAdditional();
+					}
+					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
+						getLastAdditional(ADDL_COREL);
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 						doCorrelations();
@@ -332,9 +344,9 @@ class LFinals {
 		}
 	}
 
-	private void doAmendments() {
+	private void doAdenda() {
 		boolean exists = false;
-		short orderID = 0, codeID = 0;
+		short orderID = 0;
 		int noCases = 0;
 		long startTime = System.currentTimeMillis();
 		double dValue1 = 0, dValue2 = 0, dValue3 = 0, dValue4 = 0;
@@ -347,11 +359,8 @@ class LFinals {
 			rstCases = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASES_ADDEND));
 			while (rstCases.next()) {
 				descr = rstCases.getString("description").trim().toLowerCase();
-				if (descr.equals("amendment final")) {
-					codeID = 1;
-				} else if (descr.equals("addendum final")) {
-					codeID = 2;
-				} else {
+				if (!descr.equals("amendment final")
+						&& !descr.equals("addendum final")) {
 					continue;
 				}
 				if (thisCase.caseID != rstCases.getLong("acc_id")) {
@@ -365,7 +374,7 @@ class LFinals {
 				thisCase.finaled.setTimeInMillis(rstCases.getTimestamp("completed_date").getTime());
 				thisCase.finalID = rstCases.getShort("assigned_to_id");
 				// Cannot exist in PowerJ in Additional Table
-				if (isDuplicate(orderID))
+				if (isDuplicate(ADDL_ADEND))
 					continue;
 				pj.log(LConstants.ERROR_NONE, className, "Coding " + descr + ": " + thisCase.caseNo);
 				coder1.newCase(thisCase);
@@ -427,7 +436,7 @@ class LFinals {
 				if (dValue1 > 0.01 || dValue2 > 0.01 || dValue3 > 0.01 || dValue4 > 0.01) {
 					dbPowerJ.setLong(pjStms.get(DPowerJ.STM_ADD_INSERT), 1, thisCase.caseID);
 					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_INSERT), 2, thisCase.finalID);
-					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_INSERT), 3, codeID);
+					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_INSERT), 3, ADDL_ADEND);
 					dbPowerJ.setDate(pjStms.get(DPowerJ.STM_ADD_INSERT), 4, thisCase.finaled.getTimeInMillis());
 					dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 5, dValue1);
 					dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 6, dValue2);
@@ -514,7 +523,6 @@ class LFinals {
 				&& coder4.getCorrelations() < 0.001) {
 			return;
 		}
-		final short codeID = 3;
 		boolean exists = false;
 		int noCases = 0;
 		long startTime = System.currentTimeMillis();
@@ -540,12 +548,12 @@ class LFinals {
 				thisCase.finaled.setTimeInMillis(rstCases.getTimestamp("correlation_date").getTime());
 				thisCase.finalID = rstCases.getShort("correlated_by_id");
 				// Cannot exist in PowerJ in Additional Table
-				if (isDuplicate(codeID))
+				if (isDuplicate(ADDL_COREL))
 					continue;
 				pj.log(LConstants.ERROR_NONE, className, "Coding Correlation on case " + thisCase.caseNo);
 				dbPowerJ.setLong(pjStms.get(DPowerJ.STM_ADD_INSERT), 1, thisCase.caseID);
 				dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_INSERT), 2, thisCase.finalID);
-				dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_INSERT), 3, codeID);
+				dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_INSERT), 3, ADDL_COREL);
 				dbPowerJ.setDate(pjStms.get(DPowerJ.STM_ADD_INSERT), 4, thisCase.finaled.getTimeInMillis());
 				dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 5, dValue1);
 				dbPowerJ.setDouble(pjStms.get(DPowerJ.STM_ADD_INSERT), 6, dValue2);
@@ -750,25 +758,39 @@ class LFinals {
 		}
 	}
 
-	private void getLastUpdate() {
+	private void getLastAdditional(short codeID) {
 		// Earliest date is 1/1/2011 (1293858000001)
 		long minWorkloadDate = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
-		// Add 0.01 second to avoid duplicated 1st case
-		lastUpdate = dbPowerJ.getTime(pjStms.get(DPowerJ.STM_CSE_SL_LST)) + 1;
+		if (codeID < ADDL_ORDER) {
+			dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_SL_LST), 1, codeID);
+			// Add 1 millisecond to avoid duplicated 1st case
+			lastUpdate = dbPowerJ.getTime(pjStms.get(DPowerJ.STM_ADD_SL_LST)) + 1;
+		} else {
+			lastUpdate = dbPowerJ.getTime(pjStms.get(DPowerJ.STM_ADD_SL_ORD)) + 1;
+		}
 		if (lastUpdate < minWorkloadDate) {
 			lastUpdate = minWorkloadDate;
 		}
 	}
 
+	private void getLastCase() {
+		// Earliest date is 1/1/2011 (1293858000001)
+		long minWorkloadDate = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
+		// Add 1 millisecond to avoid duplicated 1st case
+		lastUpdate = dbPowerJ.getTime(pjStms.get(DPowerJ.STM_CSE_SL_WLD)) + 1;
+		if (lastUpdate < minWorkloadDate) {
+			lastUpdate = minWorkloadDate;
+		}
+	}
 	private void getMaxDate() {
 		// Maximum range is 7 days interval per run
 		Calendar calLastDate = pj.dates.setMidnight(lastUpdate);
 		Calendar calNow = Calendar.getInstance();
 		int noDays = pj.dates.getNoDays(calLastDate, calNow);
-		if (noDays > 7) {
-			noDays = 7;
-		} else if (noDays < 0) {
-			noDays = 0;
+		if (noDays > 30) {
+			noDays = 30;
+		} else if (noDays < 1) {
+			noDays = 1;
 		}
 		calLastDate.add(Calendar.DAY_OF_YEAR, noDays);
 		maxDate = calLastDate.getTimeInMillis();
@@ -1074,19 +1096,19 @@ class LFinals {
 	}
 
 	private boolean isDuplicate(short codeID) {
-		boolean exists = false;
+		boolean duplicate = false;
 		ResultSet rst = null;
 		try {
-			dbPowerJ.setLong(apStms.get(DPowerJ.STM_ADD_SL_CID), 1, thisCase.caseID);
-			rst = dbPowerJ.getResultSet(apStms.get(DPowerJ.STM_ADD_SL_CID));
+			dbPowerJ.setLong(pjStms.get(DPowerJ.STM_ADD_SL_CID), 1, thisCase.caseID);
+			rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ADD_SL_CID));
 			while (rst.next()) {
-				if (thisCase.finalID == rst.getShort("PRID")) {
-					if (codeID == rst.getShort("ADCD")) {
+				if (codeID == rst.getShort("ADCD")) {
+					if (thisCase.finalID == rst.getShort("PRID")) {
 						thisCase.accessed.setTimeInMillis(rst.getTimestamp("ADDT").getTime());
 						if ((thisCase.finaled.getTimeInMillis() / 86400000)
 								- (thisCase.accessed.getTimeInMillis() / 86400000) < 1) {
 							// No duplicates on the same day
-							exists = true;
+							duplicate = true;
 							break;
 						}
 					}
@@ -1097,11 +1119,11 @@ class LFinals {
 		} finally {
 			dbPowerJ.close(rst);
 		}
-		return exists;
+		return duplicate;
 	}
 
 	boolean isUpToDate() {
-		return (maxDate - lastUpdate < LDates.ONE_DAY);
+		return (System.currentTimeMillis() - maxDate < LDates.ONE_DAY);
 	}
 
 	private void saveCase(boolean isNew) {

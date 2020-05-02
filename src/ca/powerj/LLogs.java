@@ -23,7 +23,7 @@ class LLogs {
 			// Disable output to stderr
 			logger.setUseParentHandlers(false);
 			// Test logging
-			logger.log(Level.INFO, "PowerJ started.");
+			logger.log(Level.INFO, LConstants.APP_NAME + " started.");
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -33,7 +33,7 @@ class LLogs {
 
 	void close() {
 		if (logger != null) {
-			logger.log(Level.INFO, "PowerJ exited.");
+			logger.log(Level.INFO, LConstants.APP_NAME + " exited.");
 			Handler[] handler =  logger.getHandlers();
 			for(Handler h: handler) {
 				try {

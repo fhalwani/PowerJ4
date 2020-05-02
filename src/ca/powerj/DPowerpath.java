@@ -65,6 +65,7 @@ class DPowerpath extends DCore {
 			pstms.put(STM_CASE_ORDERS, prepareStatement(setSQL(STM_CASE_ORDERS)));
 			pstms.put(STM_CASE_PROCESS, prepareStatement(setSQL(STM_CASE_PROCESS)));
 			pstms.put(STM_CASE_ROUTING, prepareStatement(setSQL(STM_CASE_ROUTING)));
+			pstms.put(STM_CASE_SCANNED, prepareStatement(setSQL(STM_CASE_SCANNED)));
 			pstms.put(STM_CASE_SPCMNS, prepareStatement(setSQL(STM_CASE_SPCMNS)));
 			pstms.put(STM_CASES_ACCESS, prepareStatement(setSQL(STM_CASES_ACCESS)));
 			break;
@@ -159,9 +160,9 @@ class DPowerpath extends DCore {
 					+ "WHERE acc_id = ? AND source_rec_type = 'L' AND amp_mode = 'slide distribution'\n"
 					+ "AND event_type = 'material_routed' ORDER BY event_date";
 		case STM_CASE_SCANNED:
-			return "SELECT event_date FROM acc_amp_event WITH (NOLOCK)\n"
-					+ "WHERE acc_id = ? AND event_type = 'material_scan'\n"
-					+ "AND source_rec_type = 'L' AND amp_mode = 'Diagnostician'\n" + "ORDER BY event_date";
+			return "SELECT event_date, personnel_id FROM acc_amp_event WITH (NOLOCK)\n"
+					+ "WHERE acc_id = ? AND source_rec_type = 'L' AND amp_mode = 'Diagnostician'\n"
+					+ "AND event_type = 'material_scan' ORDER BY event_date";
 		case STM_CASE_SPCMNS:
 			// Get specimens of a case (use left outer join, or no specimens in autopsies)
 			return "SELECT s.id, s.specimen_label, s.tmplt_profile_id, s.description, s.collection_date, s.recv_date, t.code, c.label_name\n"

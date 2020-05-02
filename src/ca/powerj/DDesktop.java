@@ -309,12 +309,15 @@ class DDesktop extends DPowerJ {
 			pstms.put(STM_PND_UP_GRS, prepareStatement(setSQL(STM_PND_UP_GRS)));
 			pstms.put(STM_PND_UP_MIC, prepareStatement(setSQL(STM_PND_UP_MIC)));
 			pstms.put(STM_PND_UP_ROU, prepareStatement(setSQL(STM_PND_UP_ROU)));
+			pstms.put(STM_PND_UP_SCA, prepareStatement(setSQL(STM_PND_UP_SCA)));
 			pstms.put(STM_SPM_SELECT, prepareStatement(setSQL(STM_SPM_SELECT)));
 			break;
 		case LConstants.ACTION_LLOAD:
 			pstms.put(STM_ACC_SELECT, prepareStatement(setSQL(STM_ACC_SELECT)));
 			pstms.put(STM_ADD_INSERT, prepareStatement(setSQL(STM_ADD_INSERT)));
 			pstms.put(STM_ADD_SL_CID, prepareStatement(setSQL(STM_ADD_SL_CID)));
+			pstms.put(STM_ADD_SL_LST, prepareStatement(setSQL(STM_ADD_SL_LST)));
+			pstms.put(STM_ADD_SL_ORD, prepareStatement(setSQL(STM_ADD_SL_ORD)));
 			pstms.put(STM_CD1_SELECT, prepareStatement(setSQL(STM_CD1_SELECT)));
 			pstms.put(STM_CD2_SELECT, prepareStatement(setSQL(STM_CD2_SELECT)));
 			pstms.put(STM_CD3_SELECT, prepareStatement(setSQL(STM_CD3_SELECT)));
@@ -323,7 +326,7 @@ class DDesktop extends DPowerJ {
 			pstms.put(STM_CMT_UPDATE, prepareStatement(setSQL(STM_CMT_UPDATE)));
 			pstms.put(STM_CSE_INSERT, prepareStatement(setSQL(STM_CSE_INSERT)));
 			pstms.put(STM_CSE_SL_CID, prepareStatement(setSQL(STM_CSE_SL_CID)));
-			pstms.put(STM_CSE_SL_LST, prepareStatement(setSQL(STM_CSE_SL_LST)));
+			pstms.put(STM_CSE_SL_WLD, prepareStatement(setSQL(STM_CSE_SL_WLD)));
 			pstms.put(STM_CSE_SL_SPE, prepareStatement(setSQL(STM_CSE_SL_SPE)));
 			pstms.put(STM_CSE_UPDATE, prepareStatement(setSQL(STM_CSE_UPDATE)));
 			pstms.put(STM_ERR_DELETE, prepareStatement(setSQL(STM_ERR_DELETE)));
@@ -376,6 +379,8 @@ class DDesktop extends DPowerJ {
 		case STM_ADD_SL_CID:
 			return "SELECT PRID, ADCD, ADV5, ADV1, ADV2, ADV3, ADV4, ADDT, PRNM, PRLS, PRFR, CANO "
 					+ "FROM udvAdditionals WHERE CAID = ? ORDER BY ADDT";
+		case STM_ADD_SL_LST:
+			return "SELECT MAX(ADDT) AS ADDT FROM Additionals WHERE ADCD = ?";
 		case STM_ADD_SL_SUM:
 			return "SELECT FAID, SYID, SBID, POID, PRID, FANM, SYNM, SBNM, PONM, PRNM, PRLS, PRFR, COUNT(CAID) AS ADCA, "
 					+ "SUM(CAST(ADV5 as INT)) AS ADV5, SUM(ADV1) AS ADV1, SUM(ADV2) AS ADV2, SUM(ADV3) AS ADV3, SUM(ADV4) AS ADV4 "

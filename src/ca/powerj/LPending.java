@@ -35,6 +35,9 @@ class LPending {
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 				pjStms = dbPowerJ.prepareStatements(LConstants.ACTION_LFLOW);
 			}
+			if (pj.errorID == LConstants.ERROR_NONE && firstRun && (!pj.abort())) {
+				deleteComplete();
+			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 				accessions = new MAccessions(pj, pjStms.get(DPowerJ.STM_ACC_SELECT));
 			}
@@ -49,9 +52,6 @@ class LPending {
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 				getLastUpdate();
-			}
-			if (pj.errorID == LConstants.ERROR_NONE && firstRun && (!pj.abort())) {
-				deleteComplete();
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 				getAccessions();
@@ -73,6 +73,9 @@ class LPending {
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 				getRouted();
+			}
+			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
+				getScanned();
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 				getFinal();
@@ -151,8 +154,7 @@ class LPending {
 			while (rst.next()) {
 				if (rst.getString("accession_no") == null
 					|| rst.getShort("acc_type_id") == 0
-					|| rst.getShort("facility_id") == 0
-					|| rst.getTimestamp("created_date").getTime() == 0) {
+					|| rst.getShort("facility_id") == 0) {
 					// This is the tail of the table where a case is currently being added
 					// So we stop & continue on the next run
 					break;
@@ -168,8 +170,6 @@ class LPending {
 					if (thisCase.noSpec == 0 || thisCase.mainSpec == 0) {
 						continue;
 					}
-					// The specimens cannot be processed here because FSEC cases will have the rest 
-					// of their specimens entered in 3-18 hours
 					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 1, thisCase.facID);
 					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 2, thisCase.subID);
 					dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_INSERT), 3, thisCase.procID);
@@ -351,7 +351,7 @@ class LPending {
 			for (int i = 0; i < list.size(); i++) {
 				thisCase = list.get(i);
 				if (!thisCase.cancel) {
-					if (thisCase.statusID == OCaseStatus.ID_GROSS) {
+					if (thisCase.statusID < OCaseStatus.ID_EMBED) {
 						getSpecimens();
 						if (thisCase.noSpec > 0) {
 							dbAP.setLong(apStms.get(DPowerpath.STM_CASE_EMBEDED), 1, thisCase.caseID);
@@ -422,26 +422,32 @@ class LPending {
 					dbAP.setLong(apStms.get(DPowerpath.STM_CASE_PROCESS), 1, thisCase.caseID);
 					rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_PROCESS));
 					while (rst.next()) {
-						if (rst.getShort("assigned_to_id") > 0) {
-							if (rst.getString("description") != null) {
-								descr = rst.getString("description").trim().toLowerCase();
-								if (descr.equals("final")) {
-									thisCase.finalID = rst.getShort("assigned_to_id");
-									thisCase.noSlides = getNoSlides();
+						if (rst.getString("description") != null) {
+							descr = rst.getString("description").trim().toLowerCase();
+							if (descr.equals("final")) {
+								if (rst.getTimestamp("completed_date") != null) {
 									thisCase.update = true;
-									if (rst.getTimestamp("completed_date") != null) {
-										thisCase.statusID = OCaseStatus.ID_FINAL;
-										thisCase.finaled.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
-									}
-									break;
-								} else if (descr.contains("microscopic") || descr.contains("pathologist")) {
-									thisCase.finalID = rst.getShort("assigned_to_id");
 									thisCase.noSlides = getNoSlides();
+									thisCase.statusID = OCaseStatus.ID_FINAL;
+									thisCase.finalID = rst.getShort("assigned_to_id");
+									thisCase.finaled.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
+								}
+								break;
+							} else if (descr.contains("microscopic") || descr.contains("pathologist")) {
+								if (rst.getShort("assigned_to_id") > 0
+										&& thisCase.finalID == 0
+										&& thisCase.statusID == OCaseStatus.ID_ROUTE) {
+									// Important:
+									// Capture cases routed but not assigned, but also avoid letting
+									// others (PA & resident) changing the original assignment to themselves
 									thisCase.update = true;
-									if (rst.getTimestamp("completed_date") != null) {
-										thisCase.statusID = OCaseStatus.ID_DIAGN;
-										thisCase.finaled.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
-									}
+									thisCase.finalID = rst.getShort("assigned_to_id");
+								}
+								if (rst.getTimestamp("completed_date") != null) {
+									thisCase.update = true;
+									thisCase.statusID = OCaseStatus.ID_DIAGN;
+									thisCase.finalID = rst.getShort("assigned_to_id");
+									thisCase.finaled.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
 								}
 							}
 						}
@@ -490,7 +496,7 @@ class LPending {
 			for (int i = 0; i < list.size(); i++) {
 				thisCase = list.get(i);
 				if (!thisCase.cancel) {
-					if (thisCase.statusID == OCaseStatus.ID_ACCES) {
+					if (thisCase.statusID < OCaseStatus.ID_GROSS) {
 						getSpecimens();
 						if (thisCase.noSpec > 0) {
 							dbAP.setLong(apStms.get(DPowerpath.STM_CASE_PROCESS), 1, thisCase.caseID);
@@ -576,7 +582,7 @@ class LPending {
 			for (int i = 0; i < list.size(); i++) {
 				thisCase = list.get(i);
 				if (!thisCase.cancel) {
-					if (thisCase.statusID == OCaseStatus.ID_EMBED) {
+					if (thisCase.statusID < OCaseStatus.ID_MICRO) {
 						noBlocks = 0;
 						dbAP.setLong(apStms.get(DPowerpath.STM_CASE_MICROTO), 1, thisCase.caseID);
 						rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_MICROTO));
@@ -698,6 +704,62 @@ class LPending {
 							dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_UP_ROU), 5, thisCase.routed.getTimeInMillis());
 							dbPowerJ.setLong(pjStms.get(DPowerJ.STM_PND_UP_ROU), 6, thisCase.caseID);
 							if (dbPowerJ.execute(pjStms.get(DPowerJ.STM_PND_UP_ROU)) > 0) {
+								thisCase.update = false;
+								noUpdates++;
+							}
+						}
+					}
+				}
+				if (pj.abort()) {
+					break;
+				} else if (i % 100 == 0) {
+					try {
+						Thread.sleep(LConstants.SLEEP_TIME);
+					} catch (InterruptedException ignore) {
+					}
+				}
+			}
+			pj.log(LConstants.ERROR_NONE, className,
+					"Updated " + pj.numbers.formatNumber(noUpdates) + " routed cases.");
+			Thread.sleep(LConstants.SLEEP_TIME);
+		} catch (InterruptedException ignore) {
+		} catch (SQLException e) {
+			pj.log(LConstants.ERROR_SQL, className, e);
+		} finally {
+			dbAP.close(rst);
+		}
+	}
+
+	/** Update Routing status of cases that are not routed (cytology) by using slide scanner event. */
+	private void getScanned() {
+		final long ONE_HOUR = 3600000;
+		ResultSet rst = null;
+		try {
+			noUpdates = 0;
+			for (int i = 0; i < list.size(); i++) {
+				thisCase = list.get(i);
+				if (!thisCase.cancel) {
+					if (thisCase.statusID < OCaseStatus.ID_ROUTE) {
+						dbAP.setLong(apStms.get(DPowerpath.STM_CASE_SCANNED), 1, thisCase.caseID);
+						rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_SCANNED));
+						while (rst.next()) {
+							thisCase.routed.setTimeInMillis(rst.getTimestamp("event_date").getTime() - ONE_HOUR);
+							thisCase.finalID = rst.getShort("personnel_id");
+							thisCase.statusID = OCaseStatus.ID_ROUTE;
+							thisCase.update = true;
+							break;
+						}
+						rst.close();
+						if (thisCase.update) {
+							thisCase.noSlides = getNoSlides();
+							thisCase.routeTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.routed);
+							dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_SCA), 1, thisCase.finalID);
+							dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_SCA), 2, thisCase.routeTAT);
+							dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_SCA), 3, thisCase.statusID);
+							dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_SCA), 4, thisCase.noSlides);
+							dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_UP_SCA), 5, thisCase.routed.getTimeInMillis());
+							dbPowerJ.setLong(pjStms.get(DPowerJ.STM_PND_UP_SCA), 6, thisCase.caseID);
+							if (dbPowerJ.execute(pjStms.get(DPowerJ.STM_PND_UP_SCA)) > 0) {
 								thisCase.update = false;
 								noUpdates++;
 							}

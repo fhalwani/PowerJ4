@@ -24,12 +24,12 @@ class DMicrosoft extends DServer {
 				ds.setLoginTimeout(2);
 				ds.setPortNumber(Integer.parseInt(pj.pjPort));
 				ds.setServerName(pj.pjHost);
-				ds.setDatabaseName(pj.pjSchema);
+//				ds.setDatabaseName("PowerJ4");
 				ds.setUser(pj.pjUser);
 				ds.setPassword(pj.pjPass);
 				connection = ds.getConnection();
 				stm = connection.createStatement();
-				execute("USE dbpj");
+				execute("USE PowerJ4");
 				pj.log(LConstants.ERROR_NONE, dbName, "Connected to MSSQL.");
 			}
 		} catch (SQLServerException e) {

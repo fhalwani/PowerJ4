@@ -13,7 +13,7 @@ class LDates {
 	static final byte FORMAT_DATETIME = 4;
 	static final byte FORMAT_SCHED = 5;
 	static final byte FORMAT_TIME = 6;
-	static final int ONE_DAY = 86400000; // 24 * 60 * 60 * 1000
+	static final int ONE_DAY = 86400000; // in milliseconds
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("d/M/yy", Locale.getDefault());
 	private final SimpleDateFormat longFormat = new SimpleDateFormat("MMMM d, yyyy", Locale.getDefault());
 	private final SimpleDateFormat tinyFormat = new SimpleDateFormat("d/M", Locale.getDefault());

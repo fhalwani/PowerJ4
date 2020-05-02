@@ -310,12 +310,15 @@ class DServer extends DPowerJ {
 			pstms.put(STM_PND_UP_GRS, prepareStatement(setSQL(STM_PND_UP_GRS)));
 			pstms.put(STM_PND_UP_MIC, prepareStatement(setSQL(STM_PND_UP_MIC)));
 			pstms.put(STM_PND_UP_ROU, prepareStatement(setSQL(STM_PND_UP_ROU)));
+			pstms.put(STM_PND_UP_SCA, prepareStatement(setSQL(STM_PND_UP_SCA)));
 			pstms.put(STM_SPM_SELECT, prepareCallables(setSQL(STM_SPM_SELECT)));
 			break;
 		case LConstants.ACTION_LLOAD:
 			pstms.put(STM_ACC_SELECT, prepareCallables(setSQL(STM_ACC_SELECT)));
 			pstms.put(STM_ADD_INSERT, prepareStatement(setSQL(STM_ADD_INSERT)));
 			pstms.put(STM_ADD_SL_CID, prepareCallables(setSQL(STM_ADD_SL_CID)));
+			pstms.put(STM_ADD_SL_LST, prepareCallables(setSQL(STM_ADD_SL_LST)));
+			pstms.put(STM_ADD_SL_ORD, prepareCallables(setSQL(STM_ADD_SL_ORD)));
 			pstms.put(STM_CD1_SELECT, prepareCallables(setSQL(STM_CD1_SELECT)));
 			pstms.put(STM_CD2_SELECT, prepareCallables(setSQL(STM_CD2_SELECT)));
 			pstms.put(STM_CD3_SELECT, prepareCallables(setSQL(STM_CD3_SELECT)));
@@ -324,7 +327,7 @@ class DServer extends DPowerJ {
 			pstms.put(STM_CMT_UPDATE, prepareStatement(setSQL(STM_CMT_UPDATE)));
 			pstms.put(STM_CSE_INSERT, prepareStatement(setSQL(STM_CSE_INSERT)));
 			pstms.put(STM_CSE_SL_CID, prepareCallables(setSQL(STM_CSE_SL_CID)));
-			pstms.put(STM_CSE_SL_LST, prepareStatement(setSQL(STM_CSE_SL_LST)));
+			pstms.put(STM_CSE_SL_WLD, prepareStatement(setSQL(STM_CSE_SL_WLD)));
 			pstms.put(STM_CSE_SL_SPE, prepareCallables(setSQL(STM_CSE_SL_SPE)));
 			pstms.put(STM_CSE_UPDATE, prepareStatement(setSQL(STM_CSE_UPDATE)));
 			pstms.put(STM_ERR_DELETE, prepareStatement(setSQL(STM_ERR_DELETE)));
@@ -376,6 +379,8 @@ class DServer extends DPowerJ {
 			return "{call udpAccessions}";
 		case STM_ADD_SL_CID:
 			return "{call udpAdditionals(?)}";
+		case STM_ADD_SL_LST:
+			return "{call udpAddLast(?)}";
 		case STM_ADD_SL_SUM:
 			return "{call udpAddSum(?, ?)}";
 		case STM_CD1_SELECT:
