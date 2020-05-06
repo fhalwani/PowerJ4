@@ -90,46 +90,47 @@ class DPowerJ extends DCore {
 	static final byte STM_RUL_INSERT = 79;
 	static final byte STM_RUL_SELECT = 80;
 	static final byte STM_RUL_UPDATE = 81;
-	static final byte STM_SCH_INSERT = 82;
-	static final byte STM_SCH_SL_MON = 83;
-	static final byte STM_SCH_SL_SRV = 84;
-	static final byte STM_SCH_SL_STA = 85;
-	static final byte STM_SCH_SL_SUM = 86;
-	static final byte STM_SCH_UPDATE = 87;
-	static final byte STM_SPE_INSERT = 88;
-	static final byte STM_SPE_SELECT = 89;
-	static final byte STM_SPE_UPDATE = 90;
-	static final byte STM_SPG_INSERT = 91;
-	static final byte STM_SPG_SELECT = 92;
-	static final byte STM_SPG_SL_SU5 = 93;
-	static final byte STM_SPG_SL_SUM = 94;
-	static final byte STM_SPG_UPD_V5 = 95;
-	static final byte STM_SPG_UPDATE = 96;
-	static final byte STM_SPM_INSERT = 97;
-	static final byte STM_SPM_SELECT = 98;
-	static final byte STM_SPM_UPDATE = 99;
-	static final byte STM_SPY_INSERT = 100;
-	static final byte STM_SPY_SELECT = 101;
-	static final byte STM_SPY_UPDATE = 102;
-	static final byte STM_SRV_INSERT = 103;
-	static final byte STM_SRV_SELECT = 104;
-	static final byte STM_SRV_UPDATE = 105;
-	static final byte STM_STP_INSERT = 106;
-	static final byte STM_STP_SELECT = 107;
-	static final byte STM_STP_SL_SID = 108;
-	static final byte STM_STP_UPDATE = 109;
-	static final byte STM_SUB_INSERT = 110;
-	static final byte STM_SUB_SELECT = 111;
-	static final byte STM_SUB_UPDATE = 112;
-	static final byte STM_TUR_INSERT = 113;
-	static final byte STM_TUR_SELECT = 114;
-	static final byte STM_TUR_UPDATE = 115;
-	static final byte STM_WDY_INSERT = 116;
-	static final byte STM_WDY_SELECT = 117;
-	static final byte STM_WDY_SL_DTE = 118;
-	static final byte STM_WDY_SL_LST = 119;
-	static final byte STM_WDY_SL_NXT = 120;
-	static final byte STM_WDY_SL_PRV = 121;
+	static final byte STM_SCH_DELETE = 82;
+	static final byte STM_SCH_INSERT = 83;
+	static final byte STM_SCH_SL_MON = 84;
+	static final byte STM_SCH_SL_SRV = 85;
+	static final byte STM_SCH_SL_STA = 86;
+	static final byte STM_SCH_SL_SUM = 87;
+	static final byte STM_SCH_UPDATE = 88;
+	static final byte STM_SPE_INSERT = 89;
+	static final byte STM_SPE_SELECT = 90;
+	static final byte STM_SPE_UPDATE = 91;
+	static final byte STM_SPG_INSERT = 92;
+	static final byte STM_SPG_SELECT = 93;
+	static final byte STM_SPG_SL_SU5 = 94;
+	static final byte STM_SPG_SL_SUM = 95;
+	static final byte STM_SPG_UPD_V5 = 96;
+	static final byte STM_SPG_UPDATE = 97;
+	static final byte STM_SPM_INSERT = 98;
+	static final byte STM_SPM_SELECT = 99;
+	static final byte STM_SPM_UPDATE = 100;
+	static final byte STM_SPY_INSERT = 101;
+	static final byte STM_SPY_SELECT = 102;
+	static final byte STM_SPY_UPDATE = 103;
+	static final byte STM_SRV_INSERT = 104;
+	static final byte STM_SRV_SELECT = 105;
+	static final byte STM_SRV_UPDATE = 106;
+	static final byte STM_STP_INSERT = 107;
+	static final byte STM_STP_SELECT = 108;
+	static final byte STM_STP_SL_SID = 109;
+	static final byte STM_STP_UPDATE = 110;
+	static final byte STM_SUB_INSERT = 111;
+	static final byte STM_SUB_SELECT = 112;
+	static final byte STM_SUB_UPDATE = 113;
+	static final byte STM_TUR_INSERT = 114;
+	static final byte STM_TUR_SELECT = 115;
+	static final byte STM_TUR_UPDATE = 116;
+	static final byte STM_WDY_INSERT = 117;
+	static final byte STM_WDY_SELECT = 118;
+	static final byte STM_WDY_SL_DTE = 119;
+	static final byte STM_WDY_SL_LST = 120;
+	static final byte STM_WDY_SL_NXT = 121;
+	static final byte STM_WDY_SL_PRV = 122;
 
 	DPowerJ(LBase parent) {
 		super(parent);
@@ -316,16 +317,16 @@ class DPowerJ extends DCore {
 			return "UPDATE Pending SET SBID = ?, POID = ?, SMID = ?, EMID = ?, EMTA = ?, PNST = ?, PNSP = ?, "
 					+ "PNBL = ?, PNV5 = ?, EMED = ? WHERE PNID = ?";
 		case STM_PND_UP_FIN:
-			return "UPDATE Pending SET FNID = ?, FNTA = ?, PNST = ?, PNSL = ?, FNED = ? WHERE PNID = ?";
+			return "UPDATE Pending SET FNID = ?, FNTA = ?, PNST = ?, PNBL = ?, PNSL = ?, FNED = ? WHERE PNID = ?";
 		case STM_PND_UP_GRS:
 			return "UPDATE Pending SET SBID = ?, POID = ?, SMID = ?, GRID = ?, GRTA = ?, PNST = ?, PNSP = ?, "
 					+ "PNBL = ?, PNV5 = ?, GRED = ? WHERE PNID = ?";
 		case STM_PND_UP_MIC:
 			return "UPDATE Pending SET MIID = ?, MITA = ?, PNST = ?, PNBL = ?, PNSL = ?, MIED = ? WHERE PNID = ?";
 		case STM_PND_UP_ROU:
-			return "UPDATE Pending SET ROID = ?, ROTA = ?, PNST = ?, PNSL = ?, ROED = ? WHERE PNID = ?";
+			return "UPDATE Pending SET ROID = ?, ROTA = ?, PNST = ?, PNBL = ?, PNSL = ?, ROED = ? WHERE PNID = ?";
 		case STM_PND_UP_SCA:
-			return "UPDATE Pending SET FNID = ?, ROTA = ?, PNST = ?, PNSL = ?, ROED = ? WHERE PNID = ?";
+			return "UPDATE Pending SET FNID = ?, ROTA = ?, PNST = ?, PNBL = ?, PNSL = ?, ROED = ? WHERE PNID = ?";
 		case STM_PRO_INSERT:
 			return "INSERT INTO Procedures (PONM, PODC, POID) VALUES (?, ?, ?)";
 		case STM_PRO_UPDATE:
@@ -338,6 +339,8 @@ class DPowerJ extends DCore {
 			return "INSERT INTO Rules (RUNM, RUDC, RUID) VALUES (?, ?, ?)";
 		case STM_RUL_UPDATE:
 			return "UPDATE Rules SET RUNM = ?, RUDC = ? WHERE RUID = ?";
+		case STM_SCH_DELETE:
+			return "DELETE FROM Schedules WHERE SRID = ? AND WDID = ?";
 		case STM_SCH_INSERT:
 			return "INSERT INTO Schedules (PRID, SRID, WDID) VALUES (?, ?, ?)";
 		case STM_SCH_SL_MON:

@@ -225,10 +225,11 @@ class DServer extends DPowerJ {
 			break;
 		case LConstants.ACTION_SCHEDULE:
 			pstms.put(STM_PRS_SELECT, prepareCallables(setSQL(STM_PRS_SELECT)));
+			pstms.put(STM_SCH_DELETE, prepareStatement(setSQL(STM_SCH_DELETE)));
 			pstms.put(STM_SCH_INSERT, prepareStatement(setSQL(STM_SCH_INSERT)));
 			pstms.put(STM_SCH_SL_MON, prepareStatement(setSQL(STM_SCH_SL_MON)));
-			pstms.put(STM_SCH_SL_SRV, prepareStatement(setSQL(STM_SCH_SL_SRV)));
-			pstms.put(STM_SCH_SL_STA, prepareStatement(setSQL(STM_SCH_SL_STA)));
+			pstms.put(STM_SCH_SL_SRV, prepareCallables(setSQL(STM_SCH_SL_SRV)));
+			pstms.put(STM_SCH_SL_STA, prepareCallables(setSQL(STM_SCH_SL_STA)));
 			pstms.put(STM_SCH_UPDATE, prepareStatement(setSQL(STM_SCH_UPDATE)));
 			pstms.put(STM_SRV_SELECT, prepareCallables(setSQL(STM_SRV_SELECT)));
 			pstms.put(STM_WDY_SELECT, prepareCallables(setSQL(STM_WDY_SELECT)));

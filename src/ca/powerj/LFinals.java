@@ -819,8 +819,8 @@ class LFinals {
 
 	/** Update Number of blocks for a specimen. */
 	private short getNoBlocks(long specID) {
-		dbAP.setLong(apStms.get(DPowerpath.STM_CASE_BLOCKS), 1, specID);
-		return dbAP.getShort(apStms.get(DPowerpath.STM_CASE_BLOCKS));
+		dbAP.setLong(apStms.get(DPowerpath.STM_SPEC_BLOCKS), 1, specID);
+		return dbAP.getShort(apStms.get(DPowerpath.STM_SPEC_BLOCKS));
 	}
 
 	private short getNoFragments(String gross) {

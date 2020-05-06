@@ -8,7 +8,6 @@ import com.microsoft.sqlserver.jdbc.SQLServerException;
 
 class DPowerpath extends DCore {
 	static final byte STM_ACCESSIONS = 1;
-	static final byte STM_CASE_BLOCKS = 2;
 	static final byte STM_CASE_DETAILS = 3;
 	static final byte STM_CASE_DIAGNOS = 4;
 	static final byte STM_CASE_EMBEDED = 5;
@@ -38,6 +37,7 @@ class DPowerpath extends DCore {
 	static final byte STM_PERS_UNSCAN = 29;
 	static final byte STM_PROCEDURES = 30;
 	static final byte STM_SPECIMENS = 31;
+	static final byte STM_SPEC_BLOCKS = 2;
 	static final byte STM_SPEC_ORDERS = 32;
 	static final byte STM_SPEC_UPDATE = 33;
 
@@ -59,7 +59,7 @@ class DPowerpath extends DCore {
 			pstms.put(STM_SPEC_UPDATE, prepareStatement(setSQL(STM_SPEC_UPDATE)));
 			break;
 		case LConstants.ACTION_LFLOW:
-			pstms.put(STM_CASE_BLOCKS, prepareStatement(setSQL(STM_CASE_BLOCKS)));
+			pstms.put(STM_SPEC_BLOCKS, prepareStatement(setSQL(STM_SPEC_BLOCKS)));
 			pstms.put(STM_CASE_EMBEDED, prepareStatement(setSQL(STM_CASE_EMBEDED)));
 			pstms.put(STM_CASE_MICROTO, prepareStatement(setSQL(STM_CASE_MICROTO)));
 			pstms.put(STM_CASE_ORDERS, prepareStatement(setSQL(STM_CASE_ORDERS)));
@@ -70,7 +70,7 @@ class DPowerpath extends DCore {
 			pstms.put(STM_CASES_ACCESS, prepareStatement(setSQL(STM_CASES_ACCESS)));
 			break;
 		case LConstants.ACTION_LLOAD:
-			pstms.put(STM_CASE_BLOCKS, prepareStatement(setSQL(STM_CASE_BLOCKS)));
+			pstms.put(STM_SPEC_BLOCKS, prepareStatement(setSQL(STM_SPEC_BLOCKS)));
 			pstms.put(STM_CASE_DETAILS, prepareStatement(setSQL(STM_CASE_DETAILS)));
 			pstms.put(STM_CASE_DIAGNOS, prepareStatement(setSQL(STM_CASE_DIAGNOS)));
 			pstms.put(STM_CASE_EMBEDED, prepareStatement(setSQL(STM_CASE_EMBEDED)));
@@ -123,7 +123,7 @@ class DPowerpath extends DCore {
 		switch (id) {
 		case STM_ACCESSIONS:
 			return "SELECT id, name FROM acc_type ORDER BY id";
-		case STM_CASE_BLOCKS:
+		case STM_SPEC_BLOCKS:
 			return "SELECT count(*) AS Blocks FROM acc_block WITH (NOLOCK) WHERE acc_specimen_id = ?";
 		case STM_CASE_DETAILS:
 			return "SELECT a.accession_no, a.created_date, a.facility_id, a.acc_type_id, s.completed_date, s.assigned_to_id\n"

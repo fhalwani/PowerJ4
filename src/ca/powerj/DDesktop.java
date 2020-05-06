@@ -224,6 +224,7 @@ class DDesktop extends DPowerJ {
 			break;
 		case LConstants.ACTION_SCHEDULE:
 			pstms.put(STM_PRS_SELECT, prepareStatement(setSQL(STM_PRS_SELECT)));
+			pstms.put(STM_SCH_DELETE, prepareStatement(setSQL(STM_SCH_DELETE)));
 			pstms.put(STM_SCH_INSERT, prepareStatement(setSQL(STM_SCH_INSERT)));
 			pstms.put(STM_SCH_SL_MON, prepareStatement(setSQL(STM_SCH_SL_MON)));
 			pstms.put(STM_SCH_SL_SRV, prepareStatement(setSQL(STM_SCH_SL_SRV)));

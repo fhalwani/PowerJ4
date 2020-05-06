@@ -477,15 +477,25 @@ class NSchedule extends NBase {
 	}
 
 	void save(OScheduleService schedule) {
-		if (schedule.wdID > 0 && schedule.srvID > 0 && schedule.person.id > 0) {
-			byte index = (schedule.isNew ? DPowerJ.STM_SCH_INSERT : DPowerJ.STM_SCH_UPDATE);
-			pj.dbPowerJ.setShort(pjStms.get(index), 1, schedule.person.id);
-			pj.dbPowerJ.setShort(pjStms.get(index), 2, schedule.srvID);
-			pj.dbPowerJ.setInt(pjStms.get(index), 3, schedule.wdID);
-			if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
-				altered = false;
-				if (schedule.isNew) {
-					schedule.isNew = false;
+		if (schedule.wdID > 0 && schedule.srvID > 0) {
+			if (schedule.person.id > 0) {
+				if (schedule.wdID > 0 && schedule.srvID > 0 && schedule.person.id > 0) {
+					byte index = (schedule.isNew ? DPowerJ.STM_SCH_INSERT : DPowerJ.STM_SCH_UPDATE);
+					pj.dbPowerJ.setShort(pjStms.get(index), 1, schedule.person.id);
+					pj.dbPowerJ.setShort(pjStms.get(index), 2, schedule.srvID);
+					pj.dbPowerJ.setInt(pjStms.get(index), 3, schedule.wdID);
+					if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
+						altered = false;
+						if (schedule.isNew) {
+							schedule.isNew = false;
+						}
+					}
+				}
+			} else if (!schedule.isNew) {
+				pj.dbPowerJ.setShort(pjStms.get(DPowerJ.STM_SCH_DELETE), 1, schedule.srvID);
+				pj.dbPowerJ.setInt(pjStms.get(DPowerJ.STM_SCH_DELETE), 2, schedule.wdID);
+				if (pj.dbPowerJ.execute(pjStms.get(DPowerJ.STM_SCH_DELETE)) > 0) {
+					altered = false;
 				}
 			}
 		}
@@ -699,7 +709,9 @@ class NSchedule extends NBase {
 
 		@Override
 		public void setValueAt(Object value, int row, int col) {
-			if (col > 0 && pj.userAccess[LConstants.ACCESS_STP_SC] && scheduleServices.get(row).get(col - 1).isOn) {
+			if (byService && col > 0 && pj.userAccess[LConstants.ACCESS_STP_SC]
+					&& scheduleServices.get(row).get(col - 1).isOn) {
+				altered = true;
 				scheduleServices.get(row).get(col - 1).person = (OItem) value;
 				save(scheduleServices.get(row).get(col - 1));
 			}

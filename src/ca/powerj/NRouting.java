@@ -273,7 +273,7 @@ class NRouting extends NBase {
 						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
 						break;
 					case SUM_CASES:
-						paragraph.add(new Chunk(pj.numbers.formatNumber(summary.get(i).noSpecs)));
+						paragraph.add(new Chunk(pj.numbers.formatNumber(summary.get(i).noCases)));
 						paragraph.setAlignment(Element.ALIGN_RIGHT);
 						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
 						break;
