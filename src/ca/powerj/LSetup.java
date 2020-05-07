@@ -100,11 +100,11 @@ class LSetup {
 			}
 			break;
 		case VAR_ROUTE_TIME:
-			// routing time (range 10 am - 6 pm)
-			if (value < 36000000) {
-				value = 36000000;
-			} else if (value > 64800000) {
-				value = 64800000;
+			// routing time (range VAR_OPENING to VAR_CLOSING)
+			if (value < 3600000 * getByte(VAR_OPENING)) {
+				value = 3600000 * getByte(VAR_OPENING);
+			} else if (value > 3600000 * getByte(VAR_CLOSING)) {
+				value = 3600000 * getByte(VAR_CLOSING);
 			}
 			break;
 		case VAR_TIMER:
@@ -226,11 +226,11 @@ class LSetup {
 			}
 			break;
 		case VAR_ROUTE_TIME:
-			// routing time (range 10 am - 6 pm)
-			if (value < 36000000) {
-				value = 36000000;
-			} else if (value > 64800000) {
-				value = 64800000;
+			// routing time (range VAR_OPENING to VAR_CLOSING)
+			if (value < 3600000 * getByte(VAR_OPENING)) {
+				value = 3600000 * getByte(VAR_OPENING);
+			} else if (value > 3600000 * getByte(VAR_CLOSING)) {
+				value = 3600000 * getByte(VAR_CLOSING);
 			}
 			break;
 		case VAR_TIMER:

@@ -64,6 +64,8 @@ class LBase implements Runnable {
 		if (nextUpdate < now) {
 			nextUpdate = now + timerInterval;
 		}
+		log(LConstants.ERROR_NONE, "Last update: " + dates.formatter(lastUpdate, LDates.FORMAT_DATETIME));
+		log(LConstants.ERROR_NONE, "Next update: " + dates.formatter(nextUpdate, LDates.FORMAT_DATETIME));
 	}
 
 	void initDBAP() {
@@ -248,13 +250,16 @@ class LBase implements Runnable {
 								isUpToDate = true;
 							}
 							if (!LConstants.IS_CLIENT) {
+								log(LConstants.ERROR_NONE, "Starting Sync...");
+								new LSync(this);
 								if (isNewMonth()) {
+									log(LConstants.ERROR_NONE, "Starting Workdays...");
 									new LWorkdays(this);
 //									if (errorID == LConstants.ERROR_NONE) {
+//										log(LConstants.ERROR_NONE, "Starting Value5...");
 //										new LValue5(this);
 //									}
 								}
-								new LSync(this);
 							}
 						}
 						if (LConstants.IS_CLIENT) {
@@ -270,6 +275,7 @@ class LBase implements Runnable {
 						}
 						if (!LConstants.IS_CLIENT) {
 							if (nextUpdate - System.currentTimeMillis() < timerInterval) {
+								log(LConstants.ERROR_NONE, "Starting Workflow...");
 								new LPending(firstRun, this);
 								firstRun = false;
 								if (pnlID > 0 && pnlCore != null) {
@@ -277,6 +283,7 @@ class LBase implements Runnable {
 								}
 								setNextUpdate();
 							} else if (!isUpToDate) {
+								log(LConstants.ERROR_NONE, "Starting Workload...");
 								LFinals worker = new LFinals(this);
 								isUpToDate = worker.isUpToDate();
 								worker.close();
@@ -287,6 +294,7 @@ class LBase implements Runnable {
 						}
 						break;
 					case JOB_SLEEP:
+						log(LConstants.ERROR_NONE, "Going to sleep...");
 						jobID = JOB_SLEEPING;
 						if (dbAP != null) {
 							dbAP.close();
@@ -300,10 +308,12 @@ class LBase implements Runnable {
 						break;
 					case JOB_SLEEPING:
 						if (nextUpdate - System.currentTimeMillis() < (timerInterval * 2)) {
+							log(LConstants.ERROR_NONE, "Waking up...");
 							jobID = JOB_WAKEUP;
 						}
 						break;
 					case JOB_WAKEUP:
+						log(LConstants.ERROR_NONE, "Connecting to database...");
 						jobID = JOB_REFRESH;
 						firstRun = true;
 						isUpToDate = false;
@@ -376,6 +386,7 @@ class LBase implements Runnable {
 	 * start the updates thread engine.
 	 */
 	void startWorker() {
+		log(LConstants.ERROR_NONE, "Starting Thread worker...");
 		stopped.set(false);
 		busy.set(false);
 		engine = new Thread(this);
@@ -387,6 +398,7 @@ class LBase implements Runnable {
 	 * Cleanly stop the engine.
 	 */
 	boolean stopWorker() {
+		log(LConstants.ERROR_NONE, "Stopping Thread worker...");
 		stopped.set(true);
 		synchronized (this) {
 			notifyAll();
@@ -395,6 +407,7 @@ class LBase implements Runnable {
 			try {
 				if (thread.getName().equals("PJWorker")) {
 					// Wait for the thread to close
+					log(LConstants.ERROR_NONE, "Waiting on Thread worker...");
 					thread.join();
 				}
 			} catch (InterruptedException ignore) {
@@ -418,6 +431,7 @@ class LBase implements Runnable {
 			} catch (IOException ignore) {
 			}
 		}
+		log(LConstants.ERROR_NONE, "Stopped Thread worker...");
 		return true;
 	}
 }

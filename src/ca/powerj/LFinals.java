@@ -783,16 +783,21 @@ class LFinals {
 		}
 	}
 	private void getMaxDate() {
-		// Maximum range is 7 days interval per run
 		Calendar calLastDate = pj.dates.setMidnight(lastUpdate);
-		Calendar calNow = Calendar.getInstance();
-		int noDays = pj.dates.getNoDays(calLastDate, calNow);
-		if (noDays > 30) {
-			noDays = 30;
-		} else if (noDays < 1) {
-			noDays = 1;
-		}
-		calLastDate.add(Calendar.DAY_OF_YEAR, noDays);
+		// TODO Stop May 1st to update CAP to 2008 edition
+		calLastDate.set(Calendar.DAY_OF_MONTH, 1);
+		calLastDate.set(Calendar.MONTH, Calendar.MAY);
+		calLastDate.set(Calendar.YEAR, 2019);
+// TODO Un-comment when done
+//		Maximum range is 30 days interval per run
+//		Calendar calNow = Calendar.getInstance();
+//		int noDays = pj.dates.getNoDays(calLastDate, calNow);
+//		if (noDays > 30) {
+//			noDays = 30;
+//		} else if (noDays < 1) {
+//			noDays = 1;
+//		}
+//		calLastDate.add(Calendar.DAY_OF_YEAR, noDays);
 		maxDate = calLastDate.getTimeInMillis();
 	}
 
