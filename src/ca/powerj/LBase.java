@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 class LBase implements Runnable {
 	static AtomicBoolean stopped = new AtomicBoolean(true);
 	static AtomicBoolean busy = new AtomicBoolean(false);
+	static AtomicBoolean upToDate = new AtomicBoolean(false);
 	boolean autoLogin = false;
 	boolean offLine = false;
 	byte pnlID = 0;
@@ -181,10 +182,6 @@ class LBase implements Runnable {
 		}
 	}
 
-	boolean isBusy() {
-		return busy.get();
-	}
-
 	private boolean isNewMonth() {
 		Calendar calNow = Calendar.getInstance();
 		return (setup.getInt(LSetup.VAR_MONTH_RUN) != calNow.get(Calendar.MONTH));
@@ -197,7 +194,6 @@ class LBase implements Runnable {
 		} else {
 			logger.logInfo(message);
 		}
-		System.out.println(message);
 	}
 
 	void log(byte severity, String name, String message) {
@@ -207,7 +203,6 @@ class LBase implements Runnable {
 		} else {
 			logger.logInfo(name + ": " + message);
 		}
-		System.out.println(message);
 	}
 
 	void log(byte severity, String name, Throwable e) {
@@ -217,7 +212,6 @@ class LBase implements Runnable {
 		} else {
 			logger.logInfo(name, e);
 		}
-		e.printStackTrace(System.err);
 	}
 
 	@Override
@@ -231,7 +225,8 @@ class LBase implements Runnable {
 		final byte JOB_WAKEUP = 4;
 		byte jobID = JOB_REFRESH;
 		boolean firstRun = true;
-		boolean isUpToDate = false;
+		boolean firstUpdate = true;
+		Thread.currentThread().setName("PJWorker");
 		initDBPJ();
 		if (errorID == LConstants.ERROR_NONE) {
 			initDBAP();
@@ -239,15 +234,29 @@ class LBase implements Runnable {
 		if (errorID == LConstants.ERROR_NONE) {
 			getLastUpdate();
 		}
-		while (errorID == LConstants.ERROR_NONE && !stopped.get()) {
-			if (!isBusy()) {
+		if (errorID != LConstants.ERROR_NONE) {
+			return;
+		}
+		while (!stopped.get()) {
+			if (!busy.get()) {
 				if (!offLine) {
+					errorID = LConstants.ERROR_NONE;
 					switch (jobID) {
 					case JOB_REFRESH:
 						if (firstRun) {
+							apArch = setup.getString(LSetup.VAR_AP_NAME);
+							apHost = setup.getString(LSetup.VAR_AP_SERVER);
+							apPort = setup.getString(LSetup.VAR_AP_PORT);
+							apSchema = setup.getString(LSetup.VAR_AP_DATABASE);
+							apUser = setup.getString(LSetup.VAR_AP_LOGIN);
+							apPass = setup.getString(LSetup.VAR_AP_PASSWORD);
+							timerInterval = setup.getInt(LSetup.VAR_TIMER);
+							updateInterval = setup.getInt(LSetup.VAR_UPDATER);
 							if (LConstants.IS_CLIENT) {
 								firstRun = false;
-								isUpToDate = true;
+								// Synchronize clients 2-10 minutes after server update
+								Random rand = new Random();
+								updateDelay = (rand.nextInt(9) + 2) * 30000;
 							}
 							if (!LConstants.IS_CLIENT) {
 								log(LConstants.ERROR_NONE, "Starting Sync...");
@@ -260,6 +269,7 @@ class LBase implements Runnable {
 //										new LValue5(this);
 //									}
 								}
+								firstRun = false;
 							}
 						}
 						if (LConstants.IS_CLIENT) {
@@ -276,17 +286,12 @@ class LBase implements Runnable {
 						if (!LConstants.IS_CLIENT) {
 							if (nextUpdate - System.currentTimeMillis() < timerInterval) {
 								log(LConstants.ERROR_NONE, "Starting Workflow...");
-								new LPending(firstRun, this);
-								firstRun = false;
-								if (pnlID > 0 && pnlCore != null) {
-									pnlCore.refresh();
-								}
+								new LPending(firstUpdate, this);
+								firstUpdate = false;
 								setNextUpdate();
-							} else if (!isUpToDate) {
+							} else if (!firstUpdate && !upToDate.get()) {
 								log(LConstants.ERROR_NONE, "Starting Workload...");
-								LFinals worker = new LFinals(this);
-								isUpToDate = worker.isUpToDate();
-								worker.close();
+								new LFinals(this);
 							} else if (nextUpdate - System.currentTimeMillis() > 3400000) {
 								// Sleep if nextUpdate is in 1 hours or more
 								jobID = JOB_SLEEP;
@@ -294,7 +299,7 @@ class LBase implements Runnable {
 						}
 						break;
 					case JOB_SLEEP:
-						log(LConstants.ERROR_NONE, "Going to sleep...");
+						log(LConstants.ERROR_NONE, "Sleeping...");
 						jobID = JOB_SLEEPING;
 						if (dbAP != null) {
 							dbAP.close();
@@ -308,15 +313,16 @@ class LBase implements Runnable {
 						break;
 					case JOB_SLEEPING:
 						if (nextUpdate - System.currentTimeMillis() < (timerInterval * 2)) {
-							log(LConstants.ERROR_NONE, "Waking up...");
+							log(LConstants.ERROR_NONE, "Waking upWorkflow...");
 							jobID = JOB_WAKEUP;
 						}
 						break;
 					case JOB_WAKEUP:
-						log(LConstants.ERROR_NONE, "Connecting to database...");
 						jobID = JOB_REFRESH;
 						firstRun = true;
-						isUpToDate = false;
+						firstUpdate = true;
+						upToDate.set(false);
+						log(LConstants.ERROR_NONE, "Connecting to database...");
 						// Desktop cannot close dbPowerJ (Derby)
 						if (!LConstants.IS_DESKTOP) {
 							initDBPJ();
@@ -331,14 +337,12 @@ class LBase implements Runnable {
 			}
 			synchronized (this) {
 				try {
-					wait((isUpToDate ? timerInterval : 1000));
+					wait((upToDate.get() ? timerInterval : 1000));
 				} catch (InterruptedException ignore) {
 				}
 			}
 		}
-		if (errorID != LConstants.ERROR_NONE) {
-			stopWorker();
-		}
+		stopped.compareAndSet(false, true);
 	}
 
 	void setNextUpdate() {
@@ -386,11 +390,10 @@ class LBase implements Runnable {
 	 * start the updates thread engine.
 	 */
 	void startWorker() {
-		log(LConstants.ERROR_NONE, "Starting Thread worker...");
+		log(LConstants.ERROR_NONE, "Starting thread...");
 		stopped.set(false);
 		busy.set(false);
 		engine = new Thread(this);
-		engine.setName("PJWorker");
 		engine.start();
 	}
 
@@ -398,7 +401,7 @@ class LBase implements Runnable {
 	 * Cleanly stop the engine.
 	 */
 	boolean stopWorker() {
-		log(LConstants.ERROR_NONE, "Stopping Thread worker...");
+		System.out.println("Stopping Daemon...");
 		stopped.set(true);
 		synchronized (this) {
 			notifyAll();
@@ -407,7 +410,7 @@ class LBase implements Runnable {
 			try {
 				if (thread.getName().equals("PJWorker")) {
 					// Wait for the thread to close
-					log(LConstants.ERROR_NONE, "Waiting on Thread worker...");
+					log(LConstants.ERROR_NONE, "Waiting for thread...");
 					thread.join();
 				}
 			} catch (InterruptedException ignore) {
@@ -431,7 +434,7 @@ class LBase implements Runnable {
 			} catch (IOException ignore) {
 			}
 		}
-		log(LConstants.ERROR_NONE, "Stopped Thread worker...");
+		System.out.println("Daemon stopped");
 		return true;
 	}
 }

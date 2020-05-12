@@ -29,6 +29,7 @@ class ITableModelSpecimen extends ITableModel {
 		pj.dbAP.setLong(pstm, 1, caseID);
 		ResultSet rst = pj.dbAP.getResultSet(pstm);
 		try {
+			specimens.clear();
 			while (rst.next()) {
 				OItem item = new OItem(rst.getShort("tmplt_profile_id"), " ");
 				if (rst.getString("code") != null) {

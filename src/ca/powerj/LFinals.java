@@ -144,10 +144,12 @@ class LFinals {
 			}
 		} catch (Exception e) {
 			pj.log(LConstants.ERROR_UNEXPECTED, className, e);
+		} finally {
+			close();
 		}
 	}
 
-	void close() {
+	private void close() {
 		if (masterSpecimens != null) {
 			masterSpecimens.close();
 		}
@@ -784,20 +786,16 @@ class LFinals {
 	}
 	private void getMaxDate() {
 		Calendar calLastDate = pj.dates.setMidnight(lastUpdate);
-		// TODO Stop May 1st to update CAP to 2008 edition
-		calLastDate.set(Calendar.DAY_OF_MONTH, 1);
-		calLastDate.set(Calendar.MONTH, Calendar.MAY);
-		calLastDate.set(Calendar.YEAR, 2019);
-// TODO Un-comment when done
-//		Maximum range is 30 days interval per run
-//		Calendar calNow = Calendar.getInstance();
-//		int noDays = pj.dates.getNoDays(calLastDate, calNow);
-//		if (noDays > 30) {
-//			noDays = 30;
-//		} else if (noDays < 1) {
-//			noDays = 1;
-//		}
-//		calLastDate.add(Calendar.DAY_OF_YEAR, noDays);
+		// Maximum range is 30 days interval per run
+		Calendar calNow = Calendar.getInstance();
+		int noDays = pj.dates.getNoDays(calLastDate, calNow);
+		if (noDays > 30) {
+			noDays = 30;
+		} else if (noDays <= 1) {
+			LBase.upToDate.set(true);
+			noDays = 1;
+		}
+		calLastDate.add(Calendar.DAY_OF_YEAR, noDays);
 		maxDate = calLastDate.getTimeInMillis();
 	}
 
@@ -1125,10 +1123,6 @@ class LFinals {
 			dbPowerJ.close(rst);
 		}
 		return duplicate;
-	}
-
-	boolean isUpToDate() {
-		return (System.currentTimeMillis() - maxDate < LDates.ONE_DAY);
 	}
 
 	private void saveCase(boolean isNew) {

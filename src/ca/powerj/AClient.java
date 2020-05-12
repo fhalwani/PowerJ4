@@ -261,6 +261,10 @@ class AClient extends LBase implements Runnable, WindowListener {
 		}
 	}
 
+	boolean isBusy() {
+		return LBase.busy.get();
+	}
+
 	@Override
 	void log(byte severity, String message) {
 		super.log(severity, message);

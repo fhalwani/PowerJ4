@@ -24,7 +24,6 @@ class DMicrosoft extends DServer {
 				ds.setLoginTimeout(2);
 				ds.setPortNumber(Integer.parseInt(pj.pjPort));
 				ds.setServerName(pj.pjHost);
-//				ds.setDatabaseName("PowerJ4");
 				ds.setUser(pj.pjUser);
 				ds.setPassword(pj.pjPass);
 				connection = ds.getConnection();

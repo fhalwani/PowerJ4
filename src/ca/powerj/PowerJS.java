@@ -16,16 +16,17 @@ public class PowerJS extends LBase implements Daemon {
 
 	public static void main(String[] args) {
 		try {
-			launcher.start();
 			Scanner sc = new Scanner(System.in);
 			System.out.printf("Enter 'stop' to halt: ");
+			start(args);
 			while (!sc.nextLine().toLowerCase().equals("stop")) {
+				stop(args);
 				// don't return until user or thread stops
 				if (stopped.get()) {
 					break;
 				}
 				try {
-					Thread.sleep(60000);
+					Thread.sleep(1000);
 				} catch (InterruptedException ignore) {
 				}
 			}
@@ -41,6 +42,15 @@ public class PowerJS extends LBase implements Daemon {
 	}
 
 	@Override
+	void init(String[] args) {
+		super.init(args);
+		if (errorID == LConstants.ERROR_NONE) {
+			// start the thread
+			startWorker();
+		}
+	}
+
+	@Override
 	public void init(DaemonContext context) throws DaemonInitException, Exception {
 		try {
 			start(context.getArguments());
@@ -51,34 +61,19 @@ public class PowerJS extends LBase implements Daemon {
 
 	@Override
 	public void start() throws Exception {
-		String[] args = {};
-		System.out.println("Daemon started");
+		final String[] args = {};
 		launcher.init(args);
-		if (launcher.errorID == LConstants.ERROR_NONE) {
-			// start the thread
-			launcher.startWorker();
-			// don't return until thread stops
-			while (!stopped.get()) {
-				try {
-					Thread.sleep(60000);
-				} catch (InterruptedException ignore) {
-				}
+		while (!stopped.get()) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ignore) {
 			}
 		}
-		stop(args);
 	}
 
 	static void start(String args[]) {
 		try {
-			if (args.length == 0) {
-				launcher.start();
-			} else if (args[0].equalsIgnoreCase("start")) {
-				launcher.start();
-			} else if (args[0].equalsIgnoreCase("stop")) {
-				launcher.stop();
-			} else {
-				System.out.println("Unknown arguement " + args[0]);
-			}
+			launcher.init(args);
 		} catch (Exception e) {
 			e.printStackTrace(System.err);
 		}
@@ -86,14 +81,9 @@ public class PowerJS extends LBase implements Daemon {
 
 	@Override
 	public void stop() throws Exception {
-		while (!launcher.stopWorker()) {
-			System.out.println("Waiting for Daemon busy signal");
-			try {
-				Thread.sleep(60000);
-			} catch (InterruptedException ignore) {
-			}
+		if (launcher.stopWorker()) {
+			System.exit(0);
 		}
-		System.exit(0);
 	}
 
 	static void stop(String args[]) {

@@ -151,7 +151,7 @@ class DPowerpath extends DCore {
 		case STM_CASE_ORDERS:
 			return "SELECT o.procedure_id, o.quantity, o.created_date, p.code FROM acc_order AS o WITH (NOLOCK) \n"
 					+ "INNER JOIN lab_procedure AS p WITH (NOLOCK) ON p.id = o.procedure_id \n"
-					+ "WHERE o.acc_id = ? AND p.preparation_catg = 'L' ORDER BY o.procedure_id";
+					+ "WHERE o.acc_id = ? ORDER BY o.procedure_id";
 		case STM_CASE_PROCESS:
 			return "SELECT a.assigned_to_id, a.completed_date, s.description FROM acc_process_step AS a WITH (NOLOCK)\n"
 					+ "INNER JOIN process_step AS s WITH (NOLOCK) ON s.id = a.step_id WHERE a.acc_id = ? ORDER BY s.sort_ord";
