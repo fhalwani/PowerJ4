@@ -350,6 +350,19 @@ class IToolBar extends JToolBar {
 
 	private void addRows() {
 		byte[] rowsView = new byte[5];
+		if (pj.userAccess[LConstants.ACCESS_NAMES]) {
+			rowsView[0] = IPanelRows.ROW_FACILITY;
+			rowsView[1] = IPanelRows.ROW_SPECIALTY;
+			rowsView[2] = IPanelRows.ROW_SUBSPECIAL;
+			rowsView[3] = IPanelRows.ROW_PROCEDURE;
+			rowsView[4] = IPanelRows.ROW_STAFF;
+		} else {
+			rowsView[0] = IPanelRows.ROW_STAFF;
+			rowsView[1] = IPanelRows.ROW_FACILITY;
+			rowsView[2] = IPanelRows.ROW_SPECIALTY;
+			rowsView[3] = IPanelRows.ROW_SUBSPECIAL;
+			rowsView[4] = IPanelRows.ROW_PROCEDURE;
+		}
 		IComboRows cboRows = new IComboRows(rowsView);
 		cboRows.setName("Rows");
 		cboRows.addItemListener(new ItemListener() {

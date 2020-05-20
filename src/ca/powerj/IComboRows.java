@@ -37,11 +37,13 @@ class IComboRows extends JComboBox {
 				String display = "";
 				for (byte i = 0; i < results.length; i++) {
 					display += strings[results[i]];
+					System.out.println("IComboRows: Display1: " + display);
 				}
 				if (display.length() > 2) {
 					display = display.substring(1);
 				}
 				setText(display);
+				System.out.println("IComboRows: Display2: " + display);
 				return this;
 			}
 		});

@@ -115,16 +115,16 @@ class LBase implements Runnable {
 		if (!isConnected) {
 			if (pjArch.equals("DERBY")) {
 				// Open local database
-//				dbPowerJ = new DDerby(this);
+				dbPowerJ = new DDerby(this);
 			} else if (pjArch.equals("MSSQL")) {
 				// Open Microsoft SQL Server database
 				dbPowerJ = new DMicrosoft(this);
 			} else if (pjArch.equals("MARIADB")) {
 				// Open MySQL Server database
-//				dbPowerJ = new DMaria(this);
+				dbPowerJ = new DMaria(this);
 			} else if (pjArch.equals("POSTGRES")) {
 				// Open PostgreSQL Server database
-//				dbPowerJ = new DPostgres(this);
+				dbPowerJ = new DPostgres(this);
 			} else {
 				log(LConstants.ERROR_BINARY_FILE, "Variables", "Invalid application binary file");
 			}

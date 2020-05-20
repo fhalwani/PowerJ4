@@ -29,8 +29,8 @@ class NWorkload extends NBase {
 	private final byte DATA_VALUE3 = 7;
 	private final byte DATA_VALUE4 = 8;
 	private final byte DATA_VALUE5 = 9;
-	private boolean alteredDate = false;
-	private boolean alteredRows = false;
+	private boolean alteredDate = true;
+	private boolean alteredRows = true;
 	private byte[] rowsView = new byte[5];
 	private long timeFrom = 0;
 	private long timeTo = 0;
@@ -130,17 +130,24 @@ class NWorkload extends NBase {
 	private void setCharts(TreePath newPath) {
 		if (newPath == null)
 			return;
+		int count = 1;
+		double[] yCoder1 = new double[count];
+		double[] yCoder2 = new double[count];
+		double[] yCoder3 = new double[count];
+		double[] yCoder4 = new double[count];
+		double[] yCoder5 = new double[count];
+		String[] xTitles = new String[count];
 		if (treePath == null || !treePath.equals(newPath)) {
 			treePath = newPath;
 			OWorknode node = (OWorknode) treePath.getPathComponent(treePath.getPathCount() - 1);
-			if (node != null && node.children.length > 0) {
-				int count = node.children.length;
-				String[] xTitles = new String[count];
-				double[] yCoder1 = new double[count];
-				double[] yCoder2 = new double[count];
-				double[] yCoder3 = new double[count];
-				double[] yCoder4 = new double[count];
-				double[] yCoder5 = new double[count];
+			if (node != null && node.children != null && node.children.length > 0) {
+				count = node.children.length;
+				xTitles = new String[count];
+				yCoder1 = new double[count];
+				yCoder2 = new double[count];
+				yCoder3 = new double[count];
+				yCoder4 = new double[count];
+				yCoder5 = new double[count];
 				for (int i = 0; i < count; i++) {
 					OWorknode leaf = (OWorknode) node.children[i];
 					xTitles[i] = leaf.name;
@@ -150,13 +157,13 @@ class NWorkload extends NBase {
 					yCoder4[i] = leaf.fte4;
 					yCoder5[i] = leaf.fte5;
 				}
-				chartCoder1.setChart(xTitles, yCoder1, coders[0], IChartPie.COLOR_DEF);
-				chartCoder2.setChart(xTitles, yCoder2, coders[1], IChartPie.COLOR_DEF);
-				chartCoder3.setChart(xTitles, yCoder3, coders[2], IChartPie.COLOR_DEF);
-				chartCoder4.setChart(xTitles, yCoder4, coders[3], IChartPie.COLOR_DEF);
-				chartCoder5.setChart(xTitles, yCoder5, coders[4], IChartPie.COLOR_DEF);
 			}
 		}
+		chartCoder1.setChart(xTitles, yCoder1, coders[0], IChartPie.COLOR_DEF);
+		chartCoder2.setChart(xTitles, yCoder2, coders[1], IChartPie.COLOR_DEF);
+		chartCoder3.setChart(xTitles, yCoder3, coders[2], IChartPie.COLOR_DEF);
+		chartCoder4.setChart(xTitles, yCoder4, coders[3], IChartPie.COLOR_DEF);
+		chartCoder5.setChart(xTitles, yCoder5, coders[4], IChartPie.COLOR_DEF);
 		alteredRows = false;
 	}
 
@@ -184,8 +191,6 @@ class NWorkload extends NBase {
 		calStart.add(Calendar.YEAR, -1);
 		timeFrom = calStart.getTimeInMillis();
 		timeTo = calEnd.getTimeInMillis();
-		WorkerData worker = new WorkerData();
-		worker.execute();
 	}
 
 	@Override
@@ -193,10 +198,12 @@ class NWorkload extends NBase {
 		for (int i = 0; i < rowsView.length; i++) {
 			rowsView[i] = rows[i];
 		}
+		alteredRows = true;
 	}
 
 	@Override
 	void setFilter(short id, short value) {
+		// Go button
 		if (timeTo > timeFrom) {
 			WorkerData worker = new WorkerData();
 			worker.execute();
@@ -295,7 +302,9 @@ class NWorkload extends NBase {
 			setName("WLWorker");
 			if (alteredDate) {
 				getData();
-			} else if (alteredRows) {
+				alteredRows = true;
+			}
+			if (alteredRows) {
 				structureData();
 			}
 			return null;

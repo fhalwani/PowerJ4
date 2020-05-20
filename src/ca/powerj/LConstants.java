@@ -4,8 +4,8 @@ import java.awt.Color;
 import java.awt.Font;
 
 class LConstants {
-	static final boolean IS_CLIENT = false;
-	static final boolean IS_DESKTOP = true;
+	static final boolean IS_CLIENT = true;
+	static final boolean IS_DESKTOP = false;
 	static final boolean IS_SERVER = false;
 	static final boolean IS_SETUP = false;
 	// User access codes (0-31)
