@@ -6,8 +6,103 @@
 	<meta name="KEYWORDS" content="Help">
 </head>
 <body>
-<p class="h1">Finals</p>
-<p>Under Construction.</p>
+<h1>Finals</h1>
+<p>This screen allows you to review how PowerJ is analyzing and coding the workload of cases that have been reported and make sure it is done correctly. The information is displayed in 5 tables and 1 notepad:</p>
+<h2>Cases:</h2>
+<p>A list of the most recent cases, up to 10,000 at a time. Use the filter toolbar to select which cases to display. The table has the following fields:</p>
+<ol>
+<li><p>NO: The case number.</p></li>
+<li><p>FAC: Facility.</p></li>
+<li><p>SPY: Specialty.</p></li>
+<li><p>SUB: Subspecialty.</p></li>
+<li><p>PROC: Procedure.</p></li>
+<li><p>SPEC: The label of the main specimen.</p></li>
+<li><p>CAP: The workload units for the entire case from the Canadian Association of Pathologists workload system.</p></li>
+<li><p>W2Q: The workload units for the entire case from the Work2Quality workload system (Ontario).</p></li>
+<li><p>RCP: The workload units for the entire case from the Royal College of Pathologists workload system (UK).</p></li>
+<li><p>CPT: The workload units for the entire case from the Current Procedural Terminology workload system (USA).</p></li>
+<li><p>Code5: The average of the above 4 workload systems.</p></li>
+<li><p>SPECS: number of specimens.</p></li>
+<li><p>BLKS: Number of blocks for the entire case.</p></li>
+<li><p>SLDS: Number of slides for the entire case.</p></li>
+<li><p>H&#38;E: Number of hematoxylin and eosin slides for the entire case.</p></li>
+<li><p>SS: Number of special stains for the entire case.</p></li>
+<li><p>IHC: Number of immunohistochemistry slides for the entire case.</p></li>
+<li><p>MOL: Number of molecular tests for the entire case.</p></li>
+<li><p>SYNP: Number of synoptic reports for the entire case.</p></li>
+<li><p>FS: Number of frozen section procedures for the entire case.</p></li>
+<li><p>ACCESS: The date and time the case was accessioned.</p></li>
+<li><p>GROSS: The date and time the case was grossed.</p></li>
+<li><p>EMBED: The date and time the blocks were embedded.</p></li>
+<li><p>MICRO: The date and time the blocks were microtomed.</p></li>
+<li><p>ROUTE: The date and time the case was routed to the pathologist.</p></li>
+<li><p>FINAL: The date and time the report was issued.</p></li>
+<li><p>GRNM: The initials of the person who grossed the case.</p></li>
+<li><p>EMNM: The initials of the technician who embedded the blocks.</p></li>
+<li><p>MINM: The initials of the technician who microtomed the blocks.</p></li>
+<li><p>RONM: The initials of the technician who routed the slides.</p></li>
+<li><p>FINM: The initials of the pathologist who reported the case.</p></li>
+<li><p>GRTA: The turnaround time of grossing the case.</p></li>
+<li><p>EMTA: The turnaround time of embedding the blocks.</p></li>
+<li><p>MITA: The turnaround time of microtoming the blocks.</p></li>
+<li><p>ROTA: The turnaround time of routing the slides.</p></li>
+<li><p>FITA: The turnaround time of reporting the case.</p></li>
+</ol>
+<h2>Specimens:</h2>
+<p>The specimens that belong to the case selected (highlighted) from the cases table above it. This table has the following fields:</p>
+<ol>
+<li><p>SPEC: The label of this specimen.</p></li>
+<li><p>CAP: The workload units for the specimen from the Canadian Association of Pathologists workload system.</p></li>
+<li><p>W2Q: The workload units for the specimen from the Work2Quality workload system (Ontario).</p></li>
+<li><p>RCP: The workload units for the specimen from the Royal College of Pathologists workload system (UK).</p></li>
+<li><p>CPT: The workload units for the specimen from the Current Procedural Terminology workload system (USA).</p></li>
+<li><p>Code5: The average of the above 4 workload systems for this specimen.</p></li>
+<li><p>BLKS: Number of blocks for the specimen.</p></li>
+<li><p>SLDS: Number of slides for the specimen.</p></li>
+<li><p>FRAG: Number of tissue fragments for the specimen (used for CAP workload in some specimens).</p></li>
+<li><p>H&#38;E: Number of hematoxylin and eosin slides for the specimen.</p></li>
+<li><p>SS: Number of special stains for the specimen.</p></li>
+<li><p>IHC: Number of immunohistochemistry slides for the specimen.</p></li>
+<li><p>MOL: Number of molecular tests for the specimen.</p></li>
+</ol>
+<h2>Orders:</h2>
+<p>The orders that belong to the specimen that you selected (highlighted) from the specimens table above it. It has the following fields:</p>
+<ol>
+<li><p>ORDER: The category of the order as defined in this table.</p></li>
+<li><p>QTY: Quantity.</p></li>
+<li><p>CAP: The workload units for the order from the Canadian Association of Pathologists workload system.</p></li>
+<li><p>W2Q: The workload units for the order from the Work2Quality workload system (Ontario).</p></li>
+<li><p>RCP: The workload units for the order from the Royal College of Pathologists workload system (UK).</p></li>
+<li><p>CPT: The workload units for the order from the Current Procedural Terminology workload system (USA).</p></li>
+</ol>
+<h2>Frozen sections:</h2>
+<p>The frozen sections that were performed on the specimen selected (highlighted) in the table above it. It has the following fields:</p>
+<ol>
+<li><p>FSEC: The pathologist name who performed the procedure.</p></li>
+<li><p>CAP: The workload units for the frozen from the Canadian Association of Pathologists workload system.</p></li>
+<li><p>W2Q: The workload units for the frozen from the Work2Quality workload system (Ontario).</p></li>
+<li><p>RCP: The workload units for the frozen from the Royal College of Pathologists workload system (UK).</p></li>
+<li><p>CPT: The workload units for the frozen from the Current Procedural Terminology workload system (USA).</p></li>
+<li><p>Code5: The average of the above 4 workload systems for this frozen.</p></li>
+<li><p>BLKS: Number of blocks for the frozen.</p></li>
+<li><p>SLDS: Number of slides for the frozen.</p></li>
+</ol>
+<h2>Additionals:</h2>
+<p>Additional clinical procedures that were performed by a different pathologist during of after finalizing the report. Examples are addenda, amendments, second opinions, reviews, correlations and presentation at tumor board. The workload units of these procedures are assigned to the pathologist who performed the procedure, wether done by the same or a different pathologist than the one who reported the case. This table has the following fields:</p>
+<ol>
+<li><p>ADDL: The name of the clinical procedures.</p></li>
+<li><p>CAP: The workload units for the procedure from the Canadian Association of Pathologists workload system.</p></li>
+<li><p>W2Q: The workload units for the procedure from the Work2Quality workload system (Ontario).</p></li>
+<li><p>RCP: The workload units for the procedure from the Royal College of Pathologists workload system (UK).</p></li>
+<li><p>CPT: The workload units for the procedure from the Current Procedural Terminology workload system (USA).</p></li>
+<li><p>Code5: The average of the above 4 workload systems for this procedure.</p></li>
+<li><p>STAFF: The initials of the pathologist who performed the procedure.</p></li>
+<li><p>DATE: the date and time of the procedure.</p></li>
+</ol>
+<h2>Notepad:</h2>
+<p>This is a text describing the steps that PowerJ used to code the workload of the specimen. This text is deleted automatically after one year of finalizing the case.</p>
+<h2>Filter toolbar:</h2>
+<p>The second toolbar on top of the screen below the quick access toolbar and above the charts, allows you to filter the data by facility, specialty or subspecialty.</p>
 <BR>
 <p><a href="error.html">Previous</a> | <a href="index.html">TOC</a> | <a href="pending.html">Next</a></p>
 </body>

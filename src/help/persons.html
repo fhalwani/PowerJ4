@@ -7,16 +7,26 @@
 	<link href="screen.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-<p class="h1">Pathology System Setup - Persons</p>
+<h1>Setup - Persons</p>
 <p>This is the screen where your institution-specific personnel are matched to additional fields required by PowerJ. This table is a partial replica of your main anatomical pathology system, and it is synchronized automatically with the original table once a day every morning. You cannot edit the names, delete any row or add a new record manually to this table. Instead, use your Pathology system to manage it, and the changes will be replicated into PowerJ the next morning.</p>
 <BR>
 <p>You cannot edit the names, delete any row or add a new record manually to this table. Instead, use your institution's Pathology system (Powerpath&#64;, Copath&#64;) to manage it, and the changes will be replicated into PowerJ the next morning.</p>
 <BR>
 <p>Each entry has these additional entries:</p>
 <ul>
-<li><p>Initials: the initials of the person that will be displayed in PowerJ tables and reports.</p></li>
-<li><p>Active: is the person still working for the department.</p></li>
-<li><p>Access: Which reports or functionality in PowerJ this person is allowed to view.</p></li>
+    <li><p>Initials: the initials of the person that will be displayed in PowerJ tables and reports.</p></li>
+    <li><p>Start Date: the date that this person was added to the system.</p></li>
+    <li><p>Active: is the person still working for the department.</p></li>
+    <li><p>Access: Which reports or functionality in PowerJ this person is allowed to view broken down into 6 categories and 26 items.
+        <ol>
+        <li><p>Workflow: Allows access to the backlog report (Diagnosis, Grossing, Histo), Daily report, Histology Stations; as well as enabling the display of personnel names in these reports.</p></li>
+        <li><p>Workload: Allows access to the distribution, Forecast, Specimens, Turnaround time and Workload reports.</p></li>
+        <li><p>Schedule: Allows access to the weekly schedule and the annual Workdays reports.</p></li>
+        <li><p>Export: Allows exporting thre data of any report in a PDF format (for printer, email, archive) or in a spreadsheet format (for further data analysis).</p></li>
+        <li><p>Audit: Allows access to auditing Errors, final reports (workload and turnaround) and pending cases. Also allows access to editing specimen types in the anatomical pathology system</p></li>
+        <li><p>Setup: Allows access to PowerJ setup system, Powerpath setup system and scheduling setup (edit) system.</p></li>
+        </ol></p>
+    </li>
 </ul>
 <h4>Note: View Names allows the person to view other staff names in the reports; otherwise the names will be masked.</h4>
 <BR>
