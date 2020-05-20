@@ -962,12 +962,12 @@ class LCoder extends LCoderA {
 				noFrags += thisSpecimen.noFrags;
 				if (noFrags >= 1 && dFrags < wcode.valueA) {
 					specimenCoder.value += wcode.valueA;
-					if (noFrags >= 2 && dFrags < wcode.valueA + wcode.valueB) {
-						specimenCoder.value += wcode.valueB;
-						if (noFrags >= wcode.count && dFrags < wcode.valueA + wcode.valueB + wcode.valueC) {
-							specimenCoder.value += wcode.valueC;
-						}
-					}
+				}
+				if (noFrags >= 2 && dFrags < wcode.valueA + wcode.valueB) {
+					specimenCoder.value += wcode.valueB;
+				}
+				if (noFrags >= wcode.count && dFrags < wcode.valueA + wcode.valueB + wcode.valueC) {
+					specimenCoder.value += wcode.valueC;
 				}
 				dFrags += specimenCoder.value;
 				break;
@@ -978,17 +978,17 @@ class LCoder extends LCoderA {
 					noFrags = 0;
 				}
 				noFrags += thisSpecimen.noFrags;
-				if (noFrags >= 1 && dFrags < wcode.valueA) {
-					specimenCoder.value += wcode.valueA;
-					if (noFrags >= 2 && dFrags < wcode.valueA + wcode.valueB) {
-						specimenCoder.value += wcode.valueB;
-						if (noFrags > wcode.count
-								&& dFrags < wcode.valueA + wcode.valueB + (wcode.valueC * (noFrags - wcode.count))) {
-							specimenCoder.value += (wcode.valueC * (noFrags - wcode.count));
-						}
+				dExpect = wcode.valueA;
+				for (int j = 2; j <= wcode.count; j++) {
+					if (j <= noFrags) {
+						dExpect += wcode.valueB;
 					}
 				}
-				dFrags += specimenCoder.value;
+				if (noFrags > wcode.count) {
+					dExpect += (wcode.valueC * (noFrags -wcode.count));
+				}
+				specimenCoder.value = dExpect - dFrags;
+				dFrags = dExpect;
 				break;
 			case ORule.RULE_LINKED_FRAGS_BLOCKS:
 				if (prevRule != wcode.ruleID) {

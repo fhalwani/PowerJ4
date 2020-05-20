@@ -15,9 +15,7 @@ class ITextDouble extends JTextField {
 	private boolean altered = false;
 	private int decimals = 0;
 	private double minValue = 0;
-    private double maxValue = 0;
-	private int minLength = 0;
-    private int maxLength = 0;
+	private double maxValue = 0;
     private double value = 0;
 	private LNumbers numbers;
     private DblVerifier verifier = new DblVerifier();
@@ -28,8 +26,6 @@ class ITextDouble extends JTextField {
 		this.decimals = decimals;
     	this.minValue = min;
     	this.maxValue = max;
-    	minLength = String.valueOf(minValue).length();
-    	maxLength = String.valueOf(maxValue).length();
     	setToolTipText("(" + numbers.formatDouble(decimals, min) +
     			"-" + numbers.formatDouble(decimals, max) + ")");
     	setColumns(10);
@@ -113,26 +109,17 @@ class ITextDouble extends JTextField {
 		protected boolean checkField(JComponent input) {
 			boolean isValid = true;
 			Document doc = ((JTextField)input).getDocument();
-			int length = doc.getLength();
 			double newValue = 0;
 			String txtValue;
 			try {
-				txtValue = doc.getText(0, length).trim();
-				length = txtValue.length();
-				if (length < minLength) {
-					isValid = false;
-				} else if (length > maxLength) {
-					txtValue = txtValue.substring(0, maxLength);
-				}
-				if (isValid) {
-					newValue = numbers.parseDouble(txtValue);
-					if (newValue < minValue) {
-						value = minValue;
-					} else if (newValue > maxValue) {
-						value = maxValue;
-					} else {
-						value = newValue;
-					}
+				txtValue = doc.getText(0, doc.getLength() +1).trim();
+				newValue = numbers.parseDouble(txtValue);
+				if (newValue < minValue) {
+					value = minValue;
+				} else if (newValue > maxValue) {
+					value = maxValue;
+				} else {
+					value = newValue;
 				}
 			} catch (BadLocationException e) {
 				isValid = false;
