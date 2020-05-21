@@ -11,7 +11,7 @@ class OWorknode {
 	double fte4 = 0;
 	double fte5 = 0;
 	String name = "";
-	Object[] children = new Object[0];
+	Object[] children;
 
 	OWorknode(String name) {
 		this.name = name;

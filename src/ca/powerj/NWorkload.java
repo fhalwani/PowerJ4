@@ -130,6 +130,10 @@ class NWorkload extends NBase {
 	private void setCharts(TreePath newPath) {
 		if (newPath == null)
 			return;
+		if (treePath != null) {
+			if (treePath.equals(newPath))
+				return;
+		}
 		int count = 1;
 		double[] yCoder1 = new double[count];
 		double[] yCoder2 = new double[count];
@@ -137,26 +141,24 @@ class NWorkload extends NBase {
 		double[] yCoder4 = new double[count];
 		double[] yCoder5 = new double[count];
 		String[] xTitles = new String[count];
-		if (treePath == null || !treePath.equals(newPath)) {
-			treePath = newPath;
-			OWorknode node = (OWorknode) treePath.getPathComponent(treePath.getPathCount() - 1);
-			if (node != null && node.children != null && node.children.length > 0) {
-				count = node.children.length;
-				xTitles = new String[count];
-				yCoder1 = new double[count];
-				yCoder2 = new double[count];
-				yCoder3 = new double[count];
-				yCoder4 = new double[count];
-				yCoder5 = new double[count];
-				for (int i = 0; i < count; i++) {
-					OWorknode leaf = (OWorknode) node.children[i];
-					xTitles[i] = leaf.name;
-					yCoder1[i] = leaf.fte1;
-					yCoder2[i] = leaf.fte2;
-					yCoder3[i] = leaf.fte3;
-					yCoder4[i] = leaf.fte4;
-					yCoder5[i] = leaf.fte5;
-				}
+		treePath = newPath;
+		OWorknode node = (OWorknode) treePath.getPathComponent(treePath.getPathCount() - 1);
+		if (node != null && node.children != null && node.children.length > 0) {
+			count = node.children.length;
+			xTitles = new String[count];
+			yCoder1 = new double[count];
+			yCoder2 = new double[count];
+			yCoder3 = new double[count];
+			yCoder4 = new double[count];
+			yCoder5 = new double[count];
+			for (int i = 0; i < count; i++) {
+				OWorknode leaf = (OWorknode) node.children[i];
+				xTitles[i] = leaf.name;
+				yCoder1[i] = leaf.fte1;
+				yCoder2[i] = leaf.fte2;
+				yCoder3[i] = leaf.fte3;
+				yCoder4[i] = leaf.fte4;
+				yCoder5[i] = leaf.fte5;
 			}
 		}
 		chartCoder1.setChart(xTitles, yCoder1, coders[0], IChartPie.COLOR_DEF);

@@ -761,8 +761,13 @@ class LFinals {
 	}
 
 	private void getLastAdditional(short codeID) {
+		Calendar calLastDate = pj.dates.setMidnight(lastUpdate);
+		calLastDate.set(Calendar.YEAR, 2020);
+		calLastDate.set(Calendar.MONTH, Calendar.JANUARY);
+		calLastDate.set(Calendar.DAY_OF_MONTH, 1);
+		long minWorkloadDate = calLastDate.getTimeInMillis();
 		// Earliest date is 1/1/2011 (1293858000001)
-		long minWorkloadDate = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
+//		long minWorkloadDate = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
 		if (codeID < ADDL_ORDER) {
 			dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_SL_LST), 1, codeID);
 			// Add 1 millisecond to avoid duplicated 1st case
@@ -776,14 +781,20 @@ class LFinals {
 	}
 
 	private void getLastCase() {
+		Calendar calLastDate = pj.dates.setMidnight(lastUpdate);
+		calLastDate.set(Calendar.YEAR, 2020);
+		calLastDate.set(Calendar.MONTH, Calendar.JANUARY);
+		calLastDate.set(Calendar.DAY_OF_MONTH, 1);
+		long minWorkloadDate = calLastDate.getTimeInMillis();
 		// Earliest date is 1/1/2011 (1293858000001)
-		long minWorkloadDate = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
+		// long minWorkloadDate = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
 		// Add 1 millisecond to avoid duplicated 1st case
 		lastUpdate = dbPowerJ.getTime(pjStms.get(DPowerJ.STM_CSE_SL_WLD)) + 1;
 		if (lastUpdate < minWorkloadDate) {
 			lastUpdate = minWorkloadDate;
 		}
 	}
+
 	private void getMaxDate() {
 		Calendar calLastDate = pj.dates.setMidnight(lastUpdate);
 		// Maximum range is 30 days interval per run

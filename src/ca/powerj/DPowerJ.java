@@ -355,10 +355,10 @@ class DPowerJ extends DCore {
 					+ "SPSS = ?, SPIH = ?, SPMO = ?, SPV5 = ?, SPV1 = ?, SPV2 = ?, SPV3 = ?, SPV4 = ?, SPDC = ? WHERE SPID = ?";
 		case STM_SPG_INSERT:
 			return "INSERT INTO SpeciGroups (SBID, POID, SG1B, SG1M, SG1R, SG2B, SG2M, SG2R, SG3B, SG3M, SG3R, SG4B, SG4M, SG4R, "
-					+ "SGV5, SGLN, SGDC, SGID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+					+ "SGLN, SGDC, SGID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		case STM_SPG_UPDATE:
 			return "UPDATE SpeciGroups SET SBID = ?, POID = ?, SG1B = ?, SG1M = ?, SG1R = ?, SG2B = ?, SG2M = ?, SG2R = ?, "
-					+ "SG3B = ?, SG3M = ?, SG3R = ?, SG4B = ?, SG4M = ?, SG4R = ?, SGV5 = ?, SGLN = ?, SGDC = ? WHERE SGID = ?";
+					+ "SG3B = ?, SG3M = ?, SG3R = ?, SG4B = ?, SG4M = ?, SG4R = ?, SGLN = ?, SGDC = ? WHERE SGID = ?";
 		case STM_SPG_UPD_V5:
 			return "UPDATE SpeciGroups SET SGV5 = ? WHERE SGID = ?";
 		case STM_SPM_INSERT:
