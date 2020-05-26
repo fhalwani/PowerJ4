@@ -14,11 +14,6 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingWorker;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
@@ -26,7 +21,7 @@ import org.apache.commons.math3.fitting.PolynomialCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoints;
 
 class NForecast extends NBase {
-	private final byte DATA_NAMES = 0;
+//	private final byte DATA_NAMES = 0;
 	private final byte DATA_CASES = 1;
 	private final byte DATA_SPECS = 2;
 	private final byte DATA_BLCKS = 3;
@@ -46,17 +41,19 @@ class NForecast extends NBase {
 	private long timeFrom = 0;
 	private long timeTo = 0;
 	private String[] coders = new String[5];
-	private OAnnualNode node = new OAnnualNode();
-	private ModelList model;
 	private TreePath treePath;
-	private ITree tree;
-	private ITable table;
+	private ITreeTable tree;
 	private IChart2Lines chartCases, chartSpecs, chartBlocks, chartSlides, chartFrozen, chartFTE;
 
 	public NForecast(AClient parent) {
 		super(parent);
 		setName("Forecast");
 		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_FORECAST);
+		coders[0] = pj.setup.getString(LSetup.VAR_CODER1_NAME);
+		coders[1] = pj.setup.getString(LSetup.VAR_CODER2_NAME);
+		coders[2] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
+		coders[3] = pj.setup.getString(LSetup.VAR_CODER4_NAME);
+		coders[4] = pj.setup.getString(LSetup.VAR_V5_NAME);
 		createPanel();
 		programmaticChange = false;
 	}
@@ -86,16 +83,11 @@ class NForecast extends NBase {
 	}
 
 	private void createPanel() {
-		coders[0] = pj.setup.getString(LSetup.VAR_CODER1_NAME);
-		coders[1] = pj.setup.getString(LSetup.VAR_CODER2_NAME);
-		coders[2] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
-		coders[3] = pj.setup.getString(LSetup.VAR_CODER4_NAME);
-		coders[4] = pj.setup.getString(LSetup.VAR_V5_NAME);
-		OAnnualNode node = new OAnnualNode();
-		TreeNode rootNode = new DefaultMutableTreeNode(node);
-		TreeModel treeModel = new DefaultTreeModel(rootNode);
-		tree = new ITree(treeModel);
-		tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
+		int[] nYears = { 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022 };
+		OAnnualNode root = new OAnnualNode();
+		ModelList model = new ModelList(root, getHeaders(nYears));
+		tree = new ITreeTable(pj, model);
+		tree.tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
 			@Override
 			public void valueChanged(final TreeSelectionEvent e) {
 				javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -108,15 +100,6 @@ class NForecast extends NBase {
 		});
 		JScrollPane scrollTree = IGUI.createJScrollPane(tree);
 		scrollTree.setMinimumSize(new Dimension(250, 800));
-		int[] nYears = { 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022 };
-		model = new ModelList(getHeaders(nYears));
-		table = new ITable(pj, model);
-		table.getColumnModel().getColumn(0).setMinWidth(150);
-		for (int i = 1; i < 5; i++) {
-			table.getColumnModel().getColumn(i).setMinWidth(100);
-		}
-		JScrollPane scrollTable = IGUI.createJScrollPane(table);
-		scrollTable.setMinimumSize(new Dimension(600, 400));
 		Dimension dim = new Dimension(200, 200);
 		chartCases = new IChart2Lines(dim);
 		chartSpecs = new IChart2Lines(dim);
@@ -148,15 +131,9 @@ class NForecast extends NBase {
 		splitTop.setOneTouchExpandable(true);
 		splitTop.setDividerLocation(250);
 		splitTop.setMinimumSize(new Dimension(700, 500));
-		JSplitPane splitDown = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-		splitDown.setTopComponent(splitTop);
-		splitDown.setBottomComponent(scrollTable);
-		splitDown.setOneTouchExpandable(true);
-		splitDown.setDividerLocation(550);
-		splitDown.setMinimumSize(new Dimension(700, 800));
 		JSplitPane splitAll = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-		splitAll.setTopComponent(scrollTree);
-		splitAll.setBottomComponent(splitDown);
+		splitAll.setTopComponent(splitTop);
+		splitAll.setBottomComponent(scrollTree);
 		splitAll.setOneTouchExpandable(true);
 		splitAll.setDividerLocation(250);
 		splitAll.setMinimumSize(new Dimension(1000, 900));
@@ -225,21 +202,39 @@ class NForecast extends NBase {
 			return;
 		if (treePath == null || !treePath.equals(newPath)) {
 			treePath = newPath;
-			node = (OAnnualNode) treePath.getPathComponent(treePath.getPathCount() - 1);
-			model.fireTableDataChanged();
+			// TODO Fix this
+			// node = (OAnnualNode) treePath.getPathComponent(treePath.getPathCount() - 1);
+			// model.fireTableDataChanged();
 		}
 	}
 
-	private class ModelList extends AbstractTableModel {
-		private final String[] rows = { "Cases", "Specimens", "Blocks", "Slides", "H&E", "SS", "IHC", "Synoptics",
-				"Frozens", coders[0], coders[1], coders[2], coders[3], coders[4] };
+	class ModelList extends ITreeTableModel implements ITreeModel {
+
+//		private final String[] rows = { "Cases", "Specimens", "Blocks", "Slides", "H&E", "SS", "IHC", "Synoptics",
+//				"Frozens", coders[0], coders[1], coders[2], coders[3], coders[4] };
 		private String[] columns;
 
-		ModelList(String[] headers) {
+		ModelList(Object nodeRoot, String[] headers) {
+			super(nodeRoot);
 			this.columns = new String[headers.length + 1];
 			for (int i = 1; i < this.columns.length; i++) {
 				this.columns[i] = headers[i - 1];
 			}
+		}
+
+		@Override
+		public Object getChild(Object node, int element) {
+			return ((OWorknode) node).children[element];
+		}
+
+		@Override
+		public int getChildCount(Object node) {
+			Object[] children = getChildren(node);
+			return (children == null) ? 0 : children.length;
+		}
+
+		protected Object[] getChildren(Object node) {
+			return ((OWorknode) node).children;
 		}
 
 		@Override
@@ -264,90 +259,77 @@ class NForecast extends NBase {
 		}
 
 		@Override
-		public int getRowCount() {
-			return rows.length;
-		}
-
-		@Override
-		public Object getValueAt(int row, int col) {
-			Object value = Object.class;
-			if (col == DATA_NAMES && rows.length > 0 && rows.length > row) {
-				value = rows[row];
-			} else if (node.cases == null) {
-				value = 0;
+		public Object getValueAt(Object node, int col) {
+			OAnnualNode data = (OAnnualNode) node;
+			if (data.cases == null) {
+				return 0;
 			} else if (col < columns.length - 3) {
 				switch (col) {
 				case DATA_CASES:
-					value = node.cases[col - 1];
+					return data.cases[col - 1];
 				case DATA_SPECS:
-					value = node.specs[col - 1];
+					return data.specs[col - 1];
 				case DATA_BLCKS:
-					value = node.blocks[col - 1];
+					return data.blocks[col - 1];
 				case DATA_SLIDE:
-					value = node.slides[col - 1];
+					return data.slides[col - 1];
 				case DATA_SL_HE:
-					value = node.he[col - 1];
+					return data.he[col - 1];
 				case DATA_SL_SS:
-					value = node.ss[col - 1];
+					return data.ss[col - 1];
 				case DATA_SL_IH:
-					value = node.ihc[col - 1];
+					return data.ihc[col - 1];
 				case DATA_SYNOP:
-					value = node.synopt[col - 1];
+					return data.synopt[col - 1];
 				case DATA_FROZN:
-					value = node.frozen[col - 1];
+					return data.frozen[col - 1];
 				case DATA_VALU1:
-					value = node.fte1[col - 1];
+					return data.fte1[col - 1];
 				case DATA_VALU2:
-					value = node.fte2[col - 1];
+					return data.fte2[col - 1];
 				case DATA_VALU3:
-					value = node.fte3[col - 1];
+					return data.fte3[col - 1];
 				case DATA_VALU4:
-					value = node.fte4[col - 1];
+					return data.fte4[col - 1];
 				case DATA_VALU5:
-					value = node.fte5[col - 1];
+					return data.fte5[col - 1];
 				default:
-					value = "N/A";
+					return "N/A";
 				}
 			} else {
 				switch (col) {
 				case DATA_CASES:
-					value = node.casesf[col - 1];
+					return data.casesf[col - 1];
 				case DATA_SPECS:
-					value = node.specsf[col - 1];
+					return data.specsf[col - 1];
 				case DATA_BLCKS:
-					value = node.blocksf[col - 1];
+					return data.blocksf[col - 1];
 				case DATA_SLIDE:
-					value = node.slidesf[col - 1];
+					return data.slidesf[col - 1];
 				case DATA_SL_HE:
-					value = node.hef[col - 1];
+					return data.hef[col - 1];
 				case DATA_SL_SS:
-					value = node.ssf[col - 1];
+					return data.ssf[col - 1];
 				case DATA_SL_IH:
-					value = node.ihcf[col - 1];
+					return data.ihcf[col - 1];
 				case DATA_SYNOP:
-					value = node.synoptf[col - 1];
+					return data.synoptf[col - 1];
 				case DATA_FROZN:
-					value = node.frozenf[col - 1];
+					return data.frozenf[col - 1];
 				case DATA_VALU1:
-					value = node.fte1f[col - 1];
+					return data.fte1f[col - 1];
 				case DATA_VALU2:
-					value = node.fte2f[col - 1];
+					return data.fte2f[col - 1];
 				case DATA_VALU3:
-					value = node.fte3f[col - 1];
+					return data.fte3f[col - 1];
 				case DATA_VALU4:
-					value = node.fte4f[col - 1];
+					return data.fte4f[col - 1];
 				case DATA_VALU5:
-					value = node.fte5f[col - 1];
+					return data.fte5f[col - 1];
 				default:
-					value = "N/A";
+					return "N/A";
 				}
 			}
-			return value;
-		}
-
-		@Override
-		public boolean isCellEditable(int row, int col) {
-			return false;
 		}
 	}
 
@@ -367,14 +349,10 @@ class NForecast extends NBase {
 		@Override
 		public void done() {
 			// Display tree results
-			OAnnualNode root = (OAnnualNode) tree.getModel().getRoot();
-			TreeNode rootNode = new DefaultMutableTreeNode(root);
-			TreeModel treeModel = new DefaultTreeModel(rootNode);
-			tree.setModel(treeModel);
-			// Display table results
-			ModelList model = new ModelList(getHeaders(nYears));
-			table.setModel(model);
-			setView(tree.getPathForRow(0));
+			OAnnualNode root = (OAnnualNode) tree.tree.getModel().getRoot();
+			ModelList model = new ModelList(root, getHeaders(nYears));
+			tree.setTreeTableModel(model);
+			setView(tree.tree.getPathForRow(0));
 			pj.setBusy(false);
 		}
 
@@ -886,7 +864,7 @@ class NForecast extends NBase {
 				Thread.sleep(LConstants.SLEEP_TIME);
 			} catch (InterruptedException ignore) {
 			}
-			OAnnualNode node0 = (OAnnualNode) tree.getModel().getRoot();
+			OAnnualNode node0 = (OAnnualNode) tree.tree.getModel().getRoot();
 			setModel(child0, node0);
 			try {
 				Thread.sleep(LConstants.SLEEP_TIME);

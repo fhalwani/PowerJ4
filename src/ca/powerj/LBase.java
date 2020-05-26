@@ -227,11 +227,14 @@ class LBase implements Runnable {
 		boolean firstRun = true;
 		boolean firstUpdate = true;
 		Thread.currentThread().setName("PJWorker");
+		log(LConstants.ERROR_NONE, "Initializing PowerJ Database...");
 		initDBPJ();
 		if (errorID == LConstants.ERROR_NONE) {
+			log(LConstants.ERROR_NONE, "Initializing Powerpath Database...");
 			initDBAP();
 		}
 		if (errorID == LConstants.ERROR_NONE) {
+			log(LConstants.ERROR_NONE, "Initializing last update...");
 			getLastUpdate();
 		}
 		if (errorID != LConstants.ERROR_NONE) {
@@ -265,7 +268,7 @@ class LBase implements Runnable {
 									log(LConstants.ERROR_NONE, "Starting Workdays...");
 									new LWorkdays(this);
 //									if (errorID == LConstants.ERROR_NONE) {
-//										log(LConstants.ERROR_NONE, "Starting Value5...");
+//										log(LConstants.ERROR_NONE, "Starting Code5...");
 //										new LValue5(this);
 //									}
 								}
@@ -299,7 +302,7 @@ class LBase implements Runnable {
 						}
 						break;
 					case JOB_SLEEP:
-						log(LConstants.ERROR_NONE, "Sleeping...");
+						log(LConstants.ERROR_NONE, "Going to sleep...");
 						jobID = JOB_SLEEPING;
 						if (dbAP != null) {
 							dbAP.close();
@@ -313,7 +316,7 @@ class LBase implements Runnable {
 						break;
 					case JOB_SLEEPING:
 						if (nextUpdate - System.currentTimeMillis() < (timerInterval * 2)) {
-							log(LConstants.ERROR_NONE, "Waking upWorkflow...");
+							log(LConstants.ERROR_NONE, "Waking up...");
 							jobID = JOB_WAKEUP;
 						}
 						break;
@@ -322,12 +325,13 @@ class LBase implements Runnable {
 						firstRun = true;
 						firstUpdate = true;
 						upToDate.set(false);
-						log(LConstants.ERROR_NONE, "Connecting to database...");
 						// Desktop cannot close dbPowerJ (Derby)
 						if (!LConstants.IS_DESKTOP) {
+							log(LConstants.ERROR_NONE, "Initializing PowerJ Database...");
 							initDBPJ();
 						}
 						if (errorID == LConstants.ERROR_NONE) {
+							log(LConstants.ERROR_NONE, "Initializing Powerpath Database...");
 							initDBAP();
 						}
 						break;
@@ -342,6 +346,7 @@ class LBase implements Runnable {
 				}
 			}
 		}
+		log(LConstants.ERROR_NONE, "PJWorker stopped...");
 		stopped.compareAndSet(false, true);
 	}
 
@@ -401,21 +406,36 @@ class LBase implements Runnable {
 	 * Cleanly stop the engine.
 	 */
 	boolean stopWorker() {
-		System.out.println("Stopping Daemon...");
 		stopped.set(true);
 		synchronized (this) {
 			notifyAll();
 		}
-		for (Thread thread : Thread.getAllStackTraces().keySet()) {
-			try {
+		boolean waiting = false;
+		for (int i = 0; i < 5; i++) {
+			// TODO thread.join() not working, system does not exit; this is a temporary patch
+			waiting = false;
+			for (Thread thread : Thread.getAllStackTraces().keySet()) {
 				if (thread.getName().equals("PJWorker")) {
-					// Wait for the thread to close
-					log(LConstants.ERROR_NONE, "Waiting for thread...");
-					thread.join();
+					if (i < 4) {
+						// Wait for the thread to close
+						System.out.println("Waiting for worker thread...");
+						waiting = true;
+//						try {
+//							thread.join();
+//						} catch (InterruptedException ignore) {
+//						}
+					}
 				}
+			}
+			if (!waiting) {
+				break;
+			}
+			try {
+				Thread.sleep(LConstants.SLEEP_TIME);
 			} catch (InterruptedException ignore) {
 			}
 		}
+		System.out.println("Stopping Daemon...");
 		if (dbPowerJ != null) {
 			if (pjStms != null) {
 				dbPowerJ.close(pjStms);

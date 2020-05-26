@@ -2,6 +2,8 @@ package ca.powerj;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -18,7 +20,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 
-class NWorkload extends NBase {
+class NWorkload extends NBase implements KeyListener {
 	private final byte DATA_NAMES = 0;
 	private final byte DATA_CASES = 1;
 	private final byte DATA_SPECS = 2;
@@ -29,17 +31,13 @@ class NWorkload extends NBase {
 	private final byte DATA_VALUE3 = 7;
 	private final byte DATA_VALUE4 = 8;
 	private final byte DATA_VALUE5 = 9;
-	private boolean alteredDate = true;
-	private boolean alteredRows = true;
 	private byte[] rowsView = new byte[5];
 	private long timeFrom = 0;
 	private long timeTo = 0;
 	private String[] coders = new String[5];
 	private TreePath treePath;
 	private ITreeTable tree;
-	private ModelWorkload model;
-	private ArrayList<OWorkload> rows = new ArrayList<OWorkload>();
-	private IChartPie chartCoder1, chartCoder2, chartCoder3, chartCoder4, chartCoder5;
+	private IChartPie chartCases, chartCoder1, chartCoder2, chartCoder3, chartCoder4, chartCoder5;
 
 	NWorkload(AClient parent) {
 		super(parent);
@@ -73,8 +71,10 @@ class NWorkload extends NBase {
 
 	private void createPanel() {
 		OWorknode root = new OWorknode("Total");
-		model = new ModelWorkload(root);
+		ModelWorkload model = new ModelWorkload(root);
 		tree = new ITreeTable(pj, model);
+		tree.createDefaultColumnsFromModel();
+		tree.addKeyListener(this);
 		tree.setFocusable(true);
 		tree.tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
 			@Override
@@ -88,30 +88,40 @@ class NWorkload extends NBase {
 			}
 		});
 		JScrollPane scrollTree = IGUI.createJScrollPane(tree);
-		scrollTree.setMinimumSize(new Dimension(1000, 600));
-		Dimension dim = new Dimension(200, 200);
+		scrollTree.setMinimumSize(new Dimension(1200, 400));
+		Dimension dim = new Dimension(400, 200);
+		chartCases = new IChartPie(dim);
 		chartCoder1 = new IChartPie(dim);
 		chartCoder2 = new IChartPie(dim);
 		chartCoder3 = new IChartPie(dim);
 		chartCoder4 = new IChartPie(dim);
 		chartCoder5 = new IChartPie(dim);
-		JPanel pnlCharts = new JPanel();
-		pnlCharts.setMinimumSize(new Dimension(1000, 200));
-		pnlCharts.setLayout(new BoxLayout(pnlCharts, BoxLayout.X_AXIS));
-		pnlCharts.setOpaque(true);
-		pnlCharts.add(chartCoder1);
-		pnlCharts.add(chartCoder2);
-		pnlCharts.add(chartCoder3);
-		pnlCharts.add(chartCoder4);
-		pnlCharts.add(chartCoder5);
-		JScrollPane scrollCharts = IGUI.createJScrollPane(pnlCharts);
-		scrollCharts.setMinimumSize(new Dimension(1000, 200));
-		JSplitPane splitAll = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-		splitAll.setTopComponent(scrollCharts);
-		splitAll.setBottomComponent(scrollTree);
-		splitAll.setOneTouchExpandable(true);
-		splitAll.setDividerLocation(250);
-		splitAll.setMinimumSize(new Dimension(1000, 900));
+		JPanel pnlTop = new JPanel();
+		pnlTop.setMinimumSize(new Dimension(1300, 200));
+		pnlTop.setLayout(new BoxLayout(pnlTop, BoxLayout.X_AXIS));
+		pnlTop.setOpaque(true);
+		pnlTop.add(chartCases);
+		pnlTop.add(chartCoder1);
+		pnlTop.add(chartCoder2);
+		JPanel pnlMiddle = new JPanel();
+		pnlMiddle.setMinimumSize(new Dimension(1300, 200));
+		pnlMiddle.setLayout(new BoxLayout(pnlMiddle, BoxLayout.X_AXIS));
+		pnlMiddle.setOpaque(true);
+		pnlMiddle.add(chartCoder3);
+		pnlMiddle.add(chartCoder4);
+		pnlMiddle.add(chartCoder5);
+		JSplitPane splitTop = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		splitTop.setTopComponent(pnlTop);
+		splitTop.setBottomComponent(pnlMiddle);
+		splitTop.setOneTouchExpandable(true);
+		splitTop.setDividerLocation(250);
+		splitTop.setMinimumSize(new Dimension(1300, 450));
+		JSplitPane splitBottom = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		splitBottom.setTopComponent(splitTop);
+		splitBottom.setBottomComponent(scrollTree);
+		splitBottom.setOneTouchExpandable(true);
+		splitBottom.setDividerLocation(500);
+		splitBottom.setMinimumSize(new Dimension(1300, 900));
 		Calendar calStart = Calendar.getInstance();
 		Calendar calEnd = Calendar.getInstance();
 		Calendar calMin = Calendar.getInstance();
@@ -124,7 +134,46 @@ class NWorkload extends NBase {
 		setOpaque(true);
 		add(new IToolBar(this, calStart, calEnd, calMin, calMax, pj.userAccess[LConstants.ACCESS_NAMES]),
 				BorderLayout.NORTH);
-		add(splitAll, BorderLayout.CENTER);
+		add(splitBottom, BorderLayout.CENTER);
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		if (treePath == null) return;
+		switch (e.getKeyCode()) {
+		case KeyEvent.VK_ADD: // 107
+		case KeyEvent.VK_PLUS: // 521
+		case KeyEvent.VK_RIGHT:
+			if (e.isControlDown()) {
+				tree.expandAll();
+			} else if (e.isAltDown()) {
+				tree.expandAllUnder(treePath);
+			} else {
+				tree.expandPath(treePath);
+			}
+			break;
+		case KeyEvent.VK_SUBTRACT: // 109
+		case KeyEvent.VK_MINUS: // 45
+		case KeyEvent.VK_LEFT:
+			if (e.isControlDown()) {
+				tree.collapseAll();
+			} else if (e.isAltDown()) {
+				tree.collapseAllUnder(treePath);
+			} else {
+				tree.collapsePath(treePath);
+			}
+			break;
+		default:
+			// Ignore rest
+		}
+	}
+
+	@Override
+	public void keyReleased(KeyEvent arg0) {
+	}
+
+	@Override
+	public void keyTyped(KeyEvent arg0) {
 	}
 
 	private void setCharts(TreePath newPath) {
@@ -135,6 +184,7 @@ class NWorkload extends NBase {
 				return;
 		}
 		int count = 1;
+		double[] yCases = new double[count];
 		double[] yCoder1 = new double[count];
 		double[] yCoder2 = new double[count];
 		double[] yCoder3 = new double[count];
@@ -146,6 +196,7 @@ class NWorkload extends NBase {
 		if (node != null && node.children != null && node.children.length > 0) {
 			count = node.children.length;
 			xTitles = new String[count];
+			yCases = new double[count];
 			yCoder1 = new double[count];
 			yCoder2 = new double[count];
 			yCoder3 = new double[count];
@@ -153,7 +204,12 @@ class NWorkload extends NBase {
 			yCoder5 = new double[count];
 			for (int i = 0; i < count; i++) {
 				OWorknode leaf = (OWorknode) node.children[i];
-				xTitles[i] = leaf.name;
+				if (leaf.name.length() > 4) {
+					xTitles[i] = leaf.name.substring(0, 4);
+				} else {
+					xTitles[i] = leaf.name;
+				}
+				yCases[i] = leaf.noCases;
 				yCoder1[i] = leaf.fte1;
 				yCoder2[i] = leaf.fte2;
 				yCoder3[i] = leaf.fte3;
@@ -161,12 +217,12 @@ class NWorkload extends NBase {
 				yCoder5[i] = leaf.fte5;
 			}
 		}
+		chartCases.setChart(xTitles, yCases, "Cases", IChartPie.COLOR_DEF);
 		chartCoder1.setChart(xTitles, yCoder1, coders[0], IChartPie.COLOR_DEF);
 		chartCoder2.setChart(xTitles, yCoder2, coders[1], IChartPie.COLOR_DEF);
 		chartCoder3.setChart(xTitles, yCoder3, coders[2], IChartPie.COLOR_DEF);
 		chartCoder4.setChart(xTitles, yCoder4, coders[3], IChartPie.COLOR_DEF);
 		chartCoder5.setChart(xTitles, yCoder5, coders[4], IChartPie.COLOR_DEF);
-		alteredRows = false;
 	}
 
 	private void setDefaults() {
@@ -200,16 +256,17 @@ class NWorkload extends NBase {
 		for (int i = 0; i < rowsView.length; i++) {
 			rowsView[i] = rows[i];
 		}
-		alteredRows = true;
+		altered = true;
 	}
 
 	@Override
 	void setFilter(short id, short value) {
 		// Go button
-		if (timeTo > timeFrom) {
+		if (altered && timeTo > timeFrom) {
 			WorkerData worker = new WorkerData();
 			worker.execute();
 		}
+		altered = false;
 	}
 
 	@Override
@@ -221,9 +278,10 @@ class NWorkload extends NBase {
 		default:
 			timeTo = value.getTimeInMillis();
 		}
+		altered = true;
 	}
 
-	private class ModelWorkload extends ITreeTableModel implements ITreeModel {
+	class ModelWorkload extends ITreeTableModel implements ITreeModel {
 
 		private final String[] headers = { "Name", "Cases", "Specs", "Blocks", "Slides", coders[0], coders[1],
 				coders[2], coders[3], coders[4] };
@@ -246,9 +304,13 @@ class NWorkload extends NBase {
 			return (children == null) ? 0 : children.length;
 		}
 
-		@Override
 		protected Object[] getChildren(Object node) {
 			return ((OWorknode) node).children;
+		}
+
+		@Override
+		public Class<?> getColumnClass(int column) {
+			return types[column];
 		}
 
 		@Override
@@ -259,11 +321,6 @@ class NWorkload extends NBase {
 		@Override
 		public String getColumnName(int column) {
 			return headers[column];
-		}
-
-		@Override
-		public Class<?> getColumnClass(int column) {
-			return types[column];
 		}
 
 		@Override
@@ -298,30 +355,22 @@ class NWorkload extends NBase {
 
 	private class WorkerData extends SwingWorker<Void, Void> {
 		private int noRows = 0;
+		private ArrayList<OWorkload> rows = new ArrayList<OWorkload>();
 
 		@Override
 		protected Void doInBackground() throws Exception {
-			setName("WLWorker");
-			if (alteredDate) {
-				getData();
-				alteredRows = true;
-			}
-			if (alteredRows) {
-				structureData();
-			}
+			getData();
+			structureData();
 			return null;
 		}
 
 		@Override
 		public void done() {
-			alteredDate = false;
 			// Display results
-			OWorknode root = (OWorknode) model.getRoot();
-			model = new ModelWorkload(root);
-			tree.setTreeModel(model);
-			if (alteredRows) {
-				setCharts(tree.getTree().getPathForRow(0));
-			}
+			OWorknode root = (OWorknode) tree.tree.getModel().getRoot();
+			ModelWorkload model = new ModelWorkload(root);
+			tree.setTreeTableModel(model);
+			setCharts(tree.getTree().getPathForRow(0));
 			pj.statusBar.setMessage("Workload " + pj.dates.formatter(timeFrom, LDates.FORMAT_DATELONG) + " - "
 					+ pj.dates.formatter(timeTo, LDates.FORMAT_DATELONG));
 			pj.setBusy(false);
@@ -332,7 +381,6 @@ class NWorkload extends NBase {
 			OWorkload row = new OWorkload();
 			ResultSet rst = null;
 			try {
-				rows.clear();
 				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_SUM), 1, timeFrom);
 				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_SUM), 2, timeTo);
 				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CSE_SL_SUM));
@@ -442,6 +490,8 @@ class NWorkload extends NBase {
 					row.fte4 += rst.getDouble("ADV4");
 					row.fte5 += rst.getDouble("ADV5");
 				}
+				Thread.sleep(LConstants.SLEEP_TIME);
+			} catch (InterruptedException ignore) {
 			} catch (SQLException e) {
 				pj.log(LConstants.ERROR_SQL, getName(), e);
 			} finally {
@@ -450,12 +500,12 @@ class NWorkload extends NBase {
 		}
 
 		private void setModel(OWorklist root) {
-			OWorknode node0 = (OWorknode) model.getRoot();
-			OWorknode node1 = new OWorknode("node");
-			OWorknode node2 = new OWorknode("node");
-			OWorknode node3 = new OWorknode("node");
-			OWorknode node4 = new OWorknode("node");
-			OWorknode node5 = new OWorknode("node");
+			OWorknode node0 = (OWorknode) tree.tree.getModel().getRoot();
+			OWorknode node1 = new OWorknode("node1");
+			OWorknode node2 = new OWorknode("node2");
+			OWorknode node3 = new OWorknode("node3");
+			OWorknode node4 = new OWorknode("node4");
+			OWorknode node5 = new OWorknode("node5");
 			OWorklist data1 = new OWorklist();
 			OWorklist data2 = new OWorklist();
 			OWorklist data3 = new OWorklist();
@@ -537,19 +587,14 @@ class NWorkload extends NBase {
 								node5.fte5 = data5.fte5;
 								node4.children[m] = node5;
 							}
-							data4.children.clear();
 							node3.children[l] = node4;
 						}
-						data3.children.clear();
 						node2.children[k] = node3;
 					}
-					data2.children.clear();
 					node1.children[j] = node2;
 				}
-				data1.children.clear();
 				node0.children[i] = node1;
 			}
-			root.children.clear();
 		}
 
 		private void setTotals(OWorklist master, double fte1, double fte2, double fte3, double fte4, double fte5) {
@@ -576,8 +621,8 @@ class NWorkload extends NBase {
 			Collections.sort(master.children, new Comparator<OWorklist>() {
 				@Override
 				public int compare(OWorklist o1, OWorklist o2) {
-					return (o1.noCases > o2.noCases ? -1
-							: (o1.noCases < o2.noCases ? 1 : (o1.noSlides > o2.noSlides ? -1 : 1)));
+					return (o1.fte5 > o2.fte5 ? -1
+							: (o1.fte5 < o2.fte5 ? 1 : (o1.fte1 > o2.fte1 ? -1 : 1)));
 				}
 			});
 			int nameID = 0;
@@ -931,9 +976,25 @@ class NWorkload extends NBase {
 			data0.fte3 = data0.fte3 / fte3;
 			data0.fte4 = data0.fte4 / fte4;
 			data0.fte5 = data0.fte5 / fte5;
+			try {
+				Thread.sleep(LConstants.SLEEP_TIME);
+			} catch (InterruptedException ignore) {
+			}
 			setTotals(data0, fte1, fte2, fte3, fte4, fte5);
+			try {
+				Thread.sleep(LConstants.SLEEP_TIME);
+			} catch (InterruptedException ignore) {
+			}
 			sortChildren(data0);
+			try {
+				Thread.sleep(LConstants.SLEEP_TIME);
+			} catch (InterruptedException ignore) {
+			}
 			setModel(data0);
+			try {
+				Thread.sleep(LConstants.SLEEP_TIME);
+			} catch (InterruptedException ignore) {
+			}
 		}
 	}
 }

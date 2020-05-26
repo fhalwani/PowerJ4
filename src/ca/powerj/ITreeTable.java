@@ -1,25 +1,20 @@
 package ca.powerj;
-
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.EventObject;
-
-import javax.swing.AbstractCellEditor;
+import javax.swing.BorderFactory;
 import javax.swing.InputMap;
 import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.LookAndFeel;
+import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableCellEditor;
@@ -32,36 +27,32 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-class ITreeTable extends JTable implements KeyListener {
-	private ITreeModel treeModel;
+public class ITreeTable extends JTable {
 	/** A subclass of JTree. */
-	protected ITreeCellRenderer tree;
+	protected TreeTableCellRenderer tree;
+	private ITreeModel treeTableModel;
 
-	ITreeTable(AClient pj, ITreeModel treeModel) {
+	public ITreeTable(LBase parent, ITreeModel treeTableModel) {
 		super();
 		// Create the tree. It will be used as a renderer and editor.
 		// First we create a dummy model for the tree and set later the
 		// real model with setModel(). This way JTree's TreeModelListener
 		// will be called first and we can update our table.
-		tree = new ITreeCellRenderer(new DefaultTreeModel(new DefaultMutableTreeNode()));
+		tree = new TreeTableCellRenderer(new DefaultTreeModel(new DefaultMutableTreeNode()));
 		// Install a tableModel representing the visible rows in the tree. 
-		setTreeModel(treeModel);
+		setTreeTableModel(treeTableModel);
 		// Force the JTable and JTree to share their row selection models. 
-		ITreeSelectionModel selectionWrapper = new ITreeSelectionModel();
+		ListToTreeSelectionModelWrapper selectionWrapper = new ListToTreeSelectionModelWrapper();
 		tree.setSelectionModel(selectionWrapper);
 		setSelectionModel(selectionWrapper.getListSelectionModel());
-		// Render background color in alternating rows
-		setDefaultRenderer(String.class, new IRenderString());
-		setDefaultRenderer(Long.class, new IRenderInteger(pj));
-		setDefaultRenderer(Integer.class, new IRenderInteger(pj));
-		setDefaultRenderer(Short.class, new IRenderInteger(pj));
-		setDefaultRenderer(Byte.class, new IRenderInteger(pj));
-		setDefaultRenderer(Double.class, new IRenderDouble(pj, 3));
-		setDefaultRenderer(Boolean.class, new IRenderBoolean());
-		setDefaultRenderer(Date.class, new IRenderDate(pj));
-		setDefaultRenderer(Calendar.class, new IRenderDateTime(pj));
-		setDefaultRenderer(OItem.class, new IRenderItem());
-		setDefaultRenderer(Object.class, new IRenderString());
+		// Install the tree editor renderer and editor
+		setDefaultEditor(ITreeModel.class, new TreeTableCellEditor());
+		setDefaultRenderer(ITreeModel.class, tree);
+		setDefaultRenderer(Long.class, new IRenderInteger(parent));
+		setDefaultRenderer(Integer.class, new IRenderInteger(parent));
+		setDefaultRenderer(Short.class, new IRenderInteger(parent));
+		setDefaultRenderer(Byte.class, new IRenderInteger(parent));
+		setDefaultRenderer(Double.class, new IRenderDouble(parent, 2));
 		// No grid
 		setShowGrid(false);
 		// No intercell spacing
@@ -90,38 +81,8 @@ class ITreeTable extends JTable implements KeyListener {
 	}
 
 	/**
-	* Collapses all nodes
-	*/    
-	public void collapseAll() {
-		TreePath tp = new TreePath(tree.getModel().getRoot());
-		collapseAllUnder(tp);
-		tree.setSelectionPath(tp);
-	}
-
-	/**
-	* Collapses all nodes under the specified path
-	*/
-	public void collapseAllUnder(TreePath tp) {
-		Object last = tp.getLastPathComponent();
-		for (int i = 0; i < tree.getModel().getChildCount(last); i++) {
-			Object child = tree.getModel().getChild(last, i);
-			collapseAllUnder(tp.pathByAddingChild(child));
-		}
-		tree.collapsePath(tp);
-		tree.setSelectionPath(tp);
-	}
-
-	/**
-	* Collapses selected node under the specified path
-	*/
-	public void collapsePath(TreePath tp) {
-		tree.collapsePath(tp);
-		tree.setSelectionPath(tp);
-	}
-
-	/**
-	* Expands all nodes
-	*/    
+	 * Expands all nodes
+	 */    
 	public void expandAll() {
 		TreePath tp = new TreePath(tree.getModel().getRoot());
 		expandAllUnder(tp);
@@ -129,8 +90,8 @@ class ITreeTable extends JTable implements KeyListener {
 	}
 
 	/**
-	* Expands all nodes under the specified path
-	*/
+	 * Expands all nodes under the specified path
+	 */
 	public void expandAllUnder(TreePath tp) {
 		tree.expandPath(tp);
 		Object last = tp.getLastPathComponent();
@@ -142,89 +103,97 @@ class ITreeTable extends JTable implements KeyListener {
 	}
 
 	/**
-	* Expands selected node under the specified path
-	*/
+	 * Expands selected node under the specified path
+	 */
 	public void expandPath(TreePath tp) {
 		tree.expandPath(tp);
 		tree.setSelectionPath(tp);
 	}
 
 	/**
-	* Workaround for BasicTableUI anomaly. Make sure the UI never tries to 
-	* paint the editor. The UI currently uses different techniques to 
-	* paint the renderers and editors and overriding setBounds() below 
-	* is not the right thing to do for an editor. Returning -1 for the 
-	* editing row in this case, ensures the editor is never painted. 
-	*/
-	public int getEditingRow() {
-		return (getColumnClass(editingColumn) == ITreeModel.class) ? -1 : editingRow;  
+	 * Collapses all nodes
+	 */    
+	public void collapseAll() {
+		TreePath tp = new TreePath(tree.getModel().getRoot());
+		collapseAllUnder(tp);
+		tree.setSelectionPath(tp);
 	}
 
 	/**
-	* Returns the object for the specified row
-	*/
+	 * Collapses all nodes under the specified path
+	 */
+	public void collapseAllUnder(TreePath tp) {
+		Object last = tp.getLastPathComponent();
+		for (int i = 0; i < tree.getModel().getChildCount(last); i++) {
+			Object child = tree.getModel().getChild(last, i);
+			collapseAllUnder(tp.pathByAddingChild(child));
+		}
+		tree.collapsePath(tp);
+		tree.setSelectionPath(tp);
+	}
+
+	/**
+	 * Collapses selected node under the specified path
+	 */
+	public void collapsePath(TreePath tp) {
+		tree.collapsePath(tp);
+		tree.setSelectionPath(tp);
+	}
+
+	/**
+	 * Sets new TreeTableModel
+	 */
+	public void setTreeTableModel(ITreeModel treeTableModel) {
+		this.treeTableModel = treeTableModel;
+		setModel(new ITreeTableModelAdapter(treeTableModel, tree));
+		tree.setModel(treeTableModel);
+	}
+
+	/**
+	 * Returns the current model
+	 */
+	public ITreeModel getTreeTableModel() {
+		return treeTableModel;
+	}
+
+	/**
+	 * Returns the object for the specified row
+	 */
 	public Object getNodeForRow(int row) {
 		TreePath tp = tree.getPathForRow(row);
 		return tp.getLastPathComponent();
 	}
 
 	/**
-	* Returns the row corresponding to the specified path
-	*/
+	 * Returns the row corresponding to the specified path
+	 */
 	public int getRowForPath(TreePath path) {
 		return tree.getRowForPath(path);
 	}
 
 	/**
-	 * Returns the tree that is being shared between the model.
+	 * Overridden to message super and forward the method to the tree.
+	 * Since the tree is not actually in the component hieachy it will
+	 * never receive this unless we forward it in this manner.
 	 */
-	public JTree getTree() {
-		return tree;
-	}
-
-	/**
-	* Returns the current model
-	*/
-	public ITreeModel getTreeTableModel() {
-		return treeModel;
-	}
-
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-		TreePath treePath = tree.getSelectionPath();
-		if (treePath == null) return;
-		switch (e.getKeyCode()) {
-		case KeyEvent.VK_ADD: // 107
-		case KeyEvent.VK_PLUS: // 521
-			if (e.isControlDown()) {
-				expandAll();
-			} else if (e.isAltDown()) {
-				expandAllUnder(treePath);
-			} else {
-				expandPath(treePath);
-			}
-			break;
-		case KeyEvent.VK_SUBTRACT: // 109
-		case KeyEvent.VK_MINUS: // 45
-			if (e.isControlDown()) {
-				collapseAll();
-			} else if (e.isAltDown()) {
-				collapseAllUnder(treePath);
-			} else {
-				collapsePath(treePath);
-			}
-			break;
-		default:
-			// Ignore rest
+	public void updateUI() {
+		super.updateUI();
+		if (tree != null) {
+			tree.updateUI();
 		}
+		// Use the tree's default foreground and background colors in the table 
+		LookAndFeel.installColorsAndFont(this, "Tree.background", "Tree.foreground", "Tree.font");
 	}
 
-	@Override
-	public void keyReleased(KeyEvent e) {}
-
-	@Override
-	public void keyTyped(KeyEvent e) {}
+	/* Workaround for BasicTableUI anomaly. Make sure the UI never tries to 
+	 * paint the editor. The UI currently uses different techniques to 
+	 * paint the renderers and editors and overriding setBounds() below 
+	 * is not the right thing to do for an editor. Returning -1 for the 
+	 * editing row in this case, ensures the editor is never painted. 
+	 */
+	public int getEditingRow() {
+		return (getColumnClass(editingColumn) == ITreeModel.class) ? -1 : editingRow;  
+	}
 
 	/**
 	 * Overridden to pass the new rowHeight to the tree.
@@ -237,67 +206,139 @@ class ITreeTable extends JTable implements KeyListener {
 	}
 
 	/**
-	* Sets new TreeModel
-	*/
-	public void setTreeModel(ITreeModel treeModel) {
-		this.treeModel = treeModel;
-		setModel(new ITreeAdapter(treeModel, tree));
-		tree.setModel(treeModel);
+	 * Returns the tree that is being shared between the model.
+	 */
+	public JTree getTree() {
+		return tree;
 	}
 
 	/**
-	* Overridden to message super and forward the method to the tree.
-	* Since the tree is not actually in the component hierarchy it will
-	* never receive this unless we forward it in this manner.
-	*/
-	@Override
-	public void updateUI() {
-		super.updateUI();
-		if (tree != null) {
-			tree.updateUI();
+	 * A TreeCellRenderer that displays a JTree.
+	 */
+	public class TreeTableCellRenderer extends JTree implements TableCellRenderer {
+		private static final long serialVersionUID = 1;
+		/** Last table/tree row asked to renderer. */
+		protected int visibleRow;
+		private Border border;
+		private Dimension intercellSpacing = new Dimension(1, 1);
+		private final Border borderEmpty = BorderFactory.createEmptyBorder(2, 5, 2, 5);
+
+		public TreeTableCellRenderer(TreeModel model) {
+			super(model);
+			setFont(LConstants.APP_FONT);
+			setOpaque(true);
 		}
-		// Use the tree's default foreground and background colors in the table 
-		LookAndFeel.installColorsAndFont(this, "Tree.background", "Tree.foreground", "Tree.font");
+
+		/**
+		 * updateUI is overridden to set the colors of the Tree's renderer
+		 * to match that of the table.
+		 */
+		public void updateUI() {
+			super.updateUI();
+			// Make the tree's cell renderer use the table's cell selection colors 
+			TreeCellRenderer tcr = getCellRenderer();
+			if (tcr instanceof DefaultTreeCellRenderer) {
+				DefaultTreeCellRenderer dtcr = ((DefaultTreeCellRenderer)tcr);
+				//dtcr.setTextSelectionColor(UIManager.getColor("Table.selectionForeground"));
+				dtcr.setBackgroundSelectionColor(LConstants.COLOR_LIGHT_BLUE);
+			}
+		}
+
+		/**
+		 * Sets the row height of the tree, and forwards the row height to
+		 * the table.
+		 */
+		public void setRowHeight(int rowHeight) {
+			if (rowHeight > 0) {
+				super.setRowHeight(rowHeight);
+				if (ITreeTable.this != null &&ITreeTable.this.getRowHeight() != rowHeight) {
+					ITreeTable.this.setRowHeight(getRowHeight());
+				}
+			}
+		}
+
+		/**
+		 * This is overridden to set the height to match that of the JTable.
+		 */
+		public void setBounds(int x, int y, int w, int h) {
+			super.setBounds(x, 0, w, ITreeTable.this.getHeight());
+		}
+
+		/**
+		 * Subclassed to translate the graphics such that the last visible
+		 * row will be drawn at 0,0.
+		 */
+		public void paint(Graphics g) {
+			Rectangle oldClip = g.getClipBounds();
+			Rectangle clip;
+			clip = oldClip.intersection(
+					new Rectangle(0, 0, 
+							getWidth() - intercellSpacing.width, 
+							getRowHeight() - intercellSpacing.height));
+			g.setClip(clip);
+			g.translate(0, -visibleRow * getRowHeight());
+			super.paint(g);
+			g.translate(0, visibleRow * getRowHeight());
+			g.setClip(oldClip);
+			if (border != null)
+				border.paintBorder(this, g, 0, 0, getWidth(), getRowHeight());
+		}
+
+		/**
+		 * TreeCellRenderer method. Overridden to update the visible row.
+		 */
+		public Component getTableCellRendererComponent(JTable table,
+				Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+			if (isSelected) {
+				border = borderEmpty;
+	            setBackground(LConstants.COLOR_LIGHT_BLUE);
+	        } else {
+	        	border = null;
+	        	setBackground(LConstants.COLOR_EVEN_ODD[row % 2]);
+	        }
+			visibleRow = row;
+			return this;
+		}
 	}
 
-	/**
-	* TreeTableCellEditor implementation. Component returned is the JTree.
-	*/
-	public class ITreeCellEditor extends AbstractCellEditor implements TableCellEditor {
 
-		@Override
+	/**
+	 * TreeTableCellEditor implementation. Component returned is the
+	 * JTree.
+	 */
+	public class TreeTableCellEditor extends ICellEditor implements TableCellEditor {
 		public Component getTableCellEditorComponent(JTable table,
 				Object value, boolean isSelected, int r, int c) {
 			return tree;
 		}
 
 		/**
-		* Overridden to return false, and if the event is a mouse event
-		* it is forwarded to the tree.
-		* The behavior for this is debatable, and should really be offered
-		* as a property. By returning false, all keyboard actions are
-		* implemented in terms of the table. By returning true, the
-		* tree would get a chance to do something with the keyboard
-		* events. For the most part this is ok. But for certain keys,
-		* such as left/right, the tree will expand/collapse where as
-		* the table focus should really move to a different column. Page
-		* up/down should also be implemented in terms of the table.
-		* By returning false this also has the added benefit that clicking
-		* outside of the bounds of the tree node, but still in the tree
-		* column will select the row, whereas if this returned true
-		* that wouldn't be the case.
-		* By returning false we are also enforcing the policy that
-		* the tree will never be editable (at least by a key sequence).
-		*/
-		@Override
+		 * Overridden to return false, and if the event is a mouse event
+		 * it is forwarded to the tree.
+		 * The behavior for this is debatable, and should really be offered
+		 * as a property. By returning false, all keyboard actions are
+		 * implemented in terms of the table. By returning true, the
+		 * tree would get a chance to do something with the keyboard
+		 * events. For the most part this is ok. But for certain keys,
+		 * such as left/right, the tree will expand/collapse where as
+		 * the table focus should really move to a different column. Page
+		 * up/down should also be implemented in terms of the table.
+		 * By returning false this also has the added benefit that clicking
+		 * outside of the bounds of the tree node, but still in the tree
+		 * column will select the row, whereas if this returned true
+		 * that wouldn't be the case.
+		 * By returning false we are also enforcing the policy that
+		 * the tree will never be editable (at least by a key sequence).
+		 */
 		public boolean isCellEditable(EventObject e) {
 			if (e instanceof MouseEvent) {
-				for (int i = getColumnCount() - 1; i >= 0; i--) {
-					if (getColumnClass(i) == ITreeModel.class) {
+				for (int counter = getColumnCount() - 1; counter >= 0;
+						counter--) {
+					if (getColumnClass(counter) == ITreeModel.class) {
 						MouseEvent me = (MouseEvent)e;
 						MouseEvent newME = new MouseEvent(tree, me.getID(),
 								me.getWhen(), me.getModifiersEx(),
-								me.getX() - getCellRect(0, i, true).x,
+								me.getX() - getCellRect(0, counter, true).x,
 								me.getY(), me.getClickCount(),
 								me.isPopupTrigger());
 						tree.dispatchEvent(newME);
@@ -307,158 +348,79 @@ class ITreeTable extends JTable implements KeyListener {
 			}
 			return false;
 		}
-
-		@Override
-		public Object getCellEditorValue() {
-			// TODO Auto-generated method stub
-			return null;
-		}
 	}
 
-	/**
-	* A TreeCellRenderer that displays a JTree.
-	*/
-	class ITreeCellRenderer extends JTree implements TableCellRenderer {
-		/** Last table/tree row asked to renderer. */
-		protected int visibleRow;
-		private Dimension intercellSpacing = new Dimension(1, 1);
-
-		public ITreeCellRenderer(TreeModel model) {
-			super(model);
-			setFont(LConstants.APP_FONT);
-			setOpaque(true);
-		}
-
-		/**
-		* TreeCellRenderer method. Overridden to update the visible row.
-		*/
-		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value,
-				boolean isSelected, boolean hasFocus, int row, int column) {
-			if (isSelected) {
-	            setBackground(LConstants.COLOR_LIGHT_BLUE);
-	        } else {
-	        	setBackground(LConstants.COLOR_EVEN_ODD[row % 2]);
-	        }
-			visibleRow = row;
-			return this;
-		}
-
-		/**
-		 * Subclassed to translate the graphics such that the last visible
-		 * row will be drawn at 0,0.
-		 */
-		@Override
-		public void paint(Graphics g) {
-			Rectangle oldClip = g.getClipBounds();
-			Rectangle clip;
-			clip = oldClip.intersection(new Rectangle(0, 0,
-					getWidth() - intercellSpacing.width, 
-					getRowHeight() - intercellSpacing.height));
-			g.setClip(clip);
-			g.translate(0, -visibleRow * getRowHeight());
-			super.paint(g);
-			g.translate(0, visibleRow * getRowHeight());
-			g.setClip(oldClip);
-		}
-
-		/**
-		 * This is overridden to set the height to match that of the JTable.
-		 */
-		@Override
-		public void setBounds(int x, int y, int w, int h) {
-			super.setBounds(x, 0, w, ITreeTable.this.getHeight());
-		}
-
-		/**
-		 * Sets the row height of the tree, and forwards the row height to
-		 * the table.
-		 */
-		@Override
-		public void setRowHeight(int rowHeight) {
-			if (rowHeight > 0) {
-				super.setRowHeight(rowHeight);
-				if (ITreeTable.this != null && ITreeTable.this.getRowHeight() != rowHeight) {
-					ITreeTable.this.setRowHeight(getRowHeight());
-				}
-			}
-		}
-
-		/**
-		* updateUI is overridden to set the colors of the Tree's renderer
-		* to match that of the table.
-		*/
-		@Override
-		public void updateUI() {
-			super.updateUI();
-			// Make the tree's cell renderer use the table's cell selection colors 
-			TreeCellRenderer tcr = getCellRenderer();
-			if (tcr instanceof DefaultTreeCellRenderer) {
-				DefaultTreeCellRenderer dtcr = ((DefaultTreeCellRenderer)tcr);
-				dtcr.setBackgroundSelectionColor(LConstants.COLOR_LIGHT_BLUE);
-			}
-		}
-	}
 
 	/**
-	* Listen for changes in the ListSelectionModel it maintains.
-	* Once a change in the ListSelectionModel happens, the paths
-	* are updated in the DefaultTreeSelectionModel.
-	*/
-	class ITreeSelectionModel extends DefaultTreeSelectionModel {
+	 * ListToTreeSelectionModelWrapper extends DefaultTreeSelectionModel
+	 * to listen for changes in the ListSelectionModel it maintains. Once
+	 * a change in the ListSelectionModel happens, the paths are updated
+	 * in the DefaultTreeSelectionModel.
+	 */
+	class ListToTreeSelectionModelWrapper extends DefaultTreeSelectionModel {
+		private static final long serialVersionUID = 1;
 		/** Set to true when we are updating the ListSelectionModel. */
 		protected boolean updatingListSelectionModel;
 
-		ITreeSelectionModel() {
+		public ListToTreeSelectionModelWrapper() {
 			super();
-			getListSelectionModel().addListSelectionListener(createListSelectionListener());
+			getListSelectionModel().addListSelectionListener
+			(createListSelectionListener());
 		}
 
 		/**
-		* Creates and returns an instance of ListSelectionHandler.
-		*/
-		protected ListSelectionListener createListSelectionListener() {
-			return new ListSelectionHandler();
-		}
-
+		 * Returns the list selection model. ListToTreeSelectionModelWrapper
+		 * listens for changes to this model and updates the selected paths
+		 * accordingly.
+		 */
 		ListSelectionModel getListSelectionModel() {
 			return listSelectionModel;
 		}
 
 		/**
-		* This is overridden to set updatingListSelectionModel
-		* and message super. This is the only place DefaultTreeSelectionModel
-		* alters the ListSelectionModel. Notice how we don't message super if
-		* updatingListSelectionModel is true. If updatingListSelectionModel
-		* is true, it implies the ListSelectionModel has already been updated
-		* and the paths are the only thing that needs to be updated.
-		*/
-		@Override
+		 * This is overridden to set updatingListSelectionModel
+		 * and message super. This is the only place DefaultTreeSelectionModel
+		 * alters the ListSelectionModel.
+		 */
 		public void resetRowSelection() {
-			if (!updatingListSelectionModel) {
+			if(!updatingListSelectionModel) {
 				updatingListSelectionModel = true;
 				try {
 					super.resetRowSelection();
-				} finally {
+				}
+				finally {
 					updatingListSelectionModel = false;
 				}
 			}
+			// Notice how we don't message super if
+			// updatingListSelectionModel is true. If
+			// updatingListSelectionModel is true, it implies the
+			// ListSelectionModel has already been updated and the
+			// paths are the only thing that needs to be updated.
 		}
 
 		/**
-		* If updatingListSelectionModel is false, this will
-		* reset the selected paths from the selected rows in the list
-		* selection model.
-		*/
+		 * Creates and returns an instance of ListSelectionHandler.
+		 */
+		protected ListSelectionListener createListSelectionListener() {
+			return new ListSelectionHandler();
+		}
+
+		/**
+		 * If updatingListSelectionModel is false, this will
+		 * reset the selected paths from the selected rows in the list
+		 * selection model.
+		 */
 		protected void updateSelectedPathsFromSelectedRows() {
-			if (!updatingListSelectionModel) {
+			if(!updatingListSelectionModel) {
 				updatingListSelectionModel = true;
 				try {
-					// This is way expensive, ListSelectionModel needs an enumerator for iterating.
+					// This is way expensive, ListSelectionModel needs an
+					// enumerator for iterating.
 					int min = listSelectionModel.getMinSelectionIndex();
 					int max = listSelectionModel.getMaxSelectionIndex();
 					clearSelection();
-					if (min != -1 && max != -1) {
+					if(min != -1 && max != -1) {
 						for(int counter = min; counter <= max; counter++) {
 							if(listSelectionModel.isSelectedIndex(counter)) {
 								TreePath selPath = tree.getPathForRow(counter);
@@ -475,9 +437,9 @@ class ITreeTable extends JTable implements KeyListener {
 		}
 
 		/**
-		* Class responsible for calling updateSelectedPathsFromSelectedRows
-		* when the selection of the list changes.
-		*/
+		 * Class responsible for calling updateSelectedPathsFromSelectedRows
+		 * when the selection of the list changes.
+		 */
 		class ListSelectionHandler implements ListSelectionListener {
 			public void valueChanged(ListSelectionEvent e) {
 				updateSelectedPathsFromSelectedRows();

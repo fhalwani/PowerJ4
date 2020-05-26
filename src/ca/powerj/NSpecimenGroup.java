@@ -921,9 +921,7 @@ class NSpecimenGroup extends NBase {
 
 		@Override
 		public void setValueAt(Object value, int row, int col) {
-			System.out.println("setValueBefore: " + specimen.codes[row][col - 1].id);
 			specimen.codes[row][col - 1] = (OItem) value;
-			System.out.println("setValueAfter: " + specimen.codes[row][col - 1].id);
 			altered = true;
 		}
 	}

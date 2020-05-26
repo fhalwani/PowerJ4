@@ -207,7 +207,6 @@ class NSpecimen extends NBase {
 			return (children == null) ? 0 : children.length;
 		}
 
-		@Override
 		protected Object[] getChildren(Object node) {
 			return ((OSpecnode) node).children;
 		}
@@ -468,7 +467,7 @@ class NSpecimen extends NBase {
 			// Display results
 			OSpecnode root = (OSpecnode) model.getRoot();
 			model = new ModelSpecimen(root);
-			tree.setTreeModel(model);
+			tree.setTreeTableModel(model);
 			setCharts(tree.getTree().getPathForRow(0));
 			pj.setBusy(false);
 		}

@@ -39,8 +39,6 @@ class DDerby extends DDesktop {
 				pj.log(LConstants.ERROR_NONE, dbName, "Connected to Derby.");
 			}
 		} catch (SQLException e) {
-			System.out.println("Path: " + pj.appDir);
-			System.out.println("Derby: " + p.getProperty("derby.system.home"));
 			pj.log(LConstants.ERROR_SQL, dbName, e);
 		} catch (ClassNotFoundException e) {
 			pj.log(LConstants.ERROR_SQL, dbName, e);

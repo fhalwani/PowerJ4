@@ -88,7 +88,9 @@ public class PowerJS extends LBase implements Daemon {
 
 	static void stop(String args[]) {
 		try {
-			launcher.stop();
+			if (launcher.stopWorker()) {
+				System.exit(0);
+			}
 		} catch (Exception e) {
 			e.printStackTrace(System.err);
 		}

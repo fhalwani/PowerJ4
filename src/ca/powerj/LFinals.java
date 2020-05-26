@@ -117,27 +117,32 @@ class LFinals {
 					getLastCase();
 					getMaxDate();
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
+						pj.log(LConstants.ERROR_NONE, "Coding cases...");
 						doCases();
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 						getLastAdditional(ADDL_ADEND);
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
+						pj.log(LConstants.ERROR_NONE, "Coding addenda...");
 						doAdenda();
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 						getLastAdditional(ADDL_ORDER);
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
+						pj.log(LConstants.ERROR_NONE, "Coding additionals...");
 						doAdditional();
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 						getLastAdditional(ADDL_COREL);
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
+						pj.log(LConstants.ERROR_NONE, "Coding correlations...");
 						doCorrelations();
 					}
 					if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
+						pj.log(LConstants.ERROR_NONE, "Coding errors...");
 						doErrors();
 					}
 				}
@@ -181,6 +186,7 @@ class LFinals {
 			dbPowerJ.close(pjStms);
 		}
 		LBase.busy.set(false);
+		pj.log(LConstants.ERROR_NONE, "Done coding cases...");
 	}
 
 	private boolean codeCase(long caseID) {
@@ -761,18 +767,18 @@ class LFinals {
 	}
 
 	private void getLastAdditional(short codeID) {
-		Calendar calLastDate = pj.dates.setMidnight(lastUpdate);
-		calLastDate.set(Calendar.YEAR, 2020);
-		calLastDate.set(Calendar.MONTH, Calendar.JANUARY);
-		calLastDate.set(Calendar.DAY_OF_MONTH, 1);
-		long minWorkloadDate = calLastDate.getTimeInMillis();
 		// Earliest date is 1/1/2011 (1293858000001)
-//		long minWorkloadDate = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
+		long minWorkloadDate = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
 		if (codeID < ADDL_ORDER) {
 			dbPowerJ.setShort(pjStms.get(DPowerJ.STM_ADD_SL_LST), 1, codeID);
-			// Add 1 millisecond to avoid duplicated 1st case
 			lastUpdate = dbPowerJ.getTime(pjStms.get(DPowerJ.STM_ADD_SL_LST)) + 1;
 		} else {
+			Calendar calLast = pj.dates.setMidnight(null);
+			calLast.set(Calendar.YEAR, 2017);
+			calLast.set(Calendar.MONTH, Calendar.MAY);
+			calLast.set(Calendar.DAY_OF_MONTH, 1);
+			// Earliest date is 1/1/2011 (1293858000001)
+			minWorkloadDate = calLast.getTimeInMillis();
 			lastUpdate = dbPowerJ.getTime(pjStms.get(DPowerJ.STM_ADD_SL_ORD)) + 1;
 		}
 		if (lastUpdate < minWorkloadDate) {
@@ -781,13 +787,8 @@ class LFinals {
 	}
 
 	private void getLastCase() {
-		Calendar calLastDate = pj.dates.setMidnight(lastUpdate);
-		calLastDate.set(Calendar.YEAR, 2020);
-		calLastDate.set(Calendar.MONTH, Calendar.JANUARY);
-		calLastDate.set(Calendar.DAY_OF_MONTH, 1);
-		long minWorkloadDate = calLastDate.getTimeInMillis();
 		// Earliest date is 1/1/2011 (1293858000001)
-		// long minWorkloadDate = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
+		long minWorkloadDate = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
 		// Add 1 millisecond to avoid duplicated 1st case
 		lastUpdate = dbPowerJ.getTime(pjStms.get(DPowerJ.STM_CSE_SL_WLD)) + 1;
 		if (lastUpdate < minWorkloadDate) {
