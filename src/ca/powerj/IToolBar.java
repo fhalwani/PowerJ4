@@ -173,7 +173,7 @@ class IToolBar extends JToolBar {
 				}
 			}
 		});
-		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_F, "From:");
+		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_F, "From: ");
 		label.setLabelFor(cboStart);
 		add(label);
 		add(cboStart);
@@ -188,7 +188,7 @@ class IToolBar extends JToolBar {
 				}
 			}
 		});
-		label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_T, "To:");
+		label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_T, "To: ");
 		label.setLabelFor(cboEnd);
 		add(label);
 		add(cboEnd);
@@ -234,7 +234,7 @@ class IToolBar extends JToolBar {
 				}
 			}
 		});
-		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_F, "Facility:");
+		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_F, "Facility: ");
 		label.setLabelFor(cbo);
 		add(label);
 		add(cbo);
@@ -285,7 +285,7 @@ class IToolBar extends JToolBar {
 				}
 			}
 		});
-		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_G, "Groups:");
+		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_G, "Groups: ");
 		label.setLabelFor(cbo);
 		add(label);
 		add(cbo);
@@ -304,7 +304,7 @@ class IToolBar extends JToolBar {
 				}
 			}
 		});
-		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_T, "Types:");
+		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_T, "Types: ");
 		label.setLabelFor(cbo);
 		add(label);
 		add(cbo);
@@ -323,7 +323,7 @@ class IToolBar extends JToolBar {
 				}
 			}
 		});
-		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_P, "Personnel:");
+		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_P, "Personnel: ");
 		label.setLabelFor(cbo);
 		add(label);
 		add(cbo);
@@ -342,14 +342,14 @@ class IToolBar extends JToolBar {
 				}
 			}
 		});
-		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_P, "Procedures:");
+		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_P, "Procedures: ");
 		label.setLabelFor(cbo);
 		add(label);
 		add(cbo);
 	}
 
 	private void addRows() {
-		byte[] rowsView = new byte[5];
+		int[] rowsView = new int[5];
 		if (pj.userAccess[LConstants.ACCESS_NAMES]) {
 			rowsView[0] = IPanelRows.ROW_FACILITY;
 			rowsView[1] = IPanelRows.ROW_SPECIALTY;
@@ -374,7 +374,7 @@ class IToolBar extends JToolBar {
 				}
 			}
 		});
-		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_R, "Rows:");
+		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_R, "Rows: ");
 		label.setLabelFor(cboRows);
 		add(label);
 		add(cboRows);
@@ -393,7 +393,7 @@ class IToolBar extends JToolBar {
 				}
 			}
 		});
-		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_S, "Specialties:");
+		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_S, "Specialties: ");
 		label.setLabelFor(cbo);
 		add(label);
 		add(cbo);
@@ -423,7 +423,7 @@ class IToolBar extends JToolBar {
 				}
 			}
 		});
-		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_B, "Subspecialties:");
+		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_B, "Subspecialties: ");
 		label.setLabelFor(cbo);
 		add(label);
 		add(cbo);
@@ -447,7 +447,7 @@ class IToolBar extends JToolBar {
 				}
 			}
 		});
-		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_T, "Status:");
+		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_T, "Status: ");
 		label.setLabelFor(cbo);
 		add(label);
 		add(cbo);

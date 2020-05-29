@@ -252,9 +252,9 @@ class NWorkload extends NBase implements KeyListener {
 	}
 
 	@Override
-	void setFilter(byte[] rows) {
+	void setFilter(int[] rows) {
 		for (int i = 0; i < rowsView.length; i++) {
-			rowsView[i] = rows[i];
+			rowsView[i] = (byte) rows[i];
 		}
 		altered = true;
 	}

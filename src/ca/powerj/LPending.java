@@ -818,20 +818,17 @@ class LPending {
 					thisCase.value5 += masterSpecimens.getValue5();
 					if (thisCase.mainSpec == 0) {
 						thisCase.procID = masterSpecimens.getProcedureID();
-						thisCase.subID = masterSpecimens.getSubspecialtyID(rst.getString("label_name"),
-								rst.getString("description"));
+						thisCase.subID = masterSpecimens.getSubspecialtyID();
 						thisCase.mainBlks = noBlocks;
 						thisCase.mainSpec = rst.getShort("tmplt_profile_id");
 					} else if (thisCase.procID < masterSpecimens.getProcedureID()) {
 						thisCase.procID = masterSpecimens.getProcedureID();
-						thisCase.subID = masterSpecimens.getSubspecialtyID(rst.getString("label_name"),
-								rst.getString("description"));
+						thisCase.subID = masterSpecimens.getSubspecialtyID();
 						thisCase.mainBlks = noBlocks;
 						thisCase.mainSpec = rst.getShort("tmplt_profile_id");
 					} else if (thisCase.procID == masterSpecimens.getProcedureID()) {
 						if (thisCase.subID < masterSpecimens.getSubspecialtyID()) {
-							thisCase.subID = masterSpecimens.getSubspecialtyID(rst.getString("label_name"),
-									rst.getString("description"));
+							thisCase.subID = masterSpecimens.getSubspecialtyID();
 							thisCase.mainBlks = noBlocks;
 							thisCase.mainSpec = rst.getShort("tmplt_profile_id");
 						} else if (thisCase.mainBlks < noBlocks) {

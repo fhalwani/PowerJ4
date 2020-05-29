@@ -1041,8 +1041,7 @@ class LFinals {
 					thisSpecimen.spmID = rst.getShort("tmplt_profile_id");
 					thisSpecimen.descr = rst.getString("description").trim();
 					thisSpecimen.procID = masterSpecimens.getProcedureID();
-					thisSpecimen.subID = masterSpecimens.getSubspecialtyID(rst.getString("label_name"),
-							rst.getString("description"));
+					thisSpecimen.subID = masterSpecimens.getSubspecialtyID();
 					thisSpecimen.value5 = masterSpecimens.getValue5();
 					thisCase.lstSpecimens.add(thisSpecimen);
 					thisCase.noSpec++;
@@ -1064,10 +1063,12 @@ class LFinals {
 							thisCase.subID = thisSpecimen.subID;
 							thisCase.mainBlocks = noBlocks;
 							thisCase.mainSpec = rst.getShort("tmplt_profile_id");
-						} else if (thisCase.mainBlocks < thisSpecimen.noBlocks) {
-							thisCase.subID = thisSpecimen.subID;
-							thisCase.mainBlocks = noBlocks;
-							thisCase.mainSpec = rst.getShort("tmplt_profile_id");
+						} else if (thisCase.subID == thisSpecimen.subID) {
+							if (thisCase.mainBlocks < thisSpecimen.noBlocks) {
+								thisCase.subID = thisSpecimen.subID;
+								thisCase.mainBlocks = noBlocks;
+								thisCase.mainSpec = rst.getShort("tmplt_profile_id");
+							}
 						}
 					}
 					coder1.addSpecimen(thisSpecimen.procID,

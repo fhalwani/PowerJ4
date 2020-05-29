@@ -79,12 +79,15 @@ class LNumbers {
 		switch (decimals) {
 		case 1:
 			i = (int) ((value + 0.5) * 10);
+			i = i /10;
 			break;
 		case 2:
 			i = (int) ((value + 0.05) * 100);
+			i = i /100;
 			break;
 		default:
 			i = (int) ((value + 0.005) * 1000);
+			i = i /1000;
 		}
 		return i;
 	}

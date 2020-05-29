@@ -19,57 +19,42 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 class IPanelRows extends JPanel {
-	static final byte ROW_FACILITY   = 0;
-	static final byte ROW_SPECIALTY  = 1;
-	static final byte ROW_SUBSPECIAL = 2;
-	static final byte ROW_PROCEDURE  = 3;
-	static final byte ROW_STAFF      = 4;
+	static final byte ROW_IGNORE     = 0;
+	static final byte ROW_FACILITY   = 1;
+	static final byte ROW_SPECIALTY  = 2;
+	static final byte ROW_SUBSPECIAL = 3;
+	static final byte ROW_PROCEDURE  = 4;
+	static final byte ROW_STAFF      = 5;
+	private final byte SPN_FACILITY   = 0;
+	private final byte SPN_SPECIALTY  = 1;
+	private final byte SPN_SUBSPECIAL = 2;
+	private final byte SPN_PROCEDURE  = 3;
+	private final byte SPN_STAFF      = 4;
 	private volatile boolean programmaticChange;
-	private byte[] selected, original;
+	private int[] selected, original, rank;
 	private ArrayList<JSpinner> spinners = new ArrayList<JSpinner>();
 	private Timer selectionTimer;
 
-	IPanelRows(byte[] value) {
+	IPanelRows(int[] value) {
 		super(new GridBagLayout());
 		original = value;
-		selected = new byte[value.length];
+		selected = new int[value.length];
+		rank = new int[value.length];
 		for (int i = 0; i < value.length; i++) {
 			selected[i] = value[i];
 			original[i] = value[i];
 		}
 		selectionTimer = new Timer(50, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (!selected.equals(original)) {
-					firePropertyChange("Value", original, selected);
+				if (!original.equals(getValue())) {
+					firePropertyChange("Value", original, getValue());
 				}
 			}
 		});
 		selectionTimer.setRepeats(false);
-		int[] rank = new int[selected.length];
-		for (byte i = 0; i < selected.length; i++) {
-			switch (selected[i]) {
-			case ROW_FACILITY:
-				rank[0] = i+1;
-				break;
-			case ROW_SPECIALTY:
-				rank[1] = i+1;
-				break;
-			case ROW_SUBSPECIAL:
-				rank[2] = i+1;
-				break;
-			case ROW_PROCEDURE:
-				rank[3] = i+1;
-				break;
-			case ROW_STAFF:
-				rank[4] = i+1;
-				break;
-			default:
-				// 0 = ignore
-			}
-		}
-		SpinnerNumberModel mdlFacility = new SpinnerNumberModel(rank[0], 0, 5, 1);
+		setRanks();
+		SpinnerNumberModel mdlFacility = new SpinnerNumberModel(rank[0], ROW_IGNORE, ROW_STAFF, 1);
 		JSpinner spnFacility = new JSpinner(mdlFacility) {
-			private static final long serialVersionUID = 2450610846855975702L;
 			public ComponentOrientation getComponentOrientation() {
 				return ComponentOrientation.RIGHT_TO_LEFT;
 			}
@@ -77,8 +62,8 @@ class IPanelRows extends JPanel {
 		spnFacility.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				if (!programmaticChange) {
-					int newValue = ((Integer) spinners.get(0).getValue()).intValue();
-					resetValues(ROW_FACILITY, newValue);
+					int newValue = (int) spinners.get(SPN_FACILITY).getValue();
+					resetValues(SPN_FACILITY, newValue);
 				}
 			}
 		});
@@ -98,7 +83,7 @@ class IPanelRows extends JPanel {
 		IGUI.addComponent(spnFacility, 1, 0, 1, 1, 0.5, 0.2,
 				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
 		spinners.add(spnFacility);
-		SpinnerNumberModel mdlSpecialty = new SpinnerNumberModel(rank[1], 0, 5, 1);
+		SpinnerNumberModel mdlSpecialty = new SpinnerNumberModel(rank[1], ROW_IGNORE, ROW_STAFF, 1);
 		JSpinner spnSpecialty = new JSpinner(mdlSpecialty) {
 			public ComponentOrientation getComponentOrientation() {
 				return ComponentOrientation.RIGHT_TO_LEFT;
@@ -107,8 +92,8 @@ class IPanelRows extends JPanel {
 		spnSpecialty.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				if (!programmaticChange) {
-					int newValue = ((Integer) spinners.get(1).getValue()).intValue();
-					resetValues(ROW_SPECIALTY, newValue);
+					int newValue = (int) spinners.get(SPN_SPECIALTY).getValue();
+					resetValues(SPN_SPECIALTY, newValue);
 				}
 			}
 		});
@@ -127,9 +112,8 @@ class IPanelRows extends JPanel {
 		IGUI.addComponent(spnSpecialty, 1, 1, 1, 1, 0.5, 0.2,
 				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
 		spinners.add(spnSpecialty);
-		SpinnerNumberModel mdlSubspecialty = new SpinnerNumberModel(rank[2], 0, 5, 1);
+		SpinnerNumberModel mdlSubspecialty = new SpinnerNumberModel(rank[2], ROW_IGNORE, ROW_STAFF, 1);
 		JSpinner spnSubspecialty = new JSpinner(mdlSubspecialty) {
-			private static final long serialVersionUID = -5306144978669153048L;
 			public ComponentOrientation getComponentOrientation() {
 				return ComponentOrientation.RIGHT_TO_LEFT;
 			}
@@ -137,8 +121,8 @@ class IPanelRows extends JPanel {
 		spnSubspecialty.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				if (!programmaticChange) {
-					int newValue = ((Integer) spinners.get(2).getValue()).intValue();
-					resetValues(ROW_SUBSPECIAL, newValue);
+					int newValue = (int) spinners.get(SPN_SUBSPECIAL).getValue();
+					resetValues(SPN_SUBSPECIAL, newValue);
 				}
 			}
 		});
@@ -157,66 +141,35 @@ class IPanelRows extends JPanel {
 		IGUI.addComponent(spnSubspecialty, 1, 2, 1, 1, 0.5, 0.2,
 				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
 		spinners.add(spnSubspecialty);
-		SpinnerNumberModel mdlProcedures = new SpinnerNumberModel(rank[3], 0, 5, 1);
-		JSpinner spnProcedures= new JSpinner(mdlProcedures) {
-			private static final long serialVersionUID = 402555220787352560L;
+		SpinnerNumberModel mdlProcedures = new SpinnerNumberModel(rank[3], ROW_IGNORE, ROW_STAFF, 1);
+		JSpinner spnProcedure = new JSpinner(mdlProcedures) {
 			public ComponentOrientation getComponentOrientation() {
 				return ComponentOrientation.RIGHT_TO_LEFT;
 			}
 		};
-		spnProcedures.addChangeListener(new ChangeListener() {
+		spnProcedure.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				if (!programmaticChange) {
-					int newValue = ((Integer) spinners.get(3).getValue()).intValue();
-					resetValues(ROW_PROCEDURE, newValue);
+					int newValue = (int) spinners.get(SPN_PROCEDURE).getValue();
+					resetValues(SPN_PROCEDURE, newValue);
 				}
 			}
 		});
-		JFormattedTextField ftfProcedures = getTextField(spnProcedures);
+		JFormattedTextField ftfProcedures = getTextField(spnProcedure);
 		if (ftfProcedures != null ) {
 			ftfProcedures.setColumns(5);
 			ftfProcedures.setHorizontalAlignment(JTextField.RIGHT);
 		}
 		// Make the format without a thousands separator.
-		spnProcedures.setEditor(new JSpinner.NumberEditor(spnProcedures, "#"));
-		JLabel lblProcedures = new JLabel("Procedures");
+		spnProcedure.setEditor(new JSpinner.NumberEditor(spnProcedure, "#"));
+		JLabel lblProcedures = new JLabel("Procedure");
 		lblProcedures.setDisplayedMnemonic(KeyEvent.VK_R);
-		lblProcedures.setLabelFor(spnProcedures);
+		lblProcedures.setLabelFor(spnProcedure);
 		IGUI.addComponent(lblProcedures, 0, 3, 1, 1, 0.5, 0.2,
 				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-		IGUI.addComponent(spnProcedures, 1, 3, 1, 1, 0.5, 0.2,
+		IGUI.addComponent(spnProcedure, 1, 3, 1, 1, 0.5, 0.2,
 				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-		spinners.add(spnProcedures);
-		SpinnerNumberModel mdlStaff = new SpinnerNumberModel(rank[4], 0, 5, 1);
-		JSpinner spnStaff= new JSpinner(mdlStaff) {
-			private static final long serialVersionUID = 6556424348594464923L;
-			public ComponentOrientation getComponentOrientation() {
-				return ComponentOrientation.RIGHT_TO_LEFT;
-			}
-		};
-		spnStaff.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				if (!programmaticChange) {
-					int newValue = ((Integer) spinners.get(4).getValue()).intValue();
-					resetValues(ROW_STAFF, newValue);
-				}
-			}
-		});
-		JFormattedTextField ftfStaff = getTextField(spnStaff);
-		if (ftfStaff != null ) {
-			ftfStaff.setColumns(5);
-			ftfStaff.setHorizontalAlignment(JTextField.RIGHT);
-		}
-		// Make the format without a thousands separator.
-		spnStaff.setEditor(new JSpinner.NumberEditor(spnStaff, "#"));
-		JLabel lblStaff = new JLabel("Pathologists");
-		lblStaff.setDisplayedMnemonic(KeyEvent.VK_P);
-		lblStaff.setLabelFor(spnStaff);
-		IGUI.addComponent(lblStaff, 0, 4, 1, 1, 0.5, 0.2,
-				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-		IGUI.addComponent(spnStaff, 1, 4, 1, 1, 0.5, 0.2,
-				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-		spinners.add(spnStaff);
+		spinners.add(spnProcedure);
 		JButton btnOkay = new JButton("OK");
 		btnOkay.setMnemonic(KeyEvent.VK_O);
 		btnOkay.setIcon(IGUI.getIcon(48, "ok"));
@@ -224,10 +177,39 @@ class IPanelRows extends JPanel {
 		btnOkay.setFocusable(true);
 		btnOkay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				IPanelRows.this.firePropertyChange("Confirm", null, selected);
+				IPanelRows.this.firePropertyChange("Confirm", null, getValue());
 			}
 		});
 		if (rank.length == 5) {
+			SpinnerNumberModel mdlStaff = new SpinnerNumberModel(rank[4], ROW_IGNORE, ROW_STAFF, 1);
+			JSpinner spnStaff= new JSpinner(mdlStaff) {
+				public ComponentOrientation getComponentOrientation() {
+					return ComponentOrientation.RIGHT_TO_LEFT;
+				}
+			};
+			spnStaff.addChangeListener(new ChangeListener() {
+				public void stateChanged(ChangeEvent e) {
+					if (!programmaticChange) {
+						int newValue = (int) spinners.get(SPN_STAFF).getValue();
+						resetValues(SPN_STAFF, newValue);
+					}
+				}
+			});
+			JFormattedTextField ftfStaff = getTextField(spnStaff);
+			if (ftfStaff != null ) {
+				ftfStaff.setColumns(5);
+				ftfStaff.setHorizontalAlignment(JTextField.RIGHT);
+			}
+			// Make the format without a thousands separator.
+			spnStaff.setEditor(new JSpinner.NumberEditor(spnStaff, "#"));
+			JLabel lblStaff = new JLabel("Staff");
+			lblStaff.setDisplayedMnemonic(KeyEvent.VK_P);
+			lblStaff.setLabelFor(spnStaff);
+			IGUI.addComponent(lblStaff, 0, 4, 1, 1, 0.5, 0.2,
+					GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
+			IGUI.addComponent(spnStaff, 1, 4, 1, 1, 0.5, 0.2,
+					GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
+			spinners.add(spnStaff);
 			IGUI.addComponent(btnOkay, 0, 5, 2, 1, 1.0, 0.2,
 					GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
 		} else {
@@ -245,50 +227,46 @@ class IPanelRows extends JPanel {
 		}
 	}
 
-	public byte[] getValue() {
+	public int[] getValue() {
 		return selected;
 	}
 
 	private void resetValues(byte element, int newPos) {
 		boolean previousChange = programmaticChange;
 		programmaticChange = true;
-		if (newPos == 0) {
-			// put it in last position so it will be ignored
-			for (int i = 0; i < selected.length-1; i++) {
-				selected[i] = selected[i+1];
-			}
-			selected[selected.length-1] = 0;
-		} else {
-			// Switch old element and new element positions, if not 0
-			byte oldElement = selected[newPos-1];
-			if (oldElement != 0) {
-				for (int i = 0; i < selected.length; i++) {
-					if (selected[i] == element) {
-						SpinnerNumberModel model = (SpinnerNumberModel) spinners.get(0).getModel();
-						switch (oldElement) {
-						case ROW_FACILITY:
-							model = (SpinnerNumberModel) spinners.get(0).getModel();
-							break;
-						case ROW_SPECIALTY:
-							model = (SpinnerNumberModel) spinners.get(1).getModel();
-							break;
-						case ROW_SUBSPECIAL:
-							model = (SpinnerNumberModel) spinners.get(2).getModel();
-							break;
-						case ROW_PROCEDURE:
-							model = (SpinnerNumberModel) spinners.get(3).getModel();
-							break;
-						default:
-							model = (SpinnerNumberModel) spinners.get(4).getModel();
-						}
-						model.setValue(i+1);
-						selected[i] = oldElement;
-						break;
+		if (newPos == ROW_IGNORE) {
+			// Move all other elements down 1
+			for (int i = 0; i < rank.length; i++) {
+				if (i != element) {
+					if (rank[i] > ROW_IGNORE) {
+						rank[i]--;
 					}
 				}
 			}
-			selected[newPos-1] = element;
+		} else {
+			for (int i = 0; i < rank.length; i++) {
+				// Switch positions with the previous element
+				if (i != element) {
+					if (rank[i] > ROW_IGNORE) {
+						if (rank[i] == newPos) {
+							rank[i] = rank[element];
+							break;
+						}
+					}
+				}
+			}
 		}
+		rank[element] = newPos;
+		for (int i = 0; i < selected.length; i++) {
+			selected[i] = 0;
+		}
+		for (int i = 0; i < rank.length; i++) {
+			// Move zeros to the end
+			if (rank[i] > ROW_IGNORE) {
+				selected[rank[i] -1] = i +1;
+			}
+		}
+		setValue();
 		programmaticChange = previousChange;
 		if (selectionTimer.isRunning()) {
 			selectionTimer.restart();
@@ -297,65 +275,43 @@ class IPanelRows extends JPanel {
 		}
 	}
 
+	private void setRanks() {
+		for (int i = 0; i < selected.length; i++) {
+			switch (selected[i]) {
+			case ROW_FACILITY:
+				rank[SPN_FACILITY] = ROW_FACILITY;
+				break;
+			case ROW_SPECIALTY:
+				rank[SPN_SPECIALTY] = ROW_SPECIALTY;
+				break;
+			case ROW_SUBSPECIAL:
+				rank[SPN_SUBSPECIAL] = ROW_SUBSPECIAL;
+				break;
+			case ROW_PROCEDURE:
+				rank[SPN_PROCEDURE] = ROW_PROCEDURE;
+				break;
+			case ROW_STAFF:
+				rank[SPN_STAFF] = ROW_STAFF;
+				break;
+			default:
+				// 0 = ignore
+			}
+		}
+	}
+
 	private void setValue() {
-		if (!programmaticChange) {
-			boolean previousChange = programmaticChange;
-			programmaticChange = true;
-			int[] rank = new int[selected.length];
-			for (int i = 0; i < selected.length; i++) {
-				original[i] = selected[i];
-				switch (selected[i]) {
-				case ROW_FACILITY:
-					rank[0] = i+1;
-					break;
-				case ROW_SPECIALTY:
-					rank[1] = i+1;
-					break;
-				case ROW_SUBSPECIAL:
-					rank[2] = i+1;
-					break;
-				case ROW_PROCEDURE:
-					rank[3] = i+1;
-					break;
-				case ROW_STAFF:
-					rank[4] = i+1;
-					break;
-				default:
-					// 0 = ignore
-				}
+		SpinnerNumberModel model = null;
+		int oldValue = 0;
+		for (int i = 0; i < spinners.size(); i++) {
+			model = (SpinnerNumberModel) spinners.get(i).getModel();
+			oldValue = (int) model.getValue();
+			if (oldValue != rank[i]) {
+				model.setValue(rank[i]);
 			}
-			SpinnerNumberModel model = (SpinnerNumberModel) spinners.get(0).getModel();
-			int oldValue = ((Integer) model.getValue()).intValue();
-			if (oldValue != rank[0]) {
-				model.setValue(rank[0]);
-			}
-			model = (SpinnerNumberModel) spinners.get(1).getModel();
-			oldValue = ((Integer) model.getValue()).intValue();
-			if (oldValue != rank[1]) {
-				model.setValue(rank[1]);
-			}
-			model = (SpinnerNumberModel) spinners.get(2).getModel();
-			oldValue = ((Integer) model.getValue()).intValue();
-			if (oldValue != rank[2]) {
-				model.setValue(rank[2]);
-			}
-			model = (SpinnerNumberModel) spinners.get(3).getModel();
-			oldValue = ((Integer) model.getValue()).intValue();
-			if (oldValue != rank[3]) {
-				model.setValue(rank[3]);
-			}
-			if (rank.length == 5) {
-				model = (SpinnerNumberModel) spinners.get(4).getModel();
-				oldValue = ((Integer) model.getValue()).intValue();
-				if (oldValue != rank[4]) {
-					model.setValue(rank[4]);
-				}
-			}
-			programmaticChange = previousChange;
 		}
 	}
 	
-	void setValue(byte[] newValue) {
+	void setValue(int[] newValue) {
 		for (int i = 0; i < newValue.length; i++) {
 			selected[i] = newValue[i];
 		}

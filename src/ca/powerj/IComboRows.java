@@ -17,13 +17,13 @@ class IComboRows extends JComboBox {
 	private IPanelRows pnlRows;
 	private final JPopupMenu popupMenu = new JPopupMenu();
 
-	IComboRows(byte[] value) {
+	IComboRows(int[] value) {
 		super();
-		byte[] selected = new byte[value.length];
+		int[] selected = new int[value.length];
 		for (int i = 0; i < value.length; i++) {
 			selected[i] = value[i];
 		}
-		Dimension dim = new Dimension(120, 24);
+		Dimension dim = new Dimension(170, 24);
 		setPreferredSize(dim);
 		setMaximumSize(dim);
 		pnlRows = new IPanelRows(selected);
@@ -33,9 +33,9 @@ class IComboRows extends JComboBox {
 			public Component getListCellRendererComponent(JList list, Object value,
 					int index, boolean isSelected, boolean hasFocus) {
 				super.getListCellRendererComponent(list, value, index, isSelected, hasFocus);
-				byte[] results = (byte[]) model.getElementAt(0);
+				int[] results = (int[]) model.getElementAt(0);
 				String display = "";
-				for (byte i = 0; i < results.length; i++) {
+				for (int i = 0; i < results.length; i++) {
 					display += strings[results[i]];
 				}
 				if (display.length() > 2) {
@@ -69,44 +69,30 @@ class IComboRows extends JComboBox {
 			public void propertyChange(PropertyChangeEvent e) {
 				String property = e.getPropertyName();
 				if ("Confirm".equals(property)) {
+					setValue((int[]) e.getNewValue());
 					popupMenu.setVisible(false);
-				}
-			}
-		});
-		pnlRows.addPropertyChangeListener(new PropertyChangeListener() {
-			public void propertyChange(PropertyChangeEvent e) {
-				String property = e.getPropertyName();
-				if ("Cancel".equals(property)) {
+				} else if ("Cancel".equals(property)) {
+					setValue((int[]) e.getOldValue());
 					popupMenu.setVisible(false);
-					setValue((byte[]) e.getNewValue());
-				}
-			}
-		});
-		pnlRows.addPropertyChangeListener(new PropertyChangeListener() {
-			public void propertyChange(PropertyChangeEvent e) {
-				String property = e.getPropertyName();
-				if ("Value".equals(property)) {
-					setValue((byte[]) e.getNewValue());
+				} else if ("Value".equals(property)) {
+					setValue((int[]) e.getNewValue());
 					firePropertyChange("Value", e.getOldValue(), e.getNewValue());
 				}
 			}
 		});
 	}
 	
-	public byte[] getValue() {
-		return (byte[]) model.getElementAt(0);
+	public int[] getValue() {
+		return (int[]) model.getElementAt(0);
 	}
 
-	public void setValue(byte[] value) {
-		byte[] selected = new byte[value.length];
+	public void setValue(int[] value) {
+		int[] selected = new int[value.length];
 		for (int i = 0; i < value.length; i++) {
 			selected[i] = value[i];
 		}
-		setSelectedItem(selected);
 		model.removeAllElements();
 		model.addElement(selected);
-		if (!pnlRows.getValue().equals(selected)) {
-			pnlRows.setValue(selected);
-		}
+		setSelectedItem(selected);
 	}
 }
