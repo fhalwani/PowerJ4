@@ -271,7 +271,7 @@ class LFinals {
 
 	private boolean deleteError(long caseID) {
 		dbPowerJ.setLong(pjStms.get(DPowerJ.STM_ERR_DELETE), 1, caseID);
-		return (dbPowerJ.execute(apStms.get(DPowerJ.STM_ERR_DELETE)) > 0);
+		return (dbPowerJ.execute(pjStms.get(DPowerJ.STM_ERR_DELETE)) > 0);
 	}
 
 	private void doAdditional() {

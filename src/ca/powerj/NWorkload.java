@@ -46,6 +46,7 @@ class NWorkload extends NBase implements KeyListener {
 		setDefaults();
 		createPanel();
 		programmaticChange = false;
+		altered = true;
 	}
 
 	@Override

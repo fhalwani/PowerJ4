@@ -770,13 +770,13 @@ class NFinals extends NBase {
 			OFrozen frozen = new OFrozen();
 			while (rst.next()) {
 				frozen = new OFrozen();
-				frozen.noBlocks = rst.getShort("SPBL");
-				frozen.noSlides = rst.getShort("SPSL");
-				frozen.value5 = rst.getInt("SPV5");
-				frozen.value1 = rst.getDouble("SPV1");
-				frozen.value2 = rst.getDouble("SPV2");
-				frozen.value3 = rst.getDouble("SPV3");
-				frozen.value4 = rst.getDouble("SPV4");
+				frozen.noBlocks = rst.getShort("FRBL");
+				frozen.noSlides = rst.getShort("FRSL");
+				frozen.value5 = rst.getInt("FRV5");
+				frozen.value1 = rst.getDouble("FRV1");
+				frozen.value2 = rst.getDouble("FRV2");
+				frozen.value3 = rst.getDouble("FRV3");
+				frozen.value4 = rst.getDouble("FRV4");
 				frozen.finalBy = rst.getString("PRNM");
 				frozen.name = rst.getString("PRLS") + ", " + rst.getString("PRFR").substring(0, 1);
 				frozens.add(frozen);
