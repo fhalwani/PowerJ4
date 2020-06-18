@@ -77,11 +77,11 @@ class LBase implements Runnable {
 			}
 		}
 		if (!isConnected) {
-			if (apArch.equals("POWERPATH")) {
+			if (apArch.equals("PowerPath")) {
 				dbAP = new DPowerpath(this);
 			} else {
 				// Cerner & Copath here perhaps one day
-				dbAP = new DPowerpath(this);
+				log(LConstants.ERROR_CONNECTION, "initDBAP", "Invalid application binary file");
 			}
 		}
 	}

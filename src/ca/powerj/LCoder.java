@@ -406,6 +406,7 @@ class LCoder extends LCoderA {
 				continue;
 			}
 			dValue = 0;
+			specimenCoder = specimens.get(i);
 			switch (wcode.ruleID) {
 			case ORule.RULE_CASE_INCLUSIVE:
 			case ORule.RULE_LINKED_INCLUSIVE:
@@ -1234,64 +1235,58 @@ class LCoder extends LCoderA {
 
 	@Override
 	double getCorrelations() {
-		dValue = 0;
 		wcode = masterCodes.get(RULE_CORRELATIONS);
 		if (wcode != null) {
-			dValue = wcode.valueA;
-			if (dValue > MAX_VALUE) {
-				dValue = MAX_VALUE;
+			if (wcode.valueA > MAX_VALUE) {
+				return MAX_VALUE;
 			}
+			return wcode.valueA;
 		}
-		return dValue;
+		return 0;
 	}
 
 	@Override
 	double getFrozen() {
-		dValue = caseCoder.valueFS;
-		if (dValue > MAX_VALUE) {
-			dValue = MAX_VALUE;
+		if (caseCoder.valueFS > MAX_VALUE) {
+			return MAX_VALUE;
 		}
-		return dValue;
+		return caseCoder.valueFS;
 	}
 
 	@Override
 	double getFrozen(int specimenNo) {
-		dValue = specimens.get(specimenNo).valueFS;
-		if (dValue > MAX_VALUE) {
-			dValue = MAX_VALUE;
+		if (specimens.get(specimenNo).valueFS > MAX_VALUE) {
+			return MAX_VALUE;
 		}
-		return dValue;
+		return specimens.get(specimenNo).valueFS;
 	}
 
 	@Override
 	double getOrder(int specimenNo, short groupID) {
-		dValue = 0;
 		ordersCoder = specimens.get(specimenNo).lstOrders.get(groupID);
 		if (ordersCoder != null) {
-			dValue = ordersCoder.value;
-			if (dValue > MAX_VALUE) {
-				dValue = MAX_VALUE;
+			if (ordersCoder.value > MAX_VALUE) {
+				return MAX_VALUE;
 			}
+			return ordersCoder.value;
 		}
-		return dValue;
+		return 0;
 	}
 
 	@Override
 	double getValue() {
-		dValue = caseCoder.value;
-		if (dValue > MAX_VALUE) {
-			dValue = MAX_VALUE;
+		if (caseCoder.value > MAX_VALUE) {
+			return MAX_VALUE;
 		}
-		return dValue;
+		return caseCoder.value;
 	}
 
 	@Override
 	double getValue(int specimenNo) {
-		dValue = specimens.get(specimenNo).value;
-		if (dValue > MAX_VALUE) {
-			dValue = MAX_VALUE;
+		if (specimens.get(specimenNo).value > MAX_VALUE) {
+			return MAX_VALUE;
 		}
-		return dValue;
+		return specimens.get(specimenNo).value;
 	}
 
 	@Override
