@@ -204,14 +204,14 @@ class NSpecimenMaster extends NBase {
 		try {
 			while (rst.next()) {
 				specimenmaster = new OSpecMaster();
-				specimenmaster.spcID = rst.getShort("SMID");
-				specimenmaster.grpID = rst.getShort("SGID");
-				specimenmaster.spyID = rst.getByte("SYID");
-				specimenmaster.subID = rst.getByte("SBID");
-				specimenmaster.proID = rst.getByte("POID");
-				specimenmaster.turID = rst.getByte("TAID");
-				specimenmaster.name = rst.getString("SMNM").trim();
-				specimenmaster.descr = rst.getString("SMDC").trim();
+				specimenmaster.spcID = rst.getShort("smid");
+				specimenmaster.grpID = rst.getShort("sgid");
+				specimenmaster.spyID = rst.getByte("syid");
+				specimenmaster.subID = rst.getByte("sbid");
+				specimenmaster.proID = rst.getByte("poid");
+				specimenmaster.turID = rst.getByte("taid");
+				specimenmaster.name = rst.getString("smnm").trim();
+				specimenmaster.descr = rst.getString("smdc").trim();
 				list.add(specimenmaster);
 			}
 			pj.statusBar.setMessage("No Rows: " + list.size());
@@ -228,12 +228,12 @@ class NSpecimenMaster extends NBase {
 		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SPG_SELECT));
 		try {
 			while (rst.next()) {
-				list.add(new OItem(rst.getShort("SGID"), rst.getString("SGDC")));
+				list.add(new OItem(rst.getShort("sgid"), rst.getString("sgdc")));
 				group = new OSpecDescr();
-				group.procedure = rst.getString("PONM");
-				group.specialty = rst.getString("SYNM");
-				group.subspecial = rst.getString("SBNM");
-				specgroups.put(rst.getShort("SGID"), group);
+				group.procedure = rst.getString("ponm");
+				group.specialty = rst.getString("synm");
+				group.subspecial = rst.getString("sbnm");
+				specgroups.put(rst.getShort("sgid"), group);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
@@ -248,7 +248,7 @@ class NSpecimenMaster extends NBase {
 		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_TUR_SELECT));
 		try {
 			while (rst.next()) {
-				list.add(new OItem(rst.getShort("TAID"), rst.getString("TANM")));
+				list.add(new OItem(rst.getShort("taid"), rst.getString("tanm")));
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);

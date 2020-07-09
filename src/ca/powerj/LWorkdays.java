@@ -42,9 +42,9 @@ class LWorkdays {
 			pjStms = dbPowerJ.prepareStatements(LConstants.ACTION_LDAYS);
 			rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_WDY_SL_LST));
 			while (rst.next()) {
-				dayID = rst.getShort("WDID");
-				dayNo = rst.getShort("WDNO");
-				calDate.setTime(rst.getDate("WDDT"));
+				dayID = rst.getShort("wdid");
+				dayNo = rst.getShort("wdno");
+				calDate.setTime(rst.getDate("wddt"));
 			}
 			calDate.add(Calendar.DAY_OF_YEAR, 1);
 			dayNo++;

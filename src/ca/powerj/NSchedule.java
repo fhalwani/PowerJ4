@@ -155,12 +155,12 @@ class NSchedule extends NBase {
 			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_WDY_SELECT));
 			while (rst.next() && workdays.size() < 7) {
 				workday = new OWorkday();
-				calStart.setTimeInMillis(rst.getDate("WDDT").getTime());
+				calStart.setTimeInMillis(rst.getDate("wddt").getTime());
 				workday.date.setTime(calStart.getTimeInMillis());
 				workday.name = pj.dates.formatter(workday.date, LDates.FORMAT_SCHED);
 				workday.dow = calStart.get(Calendar.DAY_OF_WEEK);
-				workday.wdID = rst.getInt("WDID");
-				workday.isOn = (rst.getString("WDTP").equalsIgnoreCase("D"));
+				workday.wdID = rst.getInt("wdid");
+				workday.isOn = (rst.getString("wdtp").equalsIgnoreCase("D"));
 				workdays.add(workday);
 			}
 		} catch (SQLException e) {
@@ -176,11 +176,11 @@ class NSchedule extends NBase {
 		try {
 			persons.clear();
 			while (rst.next()) {
-				if (rst.getString("PRCD").trim().equalsIgnoreCase("PT")
-						&& rst.getString("PRAC").trim().equalsIgnoreCase("Y")) {
-					list.add(new OItem(rst.getShort("PRID"), rst.getString("PRNM").trim()));
-					persons.put(rst.getShort("PRID"),
-							rst.getString("PRFR").trim() + " " + rst.getString("PRLS").trim());
+				if (rst.getString("prcd").trim().equalsIgnoreCase("PT")
+						&& rst.getString("prac").trim().equalsIgnoreCase("Y")) {
+					list.add(new OItem(rst.getShort("prid"), rst.getString("prnm").trim()));
+					persons.put(rst.getShort("prid"),
+							rst.getString("prfr").trim() + " " + rst.getString("prls").trim());
 
 				}
 			}
@@ -230,8 +230,8 @@ class NSchedule extends NBase {
 			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_SCH_SL_SRV), 2, calMonday.getTimeInMillis());
 			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SCH_SL_SRV));
 			while (rst.next()) {
-				if (srvID != rst.getShort("SRID")) {
-					srvID = rst.getShort("SRID");
+				if (srvID != rst.getShort("srid")) {
+					srvID = rst.getShort("srid");
 					rowID = -1;
 					for (short row = 0; row < services.size(); row++) {
 						if (srvID == services.get(row).srvID) {
@@ -240,8 +240,8 @@ class NSchedule extends NBase {
 						}
 					}
 				}
-				if (dateID != rst.getShort("WDID")) {
-					dateID = rst.getShort("WDID");
+				if (dateID != rst.getShort("wdid")) {
+					dateID = rst.getShort("wdid");
 					colID = -1;
 					for (short col = 0; col < workdays.size(); col++) {
 						if (dateID == workdays.get(col).wdID) {
@@ -252,8 +252,8 @@ class NSchedule extends NBase {
 				}
 				if (rowID > -1 && colID > -1) {
 					scheduleServices.get(rowID).get(colID).isNew = false;
-					scheduleServices.get(rowID).get(colID).person = new OItem(rst.getShort("PRID"),
-							rst.getString("PRNM"));
+					scheduleServices.get(rowID).get(colID).person = new OItem(rst.getShort("prid"),
+							rst.getString("prnm"));
 				}
 			}
 		} catch (SQLException e) {
@@ -280,8 +280,8 @@ class NSchedule extends NBase {
 			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_SCH_SL_STA), 2, calMonday.getTimeInMillis());
 			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SCH_SL_STA));
 			while (rst.next()) {
-				if (prsID != rst.getShort("PRID")) {
-					prsID = rst.getShort("PRID");
+				if (prsID != rst.getShort("prid")) {
+					prsID = rst.getShort("prid");
 					rowID = -1;
 					dateID = -1;
 					colID = -1;
@@ -295,7 +295,7 @@ class NSchedule extends NBase {
 					if (rowID == -1) {
 						staff = new OScheduleStaff();
 						staff.prsID = prsID;
-						staff.name = rst.getString("PRNM");
+						staff.name = rst.getString("prnm");
 						for (int i = 0; i < 7; i++) {
 							staff.services[i] = "";
 						}
@@ -303,8 +303,8 @@ class NSchedule extends NBase {
 						rowID = (short) (scheduleStaff.size() - 1);
 					}
 				}
-				if (dateID != rst.getShort("WDID")) {
-					dateID = rst.getShort("WDID");
+				if (dateID != rst.getShort("wdid")) {
+					dateID = rst.getShort("wdid");
 					colID = -1;
 					for (short col = 0; col < workdays.size(); col++) {
 						if (dateID == workdays.get(col).wdID) {
@@ -317,7 +317,7 @@ class NSchedule extends NBase {
 					if (staff.services[colID].length() > 0) {
 						staff.services[colID] += "/";
 					}
-					staff.services[colID] += rst.getString("SRNM");
+					staff.services[colID] += rst.getString("srnm");
 				} else {
 					pj.log(LConstants.ERROR_UNEXPECTED, getName(), "getScheduleStaff - INVALID dateID - " + dateID);
 				}
@@ -340,12 +340,12 @@ class NSchedule extends NBase {
 		try {
 			services.clear();
 			while (rst.next()) {
-				if (facID == rst.getShort("FAID") || facID == 0) {
+				if (facID == rst.getShort("faid") || facID == 0) {
 					service = new OService();
-					service.srvID = rst.getByte("SRID");
-					service.name = rst.getString("SRNM");
-					service.descr = rst.getString("SRDC");
-					service.codes = pj.numbers.shortToBoolean(rst.getShort("SRCD"));
+					service.srvID = rst.getByte("srid");
+					service.name = rst.getString("srnm");
+					service.descr = rst.getString("srdc");
+					service.codes = pj.numbers.shortToBoolean(rst.getShort("srcd"));
 					services.add(service);
 				}
 			}
@@ -361,10 +361,10 @@ class NSchedule extends NBase {
 		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SCH_SL_MON));
 		try {
 			while (rst.next()) {
-				isMonday.setTimeInMillis(rst.getDate("WDDT").getTime());
+				isMonday.setTimeInMillis(rst.getDate("wddt").getTime());
 				if (isMonday.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY) {
 					Date date = new Date();
-					date.setTime(rst.getDate("WDDT").getTime());
+					date.setTime(rst.getDate("wddt").getTime());
 					dates.add(date);
 				}
 			}

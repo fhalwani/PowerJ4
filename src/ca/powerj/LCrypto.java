@@ -27,7 +27,7 @@ class LCrypto {
 	private Cipher pbeCipher = null;
 
 	LCrypto(String path) {
-		fileName = path + "bin" + System.getProperty("file.separator") + "powerj.bin";
+		fileName = path + System.getProperty("file.separator") + "bin" + System.getProperty("file.separator") + "powerj.bin";
 	}
 
 	private byte[] decrypt(byte[] ciphertext) {

@@ -326,25 +326,25 @@ class NSpecimenGroup extends NBase {
 		try {
 			while (rst.next()) {
 				specimen = new OSpecGroup();
-				specimen.spyID = rst.getByte("SYID");
-				specimen.subID = rst.getByte("SBID");
-				specimen.proID = rst.getByte("POID");
-				specimen.grpID = rst.getShort("SGID");
-				specimen.value5 = rst.getInt("SGV5");
-				specimen.hasLN = (rst.getString("SGLN").toUpperCase().equals("Y"));
-				specimen.codes[0][0] = new OItem(rst.getShort("SG1B"), rst.getString("C1NB"));
-				specimen.codes[0][1] = new OItem(rst.getShort("SG2B"), rst.getString("C2NB"));
-				specimen.codes[0][2] = new OItem(rst.getShort("SG3B"), rst.getString("C3NB"));
-				specimen.codes[0][3] = new OItem(rst.getShort("SG4B"), rst.getString("C4NB"));
-				specimen.codes[1][0] = new OItem(rst.getShort("SG1M"), rst.getString("C1NM"));
-				specimen.codes[1][1] = new OItem(rst.getShort("SG2M"), rst.getString("C2NM"));
-				specimen.codes[1][2] = new OItem(rst.getShort("SG3M"), rst.getString("C3NM"));
-				specimen.codes[1][3] = new OItem(rst.getShort("SG4M"), rst.getString("C4NM"));
-				specimen.codes[2][0] = new OItem(rst.getShort("SG1R"), rst.getString("C1NR"));
-				specimen.codes[2][1] = new OItem(rst.getShort("SG2R"), rst.getString("C2NR"));
-				specimen.codes[2][2] = new OItem(rst.getShort("SG3R"), rst.getString("C3NR"));
-				specimen.codes[2][3] = new OItem(rst.getShort("SG4R"), rst.getString("C4NR"));
-				specimen.descr = rst.getString("SGDC").trim();
+				specimen.spyID = rst.getByte("syid");
+				specimen.subID = rst.getByte("sbid");
+				specimen.proID = rst.getByte("poid");
+				specimen.grpID = rst.getShort("sgid");
+				specimen.value5 = rst.getInt("sgv5");
+				specimen.hasLN = (rst.getString("sgln").toUpperCase().equals("Y"));
+				specimen.codes[0][0] = new OItem(rst.getShort("sg1b"), rst.getString("C1NB"));
+				specimen.codes[0][1] = new OItem(rst.getShort("sg2b"), rst.getString("C2NB"));
+				specimen.codes[0][2] = new OItem(rst.getShort("sg3b"), rst.getString("C3NB"));
+				specimen.codes[0][3] = new OItem(rst.getShort("sg4b"), rst.getString("C4NB"));
+				specimen.codes[1][0] = new OItem(rst.getShort("sg1m"), rst.getString("C1NM"));
+				specimen.codes[1][1] = new OItem(rst.getShort("sg2m"), rst.getString("C2NM"));
+				specimen.codes[1][2] = new OItem(rst.getShort("sg3m"), rst.getString("C3NM"));
+				specimen.codes[1][3] = new OItem(rst.getShort("sg4m"), rst.getString("C4NM"));
+				specimen.codes[2][0] = new OItem(rst.getShort("sg1r"), rst.getString("C1NR"));
+				specimen.codes[2][1] = new OItem(rst.getShort("sg2r"), rst.getString("C2NR"));
+				specimen.codes[2][2] = new OItem(rst.getShort("sg3r"), rst.getString("C3NR"));
+				specimen.codes[2][3] = new OItem(rst.getShort("sg4r"), rst.getString("C4NR"));
+				specimen.descr = rst.getString("sgdc").trim();
 				specimens.add(specimen);
 				if (newID < specimen.grpID) {
 					newID = specimen.grpID;
@@ -382,19 +382,19 @@ class NSpecimenGroup extends NBase {
 		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(index));
 		try {
 			while (rst.next()) {
-				list.add(new OItem(rst.getShort("COID"), rst.getString("CONM")));
+				list.add(new OItem(rst.getShort("coid"), rst.getString("conm")));
 				switch (coderID) {
 				case 1:
-					coder1.put(rst.getShort("COID"), rst.getString("CODC"));
+					coder1.put(rst.getShort("coid"), rst.getString("codc"));
 					break;
 				case 2:
-					coder2.put(rst.getShort("COID"), rst.getString("CODC"));
+					coder2.put(rst.getShort("coid"), rst.getString("codc"));
 					break;
 				case 3:
-					coder3.put(rst.getShort("COID"), rst.getString("CODC"));
+					coder3.put(rst.getShort("coid"), rst.getString("codc"));
 					break;
 				default:
-					coder4.put(rst.getShort("COID"), rst.getString("CODC"));
+					coder4.put(rst.getShort("coid"), rst.getString("codc"));
 				}
 			}
 		} catch (SQLException e) {
@@ -410,8 +410,8 @@ class NSpecimenGroup extends NBase {
 		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PRO_SELECT));
 		try {
 			while (rst.next()) {
-				procedures.put(rst.getByte("POID"), rst.getString("PODC"));
-				list.add(new OItem(rst.getByte("POID"), rst.getString("PONM")));
+				procedures.put(rst.getByte("poid"), rst.getString("podc"));
+				list.add(new OItem(rst.getByte("poid"), rst.getString("ponm")));
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
@@ -425,7 +425,7 @@ class NSpecimenGroup extends NBase {
 		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SUB_SELECT));
 		try {
 			while (rst.next()) {
-				specialties.put(rst.getByte("SBID"), rst.getString("SYNM"));
+				specialties.put(rst.getByte("sbid"), rst.getString("synm"));
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
@@ -617,9 +617,10 @@ class NSpecimenGroup extends NBase {
 		pj.dbPowerJ.setShort(pjStms.get(index), 12, specimen.codes[0][3].id);
 		pj.dbPowerJ.setShort(pjStms.get(index), 13, specimen.codes[1][3].id);
 		pj.dbPowerJ.setShort(pjStms.get(index), 14, specimen.codes[2][3].id);
-		pj.dbPowerJ.setString(pjStms.get(index), 15, (specimen.hasLN ? "Y" : "N"));
-		pj.dbPowerJ.setString(pjStms.get(index), 16, specimen.descr);
-		pj.dbPowerJ.setShort(pjStms.get(index), 17, specimen.grpID);
+		pj.dbPowerJ.setInt(pjStms.get(index), 15, specimen.value5);
+		pj.dbPowerJ.setString(pjStms.get(index), 16, (specimen.hasLN ? "Y" : "N"));
+		pj.dbPowerJ.setString(pjStms.get(index), 17, specimen.descr);
+		pj.dbPowerJ.setShort(pjStms.get(index), 18, specimen.grpID);
 		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			altered = false;
 			modelList.fireTableRowsUpdated(rowIndex, rowIndex);

@@ -423,11 +423,11 @@ class NSetup extends NBase implements ItemListener {
 		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_STP_SELECT));
 		try {
 			while (rst.next()) {
-				id = rst.getByte("STID");
+				id = rst.getByte("stid");
 				if (id > LSetup.VAR_V5_FTE)
 					break; // The rest are read only
 				setup = new OSetup();
-				setup.value = rst.getString("STVA").trim();
+				setup.value = rst.getString("stva").trim();
 				switch (id) {
 				case LSetup.VAR_CODER1_ACTIVE:
 				case LSetup.VAR_CODER2_ACTIVE:

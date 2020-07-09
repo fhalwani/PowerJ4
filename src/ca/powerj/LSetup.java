@@ -161,9 +161,11 @@ class LSetup {
 		pj.dbPowerJ.setByte(pj.pjStms.get(DPowerJ.STM_STP_SL_SID), 1, key);
 		ResultSet rst = pj.dbPowerJ.getResultSet(pj.pjStms.get(DPowerJ.STM_STP_SL_SID));
 		try {
-			while (rst.next()) {
-				if (rst.getString("STVA") != null) {
-					value = rst.getString("STVA").trim();
+			if (rst != null) {
+				while (rst.next()) {
+					if (rst.getString("stva") != null) {
+						value = rst.getString("stva").trim();
+					}
 				}
 			}
 		} catch (SQLException e) {

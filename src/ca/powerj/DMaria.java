@@ -17,7 +17,7 @@ class DMaria extends DServer {
 	private void setConnection() {
 		try {
 			if (connection == null || connection.isClosed()) {
-				String url = "jdbc:mysql://" + pj.pjHost + ":" + pj.pjPort + "/" + pj.pjSchema
+				String url = "jdbc:mysql://" + pj.pjHost + ":" + pj.pjPort + "/powerj"
 						+ "?autoReconnect=true&useUnicode=true" + "&useLegacyDatetimeCode=false&serverTimezone=UTC";
 				DriverManager.setLoginTimeout(15);
 				connection = DriverManager.getConnection(url, pj.pjUser, pj.pjPass);
@@ -38,9 +38,9 @@ class DMaria extends DServer {
 	String setSQL(short id) {
 		switch (id) {
 		case STM_CSE_SELECT:
-			return "SELECT * FROM udvCases _WHERE_ ORDER BY FNED DESC LIMIT 10000";
+			return "SELECT * FROM " + pj.pjSchema + ".udvcases _WHERE_ ORDER BY fned DESC LIMIT 10000";
 		case STM_CSE_SL_DTE:
-			return "SELECT * FROM udvCases WHERE (FNED BETWEEN _FROM_ AND _TO_) _AND_ ORDER BY FNED DESC LIMIT 10000";
+			return "SELECT * FROM " + pj.pjSchema + ".udvcases WHERE (fned BETWEEN _FROM_ AND _TO_) _AND_ ORDER BY fned DESC LIMIT 10000";
 		default:
 			return super.setSQL(id);
 		}

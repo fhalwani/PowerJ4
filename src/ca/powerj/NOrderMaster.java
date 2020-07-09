@@ -178,10 +178,10 @@ class NOrderMaster extends NBase {
 		try {
 			while (rst.next()) {
 				ordermaster = new OOrderMaster();
-				ordermaster.ordID = rst.getShort("OMID");
-				ordermaster.grpID = rst.getShort("OGID");
-				ordermaster.name = rst.getString("OMNM").trim();
-				ordermaster.descr = rst.getString("OMDC").trim();
+				ordermaster.ordID = rst.getShort("omid");
+				ordermaster.grpID = rst.getShort("ogid");
+				ordermaster.name = rst.getString("omnm").trim();
+				ordermaster.descr = rst.getString("omdc").trim();
 				list.add(ordermaster);
 			}
 			pj.statusBar.setMessage("No Rows: " + list.size());

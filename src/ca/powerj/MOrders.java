@@ -63,22 +63,22 @@ class MOrders {
 		ResultSet rst = pj.dbPowerJ.getResultSet(pstm);
 		try {
 			while (rst.next()) {
-				if (groupID != rst.getShort("OGID")) {
-					groupID = rst.getShort("OGID");
+				if (groupID != rst.getShort("ogid")) {
+					groupID = rst.getShort("ogid");
 					orderGroup = groups.get(groupID);
 					if (orderGroup == null) {
 						orderGroup = new OOrderGroup();
-						orderGroup.typID = rst.getByte("OTID");
-						orderGroup.value1 = rst.getShort("OGC1");
-						orderGroup.value2 = rst.getShort("OGC2");
-						orderGroup.value3 = rst.getShort("OGC3");
-						orderGroup.value4 = rst.getShort("OGC4");
-						orderGroup.value5 = rst.getShort("OGC5");
-						orderGroup.name = rst.getString("OGNM");
+						orderGroup.typID = rst.getByte("otid");
+						orderGroup.value1 = rst.getShort("ogc1");
+						orderGroup.value2 = rst.getShort("ogc2");
+						orderGroup.value3 = rst.getShort("ogc3");
+						orderGroup.value4 = rst.getShort("ogc4");
+						orderGroup.value5 = rst.getShort("ogc5");
+						orderGroup.name = rst.getString("ognm");
 						groups.put(groupID, orderGroup);
 					}
 				}
-				orders.put(rst.getShort("OMID"), groupID);
+				orders.put(rst.getShort("omid"), groupID);
 			}
 			Thread.sleep(LConstants.SLEEP_TIME);
 		} catch (InterruptedException e) {

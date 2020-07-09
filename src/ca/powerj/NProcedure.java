@@ -112,9 +112,9 @@ class NProcedure extends NBase {
 		try {
 			while (rst.next()) {
 				procedure = new OItem();
-				procedure.id = rst.getShort("POID");
-				procedure.name = rst.getString("PONM").trim();
-				procedure.descr = rst.getString("PODC").trim();
+				procedure.id = rst.getShort("poid");
+				procedure.name = rst.getString("ponm").trim();
+				procedure.descr = rst.getString("podc").trim();
 				list.add(procedure);
 				if (newID < procedure.id) {
 					newID = procedure.id;

@@ -130,10 +130,10 @@ class NSubspecialty extends NBase {
 		try {
 			while (rst.next()) {
 				subspecialty = new OSubspecialty();
-				subspecialty.subID = rst.getByte("SBID");
-				subspecialty.spyID = rst.getByte("SYID");
-				subspecialty.name = rst.getString("SBNM").trim();
-				subspecialty.descr = rst.getString("SBDC").trim();
+				subspecialty.subID = rst.getByte("sbid");
+				subspecialty.spyID = rst.getByte("syid");
+				subspecialty.name = rst.getString("sbnm").trim();
+				subspecialty.descr = rst.getString("sbdc").trim();
 				list.add(subspecialty);
 				if (newID < subspecialty.subID) {
 					newID = subspecialty.subID;

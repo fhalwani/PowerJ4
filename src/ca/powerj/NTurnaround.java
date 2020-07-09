@@ -84,18 +84,18 @@ class NTurnaround extends NBase {
 		try {
 			while (rst.next()) {
 				row = new OTurnSum();
-				row.spyID = rst.getByte("SYID");
-				row.subID = rst.getByte("SBID");
-				row.proID = rst.getByte("POID");
-				row.month = rst.getByte("FNMONTH");
-				row.year = rst.getShort("FNYEAR");
-				row.facID = rst.getShort("FAID");
+				row.spyID = rst.getByte("syid");
+				row.subID = rst.getByte("sbid");
+				row.proID = rst.getByte("poid");
+				row.month = rst.getByte("fnmonth");
+				row.year = rst.getShort("fnyear");
+				row.facID = rst.getShort("faid");
 				row.qty = rst.getInt("CASES");
-				row.gross = rst.getInt("GRTA");
-				row.embed = rst.getInt("EMTA");
-				row.micro = rst.getInt("MITA");
-				row.route = rst.getInt("ROTA");
-				row.diagn = rst.getInt("FNTA");
+				row.gross = rst.getInt("grta");
+				row.embed = rst.getInt("emta");
+				row.micro = rst.getInt("mita");
+				row.route = rst.getInt("rota");
+				row.diagn = rst.getInt("fnta");
 				if (firstYear > row.year)
 					firstYear = row.year;
 				if (lastYear < row.year)

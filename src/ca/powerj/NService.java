@@ -230,12 +230,12 @@ class NService extends NBase implements ItemListener {
 		try {
 			while (rst.next()) {
 				service = new OService();
-				service.srvID = rst.getByte("SRID");
-				service.subID = rst.getByte("SBID");
-				service.facID = rst.getShort("FAID");
-				service.name = rst.getString("SRNM");
-				service.descr = rst.getString("SRDC");
-				service.codes = pj.numbers.shortToBoolean(rst.getShort("SRCD"));
+				service.srvID = rst.getByte("srid");
+				service.subID = rst.getByte("sbid");
+				service.facID = rst.getShort("faid");
+				service.name = rst.getString("srnm");
+				service.descr = rst.getString("srdc");
+				service.codes = pj.numbers.shortToBoolean(rst.getShort("srcd"));
 				list.add(service);
 				if (newID < service.srvID) {
 					newID = service.srvID;
@@ -258,7 +258,7 @@ class NService extends NBase implements ItemListener {
 		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SUB_SELECT));
 		try {
 			while (rst.next()) {
-				mapSpecialties.put(rst.getByte("SBID"), rst.getString("SYNM"));
+				mapSpecialties.put(rst.getByte("sbid"), rst.getString("synm"));
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);

@@ -149,11 +149,11 @@ class NAccession extends NBase {
 		try {
 			while (rst.next()) {
 				accession = new OAccession();
-				accession.accID = rst.getShort("ACID");
-				accession.spyID = rst.getByte("SYID");
-				accession.name = rst.getString("ACNM").trim();
-				accession.workflow = (rst.getString("ACFL").equalsIgnoreCase("Y"));
-				accession.workload = (rst.getString("ACLD").equalsIgnoreCase("Y"));
+				accession.accID = rst.getShort("acid");
+				accession.spyID = rst.getByte("syid");
+				accession.name = rst.getString("acnm").trim();
+				accession.workflow = (rst.getString("acfl").equalsIgnoreCase("Y"));
+				accession.workload = (rst.getString("acld").equalsIgnoreCase("Y"));
 				list.add(accession);
 			}
 			pj.statusBar.setMessage("No Rows: " + pj.numbers.formatNumber(list.size()));

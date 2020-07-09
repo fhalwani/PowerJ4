@@ -62,14 +62,14 @@ class MAccessions {
 		try {
 			while (rst.next()) {
 				accession = new OAccession();
-				accession.spyID = rst.getByte("SYID");
-				accession.codeSpec = (rst.getString("SYSP").toUpperCase().equals("Y"));
+				accession.spyID = rst.getByte("syid");
+				accession.codeSpec = (rst.getString("sysp").toUpperCase().equals("Y"));
 				// Both Accessions and Specialties must be active
-				accession.workflow = (rst.getString("ACFL").toUpperCase().equals("Y")
-						&& rst.getString("SYFL").toUpperCase().equals("Y"));
-				accession.workload = (rst.getString("ACLD").toUpperCase().equals("Y")
-						&& rst.getString("SYLD").toUpperCase().equals("Y"));
-				accessions.put(rst.getShort("ACID"), accession);
+				accession.workflow = (rst.getString("acfl").toUpperCase().equals("Y")
+						&& rst.getString("syfl").toUpperCase().equals("Y"));
+				accession.workload = (rst.getString("acld").toUpperCase().equals("Y")
+						&& rst.getString("syld").toUpperCase().equals("Y"));
+				accessions.put(rst.getShort("acid"), accession);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, "Accessions Map", e);

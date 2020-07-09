@@ -150,13 +150,13 @@ class NTurnMaster extends NBase {
 		try {
 			while (rst.next()) {
 				turnaround = new OTurnaround();
-				turnaround.turID = rst.getByte("TAID");
-				turnaround.gross = rst.getShort("GRSS");
-				turnaround.embed = rst.getShort("EMBD");
-				turnaround.micro = rst.getShort("MICR");
-				turnaround.route = rst.getShort("ROUT");
-				turnaround.diagn = rst.getShort("FINL");
-				turnaround.name = rst.getString("TANM").trim();
+				turnaround.turID = rst.getByte("taid");
+				turnaround.gross = rst.getShort("grss");
+				turnaround.embed = rst.getShort("embd");
+				turnaround.micro = rst.getShort("micr");
+				turnaround.route = rst.getShort("rout");
+				turnaround.diagn = rst.getShort("finl");
+				turnaround.name = rst.getString("tanm").trim();
 				list.add(turnaround);
 				if (newID < turnaround.turID) {
 					newID = turnaround.turID;

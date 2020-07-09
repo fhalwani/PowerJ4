@@ -166,9 +166,9 @@ class NError extends NBase {
 		try {
 			while (rst.next()) {
 				OError error = new OError();
-				error.caseID = rst.getLong("CAID");
-				error.errID = rst.getByte("ERID");
-				error.caseNo = rst.getString("CANO");
+				error.caseID = rst.getLong("caid");
+				error.errID = rst.getByte("erid");
+				error.caseNo = rst.getString("cano");
 				list.add(error);
 			}
 		} catch (SQLException e) {
@@ -279,8 +279,8 @@ class NError extends NBase {
 		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ERR_SL_CMT));
 		try {
 			while (rst.next()) {
-				if (rst.getString("ERDC") != null) {
-					txtComment.setText(rst.getString("ERDC"));
+				if (rst.getString("erdc") != null) {
+					txtComment.setText(rst.getString("erdc"));
 					txtComment.setCaretPosition(0);
 				}
 			}

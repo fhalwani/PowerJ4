@@ -232,14 +232,14 @@ class NCoder extends NBase {
 		try {
 			while (rst.next()) {
 				coder = new OWorkcode();
-				coder.codeID = rst.getShort("COID");
-				coder.ruleID = rst.getShort("RUID");
-				coder.count = rst.getShort("COQY");
-				coder.valueA = rst.getDouble("COV1");
-				coder.valueB = rst.getDouble("COV2");
-				coder.valueC = rst.getDouble("COV3");
-				coder.name = rst.getString("CONM").trim();
-				coder.descr = rst.getString("CODC").trim();
+				coder.codeID = rst.getShort("coid");
+				coder.ruleID = rst.getShort("ruid");
+				coder.count = rst.getShort("coqy");
+				coder.valueA = rst.getDouble("cov1");
+				coder.valueB = rst.getDouble("cov2");
+				coder.valueC = rst.getDouble("cov3");
+				coder.name = rst.getString("conm").trim();
+				coder.descr = rst.getString("codc").trim();
 				list.add(coder);
 				if (newID < coder.codeID) {
 					newID = coder.codeID;
@@ -266,10 +266,10 @@ class NCoder extends NBase {
 		try {
 			while (rst.next()) {
 				dr = new OItem();
-				dr.name = rst.getString("RUNM");
-				dr.descr = rst.getString("RUDC");
-				mapRules.put(rst.getShort("RUID"), dr);
-				list.add(new OItem(rst.getShort("RUID"), rst.getString("RUNM")));
+				dr.name = rst.getString("runm");
+				dr.descr = rst.getString("rudc");
+				mapRules.put(rst.getShort("ruid"), dr);
+				list.add(new OItem(rst.getShort("ruid"), rst.getString("runm")));
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, "Rules", e);

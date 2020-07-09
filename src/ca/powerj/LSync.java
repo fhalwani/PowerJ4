@@ -64,8 +64,8 @@ class LSync {
 			rstPJ = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ACC_SELECT));
 			while (rstPJ.next()) {
 				accession = new OAccession();
-				accession.accID = rstPJ.getShort("ACID");
-				accession.name = rstPJ.getString("ACNM").trim();
+				accession.accID = rstPJ.getShort("acid");
+				accession.name = rstPJ.getString("acnm").trim();
 				hashMap.put(accession.accID, accession);
 			}
 			rstAP = pj.dbAP.getResultSet(apStms.get(DPowerpath.STM_ACCESSIONS));
@@ -114,9 +114,9 @@ class LSync {
 			rstPJ = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_FAC_SELECT));
 			while (rstPJ.next()) {
 				facility = new OFacility();
-				facility.facID = rstPJ.getShort("FAID");
-				facility.name = rstPJ.getString("FANM").trim();
-				facility.descr = rstPJ.getString("FADC").trim();
+				facility.facID = rstPJ.getShort("faid");
+				facility.name = rstPJ.getString("fanm").trim();
+				facility.descr = rstPJ.getString("fadc").trim();
 				hashMap.put(facility.facID, facility);
 			}
 			rstAP = pj.dbAP.getResultSet(apStms.get(DPowerpath.STM_FACILITIES));
@@ -166,10 +166,10 @@ class LSync {
 			rstPJ = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ORM_SELECT));
 			while (rstPJ.next()) {
 				ordermaster = new OOrderMaster();
-				ordermaster.ordID = rstPJ.getShort("OMID");
-				ordermaster.grpID = rstPJ.getShort("OGID");
-				ordermaster.name = rstPJ.getString("OMNM").trim();
-				ordermaster.descr = rstPJ.getString("OMDC").trim();
+				ordermaster.ordID = rstPJ.getShort("omid");
+				ordermaster.grpID = rstPJ.getShort("ogid");
+				ordermaster.name = rstPJ.getString("omnm").trim();
+				ordermaster.descr = rstPJ.getString("omdc").trim();
 				hashMap.put(ordermaster.ordID, ordermaster);
 			}
 			rstAP = pj.dbAP.getResultSet(apStms.get(DPowerpath.STM_PROCEDURES));
@@ -221,15 +221,15 @@ class LSync {
 			rstPJ = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PRS_SELECT));
 			while (rstPJ.next()) {
 				person = new OPerson();
-				person.prsID = rstPJ.getShort("PRID");
-				person.access = rstPJ.getInt("PRVL");
-				person.code = rstPJ.getString("PRCD").trim();
-				person.initials = rstPJ.getString("PRNM").trim();
-				person.firstname = rstPJ.getString("PRFR").trim();
-				person.lastname = rstPJ.getString("PRLS").trim();
-				person.active = (rstPJ.getString("PRAC").equalsIgnoreCase("Y"));
+				person.prsID = rstPJ.getShort("prid");
+				person.access = rstPJ.getInt("prvl");
+				person.code = rstPJ.getString("prcd").trim();
+				person.initials = rstPJ.getString("prnm").trim();
+				person.firstname = rstPJ.getString("prfr").trim();
+				person.lastname = rstPJ.getString("prls").trim();
+				person.active = (rstPJ.getString("prac").equalsIgnoreCase("Y"));
 				person.bits = pj.numbers.intToBoolean(person.access);
-				person.started.setTime(rstPJ.getDate("PRDT").getTime());
+				person.started.setTime(rstPJ.getDate("prdt").getTime());
 				hashMap.put(person.prsID, person);
 			}
 			rstAP = pj.dbAP.getResultSet(apStms.get(DPowerpath.STM_PERSONNEL));
@@ -285,11 +285,11 @@ class LSync {
 			rstPJ = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SPM_SELECT));
 			while (rstPJ.next()) {
 				specimenmaster = new OSpecMaster();
-				specimenmaster.spcID = rstPJ.getShort("SMID");
-				specimenmaster.grpID = rstPJ.getShort("SGID");
-				specimenmaster.turID = rstPJ.getByte("TAID");
-				specimenmaster.name = rstPJ.getString("SMNM").trim();
-				specimenmaster.descr = rstPJ.getString("SMDC").trim();
+				specimenmaster.spcID = rstPJ.getShort("smid");
+				specimenmaster.grpID = rstPJ.getShort("sgid");
+				specimenmaster.turID = rstPJ.getByte("taid");
+				specimenmaster.name = rstPJ.getString("smnm").trim();
+				specimenmaster.descr = rstPJ.getString("smdc").trim();
 				hashMap.put(specimenmaster.spcID, specimenmaster);
 			}
 			rstAP = pj.dbAP.getResultSet(apStms.get(DPowerpath.STM_SPECIMENS));

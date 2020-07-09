@@ -11,8 +11,9 @@ class LPending {
 	int noUpdates = 0;
 	private final long startTime = System.currentTimeMillis();
 	private final String className = "Workflow";
-	private MFacilities facilities;
 	private MAccessions accessions;
+	private MFacilities facilities;
+	private MPathologists pathologists;
 	private MOrders masterOrders;
 	private MSpecimens masterSpecimens;
 	private Hashtable<Byte, PreparedStatement> pjStms = null;
@@ -46,6 +47,9 @@ class LPending {
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 				masterOrders = new MOrders(pj, pjStms.get(DPowerJ.STM_ORM_SELECT));
+			}
+			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
+				pathologists = new MPathologists(pj, pjStms.get(DPowerJ.STM_PRS_SELECT));
 			}
 			if (pj.errorID == LConstants.ERROR_NONE && !pj.abort()) {
 				masterSpecimens = new MSpecimens(pj, pjStms.get(DPowerJ.STM_SPM_SELECT));
@@ -103,6 +107,9 @@ class LPending {
 		}
 		if (masterOrders != null) {
 			masterOrders.close();
+		}
+		if (pathologists != null) {
+			pathologists.close();
 		}
 		if (facilities != null) {
 			facilities.close();
@@ -280,46 +287,46 @@ class LPending {
 		ResultSet rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PND_SELECT));
 		try {
 			while (rst.next()) {
-				if (rst.getByte("PNST") == OCaseStatus.ID_FINAL) {
+				if (rst.getByte("pnst") == OCaseStatus.ID_FINAL) {
 					continue;
 				}
 				thisCase = new OCasePending();
-				thisCase.caseID = rst.getLong("PNID");
-				thisCase.accessed.setTimeInMillis(rst.getTimestamp("ACED").getTime());
-				thisCase.statusID = rst.getByte("PNST");
-				thisCase.subID = rst.getByte("SBID");
-				thisCase.procID = rst.getByte("POID");
-				thisCase.noSpec = rst.getByte("PNSP");
-				thisCase.facID = rst.getShort("FAID");
-				thisCase.value5 = rst.getInt("PNV5");
-				thisCase.noBlocks = rst.getShort("PNBL");
-				thisCase.noSlides = rst.getShort("PNSL");
-				thisCase.mainSpec = rst.getShort("SMID");
-				thisCase.caseNo = rst.getString("PNNO");
+				thisCase.caseID = rst.getLong("pnid");
+				thisCase.accessed.setTimeInMillis(rst.getTimestamp("aced").getTime());
+				thisCase.statusID = rst.getByte("pnst");
+				thisCase.subID = rst.getByte("sbid");
+				thisCase.procID = rst.getByte("poid");
+				thisCase.noSpec = rst.getByte("pnsp");
+				thisCase.facID = rst.getShort("faid");
+				thisCase.value5 = rst.getInt("pnv5");
+				thisCase.noBlocks = rst.getShort("pnbl");
+				thisCase.noSlides = rst.getShort("pnsl");
+				thisCase.mainSpec = rst.getShort("smid");
+				thisCase.caseNo = rst.getString("pnno");
 				if (thisCase.statusID > OCaseStatus.ID_ACCES) {
-					thisCase.grossed.setTimeInMillis(rst.getTimestamp("GRED").getTime());
-					thisCase.grossID = rst.getShort("GRID");
-					thisCase.grossTAT = rst.getShort("GRTA");
+					thisCase.grossed.setTimeInMillis(rst.getTimestamp("gred").getTime());
+					thisCase.grossID = rst.getShort("grid");
+					thisCase.grossTAT = rst.getShort("grta");
 				}
 				if (thisCase.statusID > OCaseStatus.ID_GROSS) {
-					thisCase.embeded.setTimeInMillis(rst.getTimestamp("EMED").getTime());
-					thisCase.embedID = rst.getShort("EMID");
-					thisCase.embedTAT = rst.getShort("EMTA");
+					thisCase.embeded.setTimeInMillis(rst.getTimestamp("emed").getTime());
+					thisCase.embedID = rst.getShort("emid");
+					thisCase.embedTAT = rst.getShort("emta");
 				}
 				if (thisCase.statusID > OCaseStatus.ID_EMBED) {
-					thisCase.microed.setTimeInMillis(rst.getTimestamp("MIED").getTime());
-					thisCase.microID = rst.getShort("MIID");
-					thisCase.microTAT = rst.getShort("MITA");
+					thisCase.microed.setTimeInMillis(rst.getTimestamp("mied").getTime());
+					thisCase.microID = rst.getShort("miid");
+					thisCase.microTAT = rst.getShort("mita");
 				}
 				if (thisCase.statusID > OCaseStatus.ID_MICRO) {
-					thisCase.routed.setTimeInMillis(rst.getTimestamp("ROED").getTime());
-					thisCase.routeID = rst.getShort("ROID");
-					thisCase.routeTAT = rst.getShort("ROTA");
+					thisCase.routed.setTimeInMillis(rst.getTimestamp("roed").getTime());
+					thisCase.routeID = rst.getShort("roid");
+					thisCase.routeTAT = rst.getShort("rota");
 				}
 				if (thisCase.statusID > OCaseStatus.ID_ROUTE) {
-					thisCase.finaled.setTimeInMillis(rst.getTimestamp("FNED").getTime());
-					thisCase.finalID = rst.getShort("FNID");
-					thisCase.finalTAT = rst.getShort("FNTA");
+					thisCase.finaled.setTimeInMillis(rst.getTimestamp("fned").getTime());
+					thisCase.finalID = rst.getShort("fnid");
+					thisCase.finalTAT = rst.getShort("fnta");
 				}
 				list.add(thisCase);
 				if (pj.abort()) {
@@ -351,7 +358,7 @@ class LPending {
 			for (int i = 0; i < list.size(); i++) {
 				thisCase = list.get(i);
 				if (!thisCase.cancel) {
-					if (thisCase.statusID < OCaseStatus.ID_EMBED) {
+					if (thisCase.statusID < OCaseStatus.ID_EMBED || thisCase.embedTAT < 1) {
 						getSpecimens();
 						if (thisCase.noSpec > 0) {
 							dbAP.setLong(apStms.get(DPowerpath.STM_CASE_EMBEDED), 1, thisCase.caseID);
@@ -359,9 +366,7 @@ class LPending {
 							noBlocks = 0;
 							while (rst.next()) {
 								noBlocks++;
-								if (noBlocks >= thisCase.noBlocks) {
-									thisCase.statusID = OCaseStatus.ID_EMBED;
-									thisCase.noBlocks = noBlocks;
+								if (noBlocks == thisCase.noBlocks) {
 									thisCase.embedID = rst.getShort("personnel_id");
 									thisCase.embeded.setTimeInMillis(rst.getTimestamp("event_date").getTime());
 									thisCase.update = true;
@@ -369,6 +374,9 @@ class LPending {
 							}
 							rst.close();
 							if (thisCase.update) {
+								if (thisCase.statusID < OCaseStatus.ID_EMBED) {
+									thisCase.statusID = OCaseStatus.ID_EMBED;
+								}
 								thisCase.embedTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.embeded);
 								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 1, thisCase.subID);
 								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_EMB), 2, thisCase.procID);
@@ -427,27 +435,22 @@ class LPending {
 							descr = rst.getString("description").trim().toLowerCase();
 							if (descr.equals("final")) {
 								if (rst.getTimestamp("completed_date") != null) {
-									thisCase.update = true;
-									thisCase.statusID = OCaseStatus.ID_FINAL;
-									thisCase.finalID = rst.getShort("assigned_to_id");
-									thisCase.finaled.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
+									if (pathologists.matchPathologist(rst.getShort("assigned_to_id"))) {
+										thisCase.finaled.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
+										thisCase.finalID = rst.getShort("assigned_to_id");
+										thisCase.statusID = OCaseStatus.ID_FINAL;
+										thisCase.update = true;
+										break;
+									}
 								}
-								break;
 							} else if (descr.contains("microscopic") || descr.contains("pathologist")) {
-								if (rst.getShort("assigned_to_id") > 0
-										&& thisCase.finalID == 0
-										&& thisCase.statusID == OCaseStatus.ID_ROUTE) {
-									// Important:
-									// Capture cases routed but not assigned, but also avoid letting
-									// others (PA & resident) changing the original assignment to themselves
-									thisCase.update = true;
+								if (pathologists.matchPathologist(rst.getShort("assigned_to_id"))) {
 									thisCase.finalID = rst.getShort("assigned_to_id");
-								}
-								if (rst.getTimestamp("completed_date") != null) {
+									if (rst.getTimestamp("completed_date") != null) {
+										thisCase.finaled.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
+										thisCase.statusID = OCaseStatus.ID_DIAGN;
+									}
 									thisCase.update = true;
-									thisCase.statusID = OCaseStatus.ID_DIAGN;
-									thisCase.finalID = rst.getShort("assigned_to_id");
-									thisCase.finaled.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
 								}
 							}
 						}
@@ -497,7 +500,8 @@ class LPending {
 			for (int i = 0; i < list.size(); i++) {
 				thisCase = list.get(i);
 				if (!thisCase.cancel) {
-					if (thisCase.statusID < OCaseStatus.ID_GROSS) {
+					if (thisCase.statusID < OCaseStatus.ID_GROSS || thisCase.grossTAT < 1) {
+						// Not grossed or not verified yet (Zero or negative)
 						getSpecimens();
 						if (thisCase.noSpec > 0) {
 							dbAP.setLong(apStms.get(DPowerpath.STM_CASE_PROCESS), 1, thisCase.caseID);
@@ -508,9 +512,8 @@ class LPending {
 										descr = rst.getString("description").trim().toLowerCase();
 										if (descr.contains("gross") || descr.contains("screening")
 												|| descr.contains("provisional")) {
-											thisCase.statusID = OCaseStatus.ID_GROSS;
-											thisCase.grossID = rst.getShort("assigned_to_id");
 											thisCase.grossed.setTimeInMillis(rst.getTimestamp("completed_date").getTime());
+											thisCase.grossID = rst.getShort("assigned_to_id");
 											thisCase.update = true;
 											break;
 										}
@@ -519,6 +522,9 @@ class LPending {
 							}
 							rst.close();
 							if (thisCase.update) {
+								if (thisCase.statusID < OCaseStatus.ID_GROSS) {
+									thisCase.statusID = OCaseStatus.ID_GROSS;
+								}
 								thisCase.grossTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.grossed);
 								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 1, thisCase.subID);
 								dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_GRS), 2, thisCase.procID);
@@ -583,15 +589,14 @@ class LPending {
 			for (int i = 0; i < list.size(); i++) {
 				thisCase = list.get(i);
 				if (!thisCase.cancel) {
-					if (thisCase.statusID < OCaseStatus.ID_MICRO) {
-						noBlocks = 0;
+					if (thisCase.statusID < OCaseStatus.ID_MICRO || thisCase.microTAT < 1) {
 						getOrders();
 						dbAP.setLong(apStms.get(DPowerpath.STM_CASE_MICROTO), 1, thisCase.caseID);
 						rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_MICROTO));
+						noBlocks = 0;
 						while (rst.next()) {
 							noBlocks++;
-							if (noBlocks >= thisCase.noBlocks) {
-								thisCase.statusID = OCaseStatus.ID_MICRO;
+							if (noBlocks == thisCase.noBlocks) {
 								thisCase.microID = rst.getShort("personnel_id");
 								thisCase.microed.setTimeInMillis(rst.getTimestamp("event_date").getTime());
 								thisCase.update = true;
@@ -599,6 +604,12 @@ class LPending {
 						}
 						rst.close();
 						if (thisCase.update) {
+							if (thisCase.statusID < OCaseStatus.ID_MICRO) {
+								thisCase.statusID = OCaseStatus.ID_MICRO;
+							}
+							if (thisCase.noBlocks < noBlocks) {
+								thisCase.noBlocks = noBlocks;
+							}
 							thisCase.microTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.microed);
 							dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_MIC), 1, thisCase.microID);
 							dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_MIC), 2, thisCase.microTAT);
@@ -683,23 +694,26 @@ class LPending {
 			for (int i = 0; i < list.size(); i++) {
 				thisCase = list.get(i);
 				if (!thisCase.cancel) {
-					if (thisCase.statusID < OCaseStatus.ID_ROUTE) {
+					if (thisCase.statusID < OCaseStatus.ID_ROUTE || thisCase.routeTAT < 1) {
 						getOrders();
 						dbAP.setLong(apStms.get(DPowerpath.STM_CASE_ROUTING), 1, thisCase.caseID);
 						rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_ROUTING));
+						noSlides = 0;
 						while (rst.next()) {
-							thisCase.statusID = OCaseStatus.ID_ROUTE;
-							thisCase.routeID = rst.getShort("personnel_id");
-							thisCase.routed.setTimeInMillis(rst.getTimestamp("event_date").getTime());
-							thisCase.update = true;
 							noSlides++;
-							if (noSlides == thisCase.noSlides) {
-								// Skip post-routing IHC orders
+							if (1.0 * noSlides / thisCase.noSlides > 0.48) {
+								// At least half the slides were routed (otherwise human error)
+								thisCase.routeID = rst.getShort("personnel_id");
+								thisCase.routed.setTimeInMillis(rst.getTimestamp("event_date").getTime());
+								thisCase.update = true;
 								break;
 							}
 						}
 						rst.close();
 						if (thisCase.update) {
+							if (thisCase.statusID < OCaseStatus.ID_ROUTE) {
+								thisCase.statusID = OCaseStatus.ID_ROUTE;
+							}
 							thisCase.routeTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.routed);
 							dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_ROU), 1, thisCase.routeID);
 							dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_ROU), 2, thisCase.routeTAT);
@@ -735,7 +749,7 @@ class LPending {
 		}
 	}
 
-	/** Update Routing status of cases that are not routed (cytology) by using slide scanner event. */
+	/** Update Routing status of cases that are not routed (cytology) by instead using the slide scanner event. */
 	private void getScanned() {
 		final long ONE_HOUR = 3600000;
 		ResultSet rst = null;
@@ -744,19 +758,23 @@ class LPending {
 			for (int i = 0; i < list.size(); i++) {
 				thisCase = list.get(i);
 				if (!thisCase.cancel) {
-					if (thisCase.statusID < OCaseStatus.ID_ROUTE) {
+					if (thisCase.statusID < OCaseStatus.ID_ROUTE || thisCase.routeTAT < 1) {
 						dbAP.setLong(apStms.get(DPowerpath.STM_CASE_SCANNED), 1, thisCase.caseID);
 						rst = dbAP.getResultSet(apStms.get(DPowerpath.STM_CASE_SCANNED));
 						while (rst.next()) {
-							thisCase.routed.setTimeInMillis(rst.getTimestamp("event_date").getTime() - ONE_HOUR);
-							thisCase.finalID = rst.getShort("personnel_id");
-							thisCase.statusID = OCaseStatus.ID_ROUTE;
-							thisCase.update = true;
-							break;
+							if (pathologists.matchPathologist(rst.getShort("personnel_id"))) {
+								thisCase.routed.setTimeInMillis(rst.getTimestamp("event_date").getTime() - ONE_HOUR);
+								thisCase.finalID = rst.getShort("personnel_id");
+								thisCase.update = true;
+								break;
+							}
 						}
 						rst.close();
 						if (thisCase.update) {
 							getOrders();
+							if (thisCase.statusID < OCaseStatus.ID_ROUTE) {
+								thisCase.statusID = OCaseStatus.ID_ROUTE;
+							}
 							thisCase.routeTAT = pj.dates.getBusinessHours(thisCase.accessed, thisCase.routed);
 							dbPowerJ.setShort(pjStms.get(DPowerJ.STM_PND_UP_SCA), 1, thisCase.finalID);
 							dbPowerJ.setInt(pjStms.get(DPowerJ.STM_PND_UP_SCA), 2, thisCase.routeTAT);

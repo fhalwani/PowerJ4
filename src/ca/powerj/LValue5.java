@@ -76,11 +76,11 @@ class LValue5 {
 			rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SPG_SL_SU5));
 			while (rst.next()) {
 				if (rst.getInt("QTY") > 0) {
-					Integer[] specimen = { rst.getInt("SGID"), rst.getInt("QTY"),
-							pj.numbers.doubleToInt(2, rst.getDouble("SPV1") * 100),
-							pj.numbers.doubleToInt(2, rst.getDouble("SPV2") * 100),
-							pj.numbers.doubleToInt(2, rst.getDouble("SPV3") * 100),
-							pj.numbers.doubleToInt(2, rst.getDouble("SPV4") * 100) };
+					Integer[] specimen = { rst.getInt("sgid"), rst.getInt("QTY"),
+							pj.numbers.doubleToInt(2, rst.getDouble("spv1") * 100),
+							pj.numbers.doubleToInt(2, rst.getDouble("spv2") * 100),
+							pj.numbers.doubleToInt(2, rst.getDouble("spv3") * 100),
+							pj.numbers.doubleToInt(2, rst.getDouble("spv4") * 100) };
 					specimens.add(specimen);
 					total[V5_VAL1] += specimen[V5_VAL1];
 					total[V5_VAL2] += specimen[V5_VAL2];
@@ -95,10 +95,10 @@ class LValue5 {
 			while (rst.next()) {
 				if (rst.getInt("QTY") > 0) {
 					frozn[V5_QTY] = rst.getInt("QTY");
-					frozn[V5_VAL1] = pj.numbers.doubleToInt(2, rst.getDouble("FRV1") * 100);
-					frozn[V5_VAL2] = pj.numbers.doubleToInt(2, rst.getDouble("FRV2") * 100);
-					frozn[V5_VAL3] = pj.numbers.doubleToInt(2, rst.getDouble("FRV3") * 100);
-					frozn[V5_VAL4] = pj.numbers.doubleToInt(2, rst.getDouble("FRV4") * 100);
+					frozn[V5_VAL1] = pj.numbers.doubleToInt(2, rst.getDouble("frv1") * 100);
+					frozn[V5_VAL2] = pj.numbers.doubleToInt(2, rst.getDouble("frv2") * 100);
+					frozn[V5_VAL3] = pj.numbers.doubleToInt(2, rst.getDouble("frv3") * 100);
+					frozn[V5_VAL4] = pj.numbers.doubleToInt(2, rst.getDouble("frv4") * 100);
 					total[V5_VAL1] += frozn[V5_VAL1];
 					total[V5_VAL2] += frozn[V5_VAL2];
 					total[V5_VAL3] += frozn[V5_VAL3];

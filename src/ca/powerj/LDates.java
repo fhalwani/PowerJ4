@@ -25,7 +25,9 @@ class LDates {
 
 	LDates(LBase pj) {
 		this.pj = pj;
-		workHours = pj.setup.getByte(LSetup.VAR_CLOSING) - pj.setup.getByte(LSetup.VAR_OPENING);
+		if (!pj.offLine) {
+			workHours = pj.setup.getByte(LSetup.VAR_CLOSING) - pj.setup.getByte(LSetup.VAR_OPENING);
+		}
 		if (workHours < 8) {
 			workHours = 8;
 		} else if (workHours > 24) {

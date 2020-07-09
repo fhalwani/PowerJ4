@@ -114,9 +114,9 @@ class NRule extends NBase {
 		try {
 			while (rst.next()) {
 				rule = new OItem();
-				rule.id = rst.getShort("RUID");
-				rule.name = rst.getString("RUNM").trim();
-				rule.descr = rst.getString("RUDC").trim();
+				rule.id = rst.getShort("ruid");
+				rule.name = rst.getString("runm").trim();
+				rule.descr = rst.getString("rudc").trim();
 				list.add(rule);
 			}
 			pj.statusBar.setMessage("No Rows: " + list.size());

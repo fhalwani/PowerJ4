@@ -292,15 +292,15 @@ class NPersonnel extends NBase implements ItemListener {
 		try {
 			while (rst.next()) {
 				person = new OPerson();
-				person.prsID = rst.getShort("PRID");
-				person.access = rst.getInt("PRVL");
-				person.code = rst.getString("PRCD").trim();
-				person.initials = rst.getString("PRNM").trim();
-				person.firstname = rst.getString("PRFR").trim();
-				person.lastname = rst.getString("PRLS").trim();
-				person.active = (rst.getString("PRAC").equalsIgnoreCase("Y"));
+				person.prsID = rst.getShort("prid");
+				person.access = rst.getInt("prvl");
+				person.code = rst.getString("prcd").trim();
+				person.initials = rst.getString("prnm").trim();
+				person.firstname = rst.getString("prfr").trim();
+				person.lastname = rst.getString("prls").trim();
+				person.active = (rst.getString("prac").equalsIgnoreCase("Y"));
 				person.bits = pj.numbers.intToBoolean(person.access);
-				person.started.setTime(rst.getDate("PRDT").getTime());
+				person.started.setTime(rst.getDate("prdt").getTime());
 				list.add(person);
 			}
 			pj.statusBar.setMessage("No Rows: " + list.size());

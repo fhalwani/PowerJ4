@@ -163,11 +163,11 @@ class NFacililty extends NBase {
 		try {
 			while (rst.next()) {
 				facility = new OFacility();
-				facility.facID = rst.getShort("FAID");
-				facility.name = rst.getString("FANM").trim();
-				facility.descr = rst.getString("FADC").trim();
-				facility.workflow = (rst.getString("FAFL").equalsIgnoreCase("Y"));
-				facility.workload = (rst.getString("FALD").equalsIgnoreCase("Y"));
+				facility.facID = rst.getShort("faid");
+				facility.name = rst.getString("fanm").trim();
+				facility.descr = rst.getString("fadc").trim();
+				facility.workflow = (rst.getString("fafl").equalsIgnoreCase("Y"));
+				facility.workload = (rst.getString("fald").equalsIgnoreCase("Y"));
 				list.add(facility);
 			}
 			pj.statusBar.setMessage("No Rows: " + list.size());

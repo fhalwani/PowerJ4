@@ -315,15 +315,15 @@ class NOrderGroup extends NBase {
 		try {
 			while (rst.next()) {
 				ordergroup = new OOrderGroup();
-				ordergroup.grpID = rst.getShort("OGID");
-				ordergroup.typID = rst.getShort("OTID");
-				ordergroup.value1 = rst.getShort("OGC1");
-				ordergroup.value2 = rst.getShort("OGC2");
-				ordergroup.value3 = rst.getShort("OGC3");
-				ordergroup.value4 = rst.getShort("OGC4");
-				ordergroup.value5 = rst.getShort("OGC5");
-				ordergroup.name = rst.getString("OGNM").trim();
-				ordergroup.descr = rst.getString("OGDC").trim();
+				ordergroup.grpID = rst.getShort("ogid");
+				ordergroup.typID = rst.getShort("otid");
+				ordergroup.value1 = rst.getShort("ogc1");
+				ordergroup.value2 = rst.getShort("ogc2");
+				ordergroup.value3 = rst.getShort("ogc3");
+				ordergroup.value4 = rst.getShort("ogc4");
+				ordergroup.value5 = rst.getShort("ogc5");
+				ordergroup.name = rst.getString("ognm").trim();
+				ordergroup.descr = rst.getString("ogdc").trim();
 				list.add(ordergroup);
 				if (newID < ordergroup.grpID) {
 					newID = ordergroup.grpID;
@@ -361,19 +361,19 @@ class NOrderGroup extends NBase {
 		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(index));
 		try {
 			while (rst.next()) {
-				list.add(new OItem(rst.getShort("COID"), rst.getString("CONM")));
+				list.add(new OItem(rst.getShort("coid"), rst.getString("conm")));
 				switch (coderID) {
 				case 1:
-					mapCoder1.put(rst.getShort("COID"), rst.getString("CODC"));
+					mapCoder1.put(rst.getShort("coid"), rst.getString("codc"));
 					break;
 				case 2:
-					mapCoder2.put(rst.getShort("COID"), rst.getString("CODC"));
+					mapCoder2.put(rst.getShort("coid"), rst.getString("codc"));
 					break;
 				case 3:
-					mapCoder3.put(rst.getShort("COID"), rst.getString("CODC"));
+					mapCoder3.put(rst.getShort("coid"), rst.getString("codc"));
 					break;
 				default:
-					mapCoder4.put(rst.getShort("COID"), rst.getString("CODC"));
+					mapCoder4.put(rst.getShort("coid"), rst.getString("codc"));
 				}
 			}
 		} catch (SQLException e) {
@@ -511,9 +511,10 @@ class NOrderGroup extends NBase {
 		pj.dbPowerJ.setShort(pjStms.get(index), 3, ordergroup.value2);
 		pj.dbPowerJ.setShort(pjStms.get(index), 4, ordergroup.value3);
 		pj.dbPowerJ.setShort(pjStms.get(index), 5, ordergroup.value4);
-		pj.dbPowerJ.setString(pjStms.get(index), 6, ordergroup.name);
-		pj.dbPowerJ.setString(pjStms.get(index), 7, ordergroup.descr);
-		pj.dbPowerJ.setShort(pjStms.get(index), 8, ordergroup.grpID);
+		pj.dbPowerJ.setInt(pjStms.get(index), 6, 0);	// deprecated
+		pj.dbPowerJ.setString(pjStms.get(index), 7, ordergroup.name);
+		pj.dbPowerJ.setString(pjStms.get(index), 8, ordergroup.descr);
+		pj.dbPowerJ.setShort(pjStms.get(index), 9, ordergroup.grpID);
 		if (pj.dbPowerJ.execute(pjStms.get(index)) > 0) {
 			altered = false;
 			model.fireTableRowsUpdated(rowIndex, rowIndex);

@@ -141,11 +141,11 @@ class NSpecialty extends NBase {
 		try {
 			while (rst.next()) {
 				specialty = new OSpecialty();
-				specialty.spyID = rst.getByte("SYID");
-				specialty.name = rst.getString("SYNM").trim();
-				specialty.workflow = (rst.getString("SYFL").equalsIgnoreCase("Y"));
-				specialty.workload = (rst.getString("SYLD").equalsIgnoreCase("Y"));
-				specialty.specimen = (rst.getString("SYSP").equalsIgnoreCase("Y"));
+				specialty.spyID = rst.getByte("syid");
+				specialty.name = rst.getString("synm").trim();
+				specialty.workflow = (rst.getString("syfl").equalsIgnoreCase("Y"));
+				specialty.workload = (rst.getString("syld").equalsIgnoreCase("Y"));
+				specialty.specimen = (rst.getString("sysp").equalsIgnoreCase("Y"));
 				list.add(specialty);
 				if (newID < specialty.spyID) {
 					newID = specialty.spyID;

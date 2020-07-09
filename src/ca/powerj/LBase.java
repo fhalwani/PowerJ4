@@ -81,7 +81,7 @@ class LBase implements Runnable {
 				dbAP = new DPowerpath(this);
 			} else {
 				// Cerner & Copath here perhaps one day
-				log(LConstants.ERROR_CONNECTION, "initDBAP", "Invalid application binary file");
+				log(LConstants.ERROR_CONNECTION, "DBAP", "Invalid AP architecture " + apArch + " in setup table");
 			}
 		}
 	}
@@ -163,18 +163,20 @@ class LBase implements Runnable {
 		if (errorID == LConstants.ERROR_NONE) {
 			numbers = new LNumbers();
 			setup = new LSetup(this);
-			apArch = setup.getString(LSetup.VAR_AP_NAME);
-			apHost = setup.getString(LSetup.VAR_AP_SERVER);
-			apPort = setup.getString(LSetup.VAR_AP_PORT);
-			apSchema = setup.getString(LSetup.VAR_AP_DATABASE);
-			apUser = setup.getString(LSetup.VAR_AP_LOGIN);
-			apPass = setup.getString(LSetup.VAR_AP_PASSWORD);
-			timerInterval = setup.getInt(LSetup.VAR_TIMER);
-			updateInterval = setup.getInt(LSetup.VAR_UPDATER);
-			if (LConstants.IS_CLIENT) {
-				// Synchronize clients 2-10 minutes after server update
-				Random rand = new Random();
-				updateDelay = (rand.nextInt(9) + 2) * 30000;
+			if (!offLine) {
+				apArch = setup.getString(LSetup.VAR_AP_NAME);
+				apHost = setup.getString(LSetup.VAR_AP_SERVER);
+				apPort = setup.getString(LSetup.VAR_AP_PORT);
+				apSchema = setup.getString(LSetup.VAR_AP_DATABASE);
+				apUser = setup.getString(LSetup.VAR_AP_LOGIN);
+				apPass = setup.getString(LSetup.VAR_AP_PASSWORD);
+				timerInterval = setup.getInt(LSetup.VAR_TIMER);
+				updateInterval = setup.getInt(LSetup.VAR_UPDATER);
+				if (LConstants.IS_CLIENT) {
+					// Synchronize clients 2-10 minutes after server update
+					Random rand = new Random();
+					updateDelay = (rand.nextInt(9) + 2) * 30000;
+				}
 			}
 			if (errorID == LConstants.ERROR_NONE) {
 				dates = new LDates(this);
@@ -395,47 +397,46 @@ class LBase implements Runnable {
 	 * start the updates thread engine.
 	 */
 	void startWorker() {
-		log(LConstants.ERROR_NONE, "Starting thread...");
-		stopped.set(false);
 		busy.set(false);
-		engine = new Thread(this);
-		engine.start();
+		if (!offLine) {
+			log(LConstants.ERROR_NONE, "Starting thread...");
+			stopped.set(false);
+			engine = new Thread(this);
+			engine.start();
+		}
 	}
 
 	/**
 	 * Cleanly stop the engine.
 	 */
 	boolean stopWorker() {
-		stopped.set(true);
-		synchronized (this) {
-			notifyAll();
-		}
 		boolean waiting = false;
-		for (int i = 0; i < 5; i++) {
-			// TODO thread.join() not working, system does not exit; this is a temporary patch
-			waiting = false;
-			for (Thread thread : Thread.getAllStackTraces().keySet()) {
-				if (thread.getName().equals("PJWorker")) {
-					if (i < 4) {
-						// Wait for the thread to close
-						System.out.println("Waiting for worker thread...");
-						waiting = true;
-//						try {
-//							thread.join();
-//						} catch (InterruptedException ignore) {
-//						}
+		if (!offLine) {
+			System.out.println("Stopping Daemon...");
+			stopped.set(true);
+			synchronized (this) {
+				notifyAll();
+			}
+			for (int i = 0; i < 5; i++) {
+				waiting = false;
+				for (Thread thread : Thread.getAllStackTraces().keySet()) {
+					if (thread.getName().equals("PJWorker")) {
+						if (i < 4) {
+							// Wait for the thread to close
+							System.out.println("Waiting for worker thread...");
+							waiting = true;
+						}
 					}
 				}
-			}
-			if (!waiting) {
-				break;
-			}
-			try {
-				Thread.sleep(LConstants.SLEEP_TIME);
-			} catch (InterruptedException ignore) {
+				if (!waiting) {
+					break;
+				}
+				try {
+					Thread.sleep(LConstants.SLEEP_TIME);
+				} catch (InterruptedException ignore) {
+				}
 			}
 		}
-		System.out.println("Stopping Daemon...");
 		if (dbPowerJ != null) {
 			if (pjStms != null) {
 				dbPowerJ.close(pjStms);

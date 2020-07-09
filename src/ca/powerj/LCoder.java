@@ -1330,13 +1330,13 @@ class LCoder extends LCoderA {
 		try {
 			while (rst.next()) {
 				wcode = new OWorkcode();
-				wcode.ruleID = rst.getShort("RUID");
-				wcode.count = rst.getShort("COQY");
-				wcode.valueA = rst.getDouble("COV1");
-				wcode.valueB = rst.getDouble("COV2");
-				wcode.valueC = rst.getDouble("COV3");
-				wcode.name = rst.getString("CONM");
-				masterCodes.put(rst.getShort("COID"), wcode);
+				wcode.ruleID = rst.getShort("ruid");
+				wcode.count = rst.getShort("coqy");
+				wcode.valueA = rst.getDouble("cov1");
+				wcode.valueB = rst.getDouble("cov2");
+				wcode.valueC = rst.getDouble("cov3");
+				wcode.name = rst.getString("conm");
+				masterCodes.put(rst.getShort("coid"), wcode);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, coderName, e);

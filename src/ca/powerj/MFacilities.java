@@ -48,9 +48,9 @@ class MFacilities {
 		try {
 			while (rst.next()) {
 				facility = new OFacility();
-				facility.workflow = (rst.getString("FAFL").toUpperCase().equals("Y"));
-				facility.workload = (rst.getString("FALD").toUpperCase().equals("Y"));
-				facilities.put(rst.getShort("FAID"), facility);
+				facility.workflow = (rst.getString("fafl").toUpperCase().equals("Y"));
+				facility.workload = (rst.getString("fald").toUpperCase().equals("Y"));
+				facilities.put(rst.getShort("faid"), facility);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, "Facilities Map", e);

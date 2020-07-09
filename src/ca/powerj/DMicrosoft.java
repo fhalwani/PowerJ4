@@ -42,9 +42,9 @@ class DMicrosoft extends DServer {
 	String setSQL(short id) {
 		switch (id) {
 		case STM_CSE_SELECT:
-			return "SELECT TOP (10000) * FROM udvCases _WHERE_ ORDER BY FNED DESC";
+			return "SELECT TOP (10000) * FROM " + pj.pjSchema + ".udvcases _WHERE_ ORDER BY fned DESC";
 		case STM_CSE_SL_DTE:
-			return "SELECT TOP (10000) * FROM udvCases WHERE (FNED BETWEEN _FROM_ AND _TO_) _AND_ ORDER BY FNED DESC";
+			return "SELECT TOP (10000) * FROM " + pj.pjSchema + ".udvcases WHERE (fned BETWEEN _FROM_ AND _TO_) _AND_ ORDER BY fned DESC";
 		default:
 			return super.setSQL(id);
 		}

@@ -248,12 +248,12 @@ class LFinals {
 			rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CSE_SL_SPE));
 			while (rst.next()) {
 				// Must also get a specimen for WLCoder
-				if (masterSpecimens.matchSpecimens(rst.getShort("SMID"))) {
-					thisCase.caseNo = rst.getString("CANO");
-					thisCase.accessed.setTimeInMillis(rst.getTimestamp("FNED").getTime());
+				if (masterSpecimens.matchSpecimens(rst.getShort("smid"))) {
+					thisCase.caseNo = rst.getString("cano");
+					thisCase.accessed.setTimeInMillis(rst.getTimestamp("fned").getTime());
 					thisSpecimen = new OSpecFinal();
-					thisSpecimen.specID = rst.getLong("SPID");
-					thisSpecimen.spmID = rst.getShort("SMID");
+					thisSpecimen.specID = rst.getLong("spid");
+					thisSpecimen.spmID = rst.getShort("smid");
 					thisCase.lstSpecimens.add(thisSpecimen);
 					thisCase.noSpec = 1;
 					thisCase.codeSpec = false;
@@ -604,7 +604,7 @@ class LFinals {
 		try {
 			rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ERR_SL_FXD));
 			while (rst.next()) {
-				caseID = rst.getLong("CAID");
+				caseID = rst.getLong("caid");
 				pj.log(LConstants.ERROR_NONE, className, "Re-coding Error case " + caseID);
 				if (codeCase(caseID)) {
 					if (pj.errorID == LConstants.ERROR_NONE) {
@@ -1118,9 +1118,9 @@ class LFinals {
 			dbPowerJ.setLong(pjStms.get(DPowerJ.STM_ADD_SL_CID), 1, thisCase.caseID);
 			rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ADD_SL_CID));
 			while (rst.next()) {
-				if (codeID == rst.getShort("ADCD")) {
-					if (thisCase.finalID == rst.getShort("PRID")) {
-						thisCase.accessed.setTimeInMillis(rst.getTimestamp("ADDT").getTime());
+				if (codeID == rst.getShort("adcd")) {
+					if (thisCase.finalID == rst.getShort("prid")) {
+						thisCase.accessed.setTimeInMillis(rst.getTimestamp("addt").getTime());
 						if ((thisCase.finaled.getTimeInMillis() / 86400000)
 								- (thisCase.accessed.getTimeInMillis() / 86400000) < 1) {
 							// No duplicates on the same day
