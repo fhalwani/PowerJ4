@@ -921,39 +921,39 @@ class NRouting extends NBase {
 
 		private void getCases() {
 			ResultSet rst = null;
-			pj.setBusy(true);
 			try {
+				setName("WorkerData");
 				cases.clear();
 				getDates();
 				pj.dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_SL_ROU), 1, dates.get(rowIndex + 1).getTimeInMillis());
 				pj.dbPowerJ.setTime(pjStms.get(DPowerJ.STM_PND_SL_ROU), 2, dates.get(rowIndex).getTimeInMillis());
 				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PND_SL_ROU));
 				while (rst.next()) {
-					if (rst.getShort("FNID") == 0) {
+					if (rst.getShort("fnid") == 0) {
 						// Not assigned yet
 						continue;
 					}
 					pending = new OCasePending();
-					pending.spyID = rst.getByte("SYID");
-					pending.subID = rst.getByte("SBID");
-					pending.noSpec = rst.getByte("PNSP");
-					pending.finalID = rst.getShort("FNID");
-					pending.facID = rst.getShort("FAID");
-					pending.noBlocks = rst.getShort("PNBL");
-					pending.noSlides = rst.getShort("PNSL");
-					pending.value5 = rst.getInt("PNV5");
-					pending.caseNo = rst.getString("PNNO");
-					pending.facility = rst.getString("FANM");
-					pending.specialty = rst.getString("SYNM");
-					pending.subspecial = rst.getString("SBNM");
-					pending.procedure = rst.getString("PONM");
-					pending.specimen = rst.getString("SMNM");
+					pending.spyID = rst.getByte("syid");
+					pending.subID = rst.getByte("sbid");
+					pending.noSpec = rst.getByte("pnsp");
+					pending.finalID = rst.getShort("fnid");
+					pending.facID = rst.getShort("faid");
+					pending.noBlocks = rst.getShort("pnbl");
+					pending.noSlides = rst.getShort("pnsl");
+					pending.value5 = rst.getInt("pnv5");
+					pending.caseNo = rst.getString("pnno");
+					pending.facility = rst.getString("fanm");
+					pending.specialty = rst.getString("synm");
+					pending.subspecial = rst.getString("sbnm");
+					pending.procedure = rst.getString("ponm");
+					pending.specimen = rst.getString("smnm");
 					pending.routeName = rst.getString("RONM");
-					pending.finalName = rst.getString("FNNM");
+					pending.finalName = rst.getString("fnnm");
 					pending.routeFull = rst.getString("ROFR").trim() + " " + rst.getString("ROLS").trim();
-					pending.finalFull = rst.getString("FNFR").trim() + " " + rst.getString("FNLS").trim();
-					pending.accessed.setTimeInMillis(rst.getTimestamp("ACED").getTime());
-					pending.routed.setTimeInMillis(rst.getTimestamp("ROED").getTime());
+					pending.finalFull = rst.getString("fnfr").trim() + " " + rst.getString("fnls").trim();
+					pending.accessed.setTimeInMillis(rst.getTimestamp("aced").getTime());
+					pending.routed.setTimeInMillis(rst.getTimestamp("roed").getTime());
 					cases.add(pending);
 				}
 			} catch (SQLException e) {
@@ -1015,7 +1015,6 @@ class NRouting extends NBase {
 			if (modelCases != null) {
 				modelCases.fireTableDataChanged();
 			}
-			pj.setBusy(false);
 			WorkerSummary worker = new WorkerSummary();
 			worker.execute();
 		}
@@ -1025,7 +1024,6 @@ class NRouting extends NBase {
 
 		@Override
 		protected Void doInBackground() throws Exception {
-			pj.setBusy(true);
 			HashMap<Short, OWorkflow> hashMap = new HashMap<Short, OWorkflow>();
 			OWorkflow staff = new OWorkflow();
 			summary.clear();

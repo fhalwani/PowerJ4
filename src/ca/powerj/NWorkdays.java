@@ -58,10 +58,12 @@ class NWorkdays extends NBase {
 		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_WORKDAYS);
 		createPanel();
 		programmaticChange = false;
+		altered = true;
 	}
 
 	@Override
 	boolean close() {
+		altered = false;
 		super.close();
 		headers.clear();
 		list.clear();
@@ -96,16 +98,15 @@ class NWorkdays extends NBase {
 		chartBar = new IChartBar(dim);
 		JScrollPane scrollChart = IGUI.createJScrollPane(chartBar);
 		scrollChart.setMinimumSize(dim);
+		Calendar calStart = pj.dates.setMidnight(null);
+		Calendar calEnd = pj.dates.setMidnight(null);
 		Calendar calMin = Calendar.getInstance();
-		Calendar calMax = pj.dates.setMidnight(null);
-		Calendar calStart = Calendar.getInstance();
-		Calendar calEnd = Calendar.getInstance();
-		calMax.add(Calendar.DAY_OF_YEAR, -1);
-		timeFrom = pj.setup.getLong(LSetup.VAR_MIN_WL_DATE);
-		timeTo = calMax.getTimeInMillis();
-		calMin.setTimeInMillis(timeFrom);
-		calStart.setTimeInMillis(calMin.getTimeInMillis());
-		calEnd.setTimeInMillis(calMax.getTimeInMillis());
+		Calendar calMax = Calendar.getInstance();
+		calStart.add(Calendar.YEAR, -1);
+		timeFrom = calStart.getTimeInMillis();
+		timeTo = calEnd.getTimeInMillis();
+		calMax.setTimeInMillis(timeTo);
+		calMin.setTimeInMillis(pj.setup.getLong(LSetup.VAR_MIN_WL_DATE));
 		JSplitPane splitAll = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		splitAll.setTopComponent(scrollChart);
 		splitAll.setBottomComponent(scrollList);
@@ -114,7 +115,7 @@ class NWorkdays extends NBase {
 		splitAll.setPreferredSize(new Dimension(1100, 900));
 		setLayout(new BorderLayout());
 		setOpaque(true);
-		add(new IToolBar(this, calStart, calEnd, calMin, calMax, false), BorderLayout.NORTH);
+		add(new IToolBar(this, calStart, calEnd, calMin, calMax, null), BorderLayout.NORTH);
 		add(splitAll, BorderLayout.CENTER);
 	}
 
@@ -203,6 +204,7 @@ class NWorkdays extends NBase {
 		switch (id) {
 		case IToolBar.TB_FAC:
 			facID = value;
+			altered = true;
 			break;
 		case IToolBar.TB_SPIN:
 			byService = !byService;
@@ -212,9 +214,11 @@ class NWorkdays extends NBase {
 			}
 			break;
 		default:
-			if (timeTo > timeFrom) {
+			if (altered && timeTo > timeFrom) {
+				pj.setBusy(true);
 				WorkerData worker = new WorkerData();
 				worker.execute();
+				altered = false;
 			}
 		}
 	}
@@ -228,6 +232,7 @@ class NWorkdays extends NBase {
 		default:
 			timeTo = value.getTimeInMillis();
 		}
+		altered = true;
 	}
 
 	@Override
@@ -352,39 +357,40 @@ class NWorkdays extends NBase {
 			HashMap<Short, DataPerson> persons = new HashMap<Short, DataPerson>();
 			HashMap<Short, String> services = new HashMap<Short, String>();
 			try {
+				setName("WorkerData");
 				headers.clear();
 				list.clear();
 				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_SCH_SL_SUM), 1, timeFrom);
 				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_SCH_SL_SUM), 2, timeTo);
 				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SCH_SL_SUM));
 				while (rst.next()) {
-					if (facID > 0 && facID != rst.getShort("FAID")) {
+					if (facID > 0 && facID != rst.getShort("faid")) {
 						continue;
 					}
-					if (tmpPrsID != rst.getShort("PRID")) {
+					if (tmpPrsID != rst.getShort("prid")) {
 						tmpWdID = 0;
 						tmpSrvID = 0;
-						tmpPrsID = rst.getShort("PRID");
+						tmpPrsID = rst.getShort("prid");
 						person = persons.get(tmpPrsID);
 						if (person == null) {
 							person = new DataPerson();
 							person.prsID = tmpPrsID;
-							person.name = rst.getString("PRNM");
-							person.full = rst.getString("PRFR").trim() + " " + rst.getString("PRLS").trim();
+							person.name = rst.getString("prnm");
+							person.full = rst.getString("prfr").trim() + " " + rst.getString("prls").trim();
 							persons.put(tmpPrsID, person);
 						}
 					}
-					if (tmpWdID != rst.getInt("WDID")) {
-						tmpWdID = rst.getInt("WDID");
+					if (tmpWdID != rst.getInt("wdid")) {
+						tmpWdID = rst.getInt("wdid");
 						person.noDays++;
 					}
 					if (byService) {
-						if (tmpSrvID != rst.getShort("SRID")) {
-							tmpSrvID = rst.getShort("SRID");
+						if (tmpSrvID != rst.getShort("srid")) {
+							tmpSrvID = rst.getShort("srid");
 							prsSrvce = person.services.get(tmpSrvID);
 							if (prsSrvce == null) {
 								prsSrvce = new DataSrvce();
-								prsSrvce.name = rst.getString("SRNM");
+								prsSrvce.name = rst.getString("srnm");
 								person.services.put(tmpSrvID, prsSrvce);
 							}
 							service = services.get(tmpSrvID);
@@ -393,12 +399,12 @@ class NWorkdays extends NBase {
 							}
 						}
 					} else {
-						if (tmpSrvID != rst.getShort("SBID")) {
-							tmpSrvID = rst.getShort("SBID");
+						if (tmpSrvID != rst.getShort("sbid")) {
+							tmpSrvID = rst.getShort("sbid");
 							prsSrvce = person.services.get(tmpSrvID);
 							if (prsSrvce == null) {
 								prsSrvce = new DataSrvce();
-								prsSrvce.name = rst.getString("SBNM");
+								prsSrvce.name = rst.getString("sbnm");
 								person.services.put(tmpSrvID, prsSrvce);
 							}
 							service = services.get(tmpSrvID);
@@ -495,7 +501,7 @@ class NWorkdays extends NBase {
 						y[i] = list.get(i).noDays;
 					}
 				}
-				chartBar.setChart(x, y, "Workdays Distribution");
+				chartBar.setChart(x, y, "Workdays");
 			}
 			pj.statusBar.setMessage("Workdays " + pj.dates.formatter(timeFrom, LDates.FORMAT_DATELONG) + " - "
 					+ pj.dates.formatter(timeTo, LDates.FORMAT_DATELONG));

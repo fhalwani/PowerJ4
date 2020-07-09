@@ -23,7 +23,11 @@ class IRenderDouble extends JLabel implements TableCellRenderer {
 			int column) {
 		try {
 			if (value instanceof Double) {
-				setText(numbers.formatDouble(noFractions, (Double) value));
+				if ((Double) value != 0.0) {
+					setText(numbers.formatDouble(noFractions, (Double) value));
+				} else {
+					setText("");
+				}
 			} else {
 				setText(value.toString());
 			}

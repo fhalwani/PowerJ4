@@ -32,8 +32,18 @@ class IToolBar extends JToolBar {
 	static final byte TB_SPIN = 13;
 	static final byte TB_FILTER = 14;
 	static final byte TB_INTERVAL = 15;
+	static final byte TB_DATA = 16;
 	static final byte TB_DAILY = 1;
 	static final byte TB_WEEKLY = 2;
+	static final byte TB_CASES = 1;
+	static final byte TB_SPECS = 2;
+	static final byte TB_BLOCKS = 3;
+	static final byte TB_SLIDES = 4;
+	static final byte TB_VALUE1 = 5;
+	static final byte TB_VALUE2 = 6;
+	static final byte TB_VALUE3 = 7;
+	static final byte TB_VALUE4 = 8;
+	static final byte TB_VALUE5 = 9;
 	AClient pj;
 	NBase pnlCore;
 
@@ -44,11 +54,11 @@ class IToolBar extends JToolBar {
 		createPanel();
 	}
 
-	IToolBar(NBase panel, Calendar start, Calendar end, Calendar min, Calendar max, boolean rows) {
+	IToolBar(NBase panel, Calendar start, Calendar end, Calendar min, Calendar max, byte[] rowsView) {
 		super();
 		this.pnlCore = panel;
 		this.pj = panel.pj;
-		createPanel(start, end, min, max, rows);
+		createPanel(start, end, min, max, rowsView);
 	}
 
 	private void createPanel() {
@@ -62,9 +72,6 @@ class IToolBar extends JToolBar {
 			if (!((pj.userID == -222 || pj.userID == -111) && pj.autoLogin)) {
 				addStatus();
 			}
-			break;
-		case LConstants.ACTION_DISTRIBUTE:
-			addFacility();
 			break;
 		case LConstants.ACTION_FINALS:
 			addFacility();
@@ -125,21 +132,29 @@ class IToolBar extends JToolBar {
 		}
 	}
 
-	private void createPanel(Calendar start, Calendar end, Calendar min, Calendar max, boolean rows) {
+	private void createPanel(Calendar start, Calendar end, Calendar min, Calendar max, byte[] rowsView) {
 		setAlignmentX(Component.LEFT_ALIGNMENT);
 		switch (pj.pnlID) {
+		case LConstants.ACTION_DISTRIBUTE:
+			addFacility();
+			addSpecialty();
+			addDates(start, end, min, max);
+			addField();
+			addGo();
+			break;
 		case LConstants.ACTION_FORECAST:
 			addFacility();
 			addDates(start, end, min, max);
-			if (rows)
-				addRows();
+			if (rowsView != null) {
+				addRows(rowsView, IComboRows.PNL_LOAD);
+			}
 			addGo();
 			break;
 		case LConstants.ACTION_SPECIMEN:
-			addFacility();
 			addDates(start, end, min, max);
-			if (rows)
-				addRows();
+			if (rowsView != null) {
+				addRows(rowsView, IComboRows.PNL_SPEC);
+			}
 			addGo();
 			break;
 		case LConstants.ACTION_WORKDAYS:
@@ -150,11 +165,10 @@ class IToolBar extends JToolBar {
 			break;
 		default:
 			// Workload
-			if (rows)
-				addFacility();
 			addDates(start, end, min, max);
-			if (rows)
-				addRows();
+			if (rowsView != null) {
+				addRows(rowsView, IComboRows.PNL_LOAD);
+			}
 			addGo();
 			break;
 		}
@@ -235,6 +249,35 @@ class IToolBar extends JToolBar {
 			}
 		});
 		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_F, "Facility: ");
+		label.setLabelFor(cbo);
+		add(label);
+		add(cbo);
+	}
+
+	private void addField() {
+		OItem[] list = new OItem[9];
+		list[0] = new OItem(TB_CASES, "Cases");
+		list[1] = new OItem(TB_SPECS, "Specimens");
+		list[2] = new OItem(TB_BLOCKS, "Blocks");
+		list[3] = new OItem(TB_SLIDES, "Slides");
+		list[4] = new OItem(TB_VALUE1, pj.setup.getString(LSetup.VAR_CODER1_NAME));
+		list[5] = new OItem(TB_VALUE2, pj.setup.getString(LSetup.VAR_CODER2_NAME));
+		list[6] = new OItem(TB_VALUE3, pj.setup.getString(LSetup.VAR_CODER3_NAME));
+		list[7] = new OItem(TB_VALUE4, pj.setup.getString(LSetup.VAR_CODER4_NAME));
+		list[8] = new OItem(TB_VALUE5, pj.setup.getString(LSetup.VAR_V5_NAME));
+		IComboBox cbo = new IComboBox();
+		cbo.setName("Status");
+		cbo.setModel(list);
+		cbo.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					IComboBox cb = (IComboBox) e.getSource();
+					pnlCore.setFilter(TB_DATA, cb.getIndex());
+				}
+			}
+		});
+		JLabel label = IGUI.createJLabel(SwingConstants.RIGHT, KeyEvent.VK_D, "Data: ");
 		label.setLabelFor(cbo);
 		add(label);
 		add(cbo);
@@ -348,22 +391,8 @@ class IToolBar extends JToolBar {
 		add(cbo);
 	}
 
-	private void addRows() {
-		int[] rowsView = new int[5];
-		if (pj.userAccess[LConstants.ACCESS_NAMES]) {
-			rowsView[0] = IPanelRows.ROW_FACILITY;
-			rowsView[1] = IPanelRows.ROW_SPECIALTY;
-			rowsView[2] = IPanelRows.ROW_SUBSPECIAL;
-			rowsView[3] = IPanelRows.ROW_PROCEDURE;
-			rowsView[4] = IPanelRows.ROW_STAFF;
-		} else {
-			rowsView[0] = IPanelRows.ROW_STAFF;
-			rowsView[1] = IPanelRows.ROW_FACILITY;
-			rowsView[2] = IPanelRows.ROW_SPECIALTY;
-			rowsView[3] = IPanelRows.ROW_SUBSPECIAL;
-			rowsView[4] = IPanelRows.ROW_PROCEDURE;
-		}
-		IComboRows cboRows = new IComboRows(rowsView);
+	private void addRows(byte[] rowsView, byte parent) {
+		IComboRows cboRows = new IComboRows(rowsView, parent);
 		cboRows.setName("Rows");
 		cboRows.addItemListener(new ItemListener() {
 			@Override

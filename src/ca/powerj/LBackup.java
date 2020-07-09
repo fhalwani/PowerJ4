@@ -17,7 +17,6 @@ import javax.swing.JFileChooser;
 
 class LBackup {
 	private int noRows = 0;
-	private int fileNo = 1;
 	private final String tab = "\t";
 	private String dataDir = "";
 	private String fileName = "";
@@ -148,7 +147,7 @@ class LBackup {
 	private void backupAccessions() throws SQLException, IOException {
 		fileName = dataDir + "accessions.txt";
 		input = "%d\t%d\t%s\t%s\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Accessions ORDER BY ACID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM accessions ORDER BY acid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -156,8 +155,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("ACID"), rst.getShort("SYID"), rst.getString("ACFL"),
-						rst.getString("ACLD"), rst.getString("ACNM"));
+				output = String.format(input, rst.getShort("acid"), rst.getShort("syid"), rst.getString("acfl"),
+						rst.getString("acld"), formatString(rst.getString("acnm")));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -170,7 +169,7 @@ class LBackup {
 	private void backupAdditionals() throws SQLException, IOException {
 		fileName = dataDir + "additionals.txt";
 		input = "%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Additionals ORDER BY CAID, PRID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM additionals ORDER BY caid, prid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -178,11 +177,18 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getLong("CAID"), rst.getShort("PRID"), rst.getShort("ADCD"),
-						rst.getInt("ADV5"), rst.getTimestamp("ADDT").getTime(), rst.getDouble("ADV1"),
-						rst.getDouble("ADV2"), rst.getDouble("ADV3"), rst.getDouble("ADV4"));
+				output = String.format(input, rst.getLong("caid"), rst.getShort("prid"), rst.getShort("adcd"),
+						rst.getInt("adv5"), rst.getTimestamp("addt").getTime(), rst.getDouble("adv1"),
+						rst.getDouble("adv2"), rst.getDouble("adv3"), rst.getDouble("adv4"));
 				fos.write(output.getBytes());
 				noRows++;
+				if (noRows % 2000 == 0) {
+					pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Additionals Table.", noRows));
+					try {
+						Thread.sleep(LConstants.SLEEP_TIME);
+					} catch (InterruptedException e) {
+					}
+				}
 			}
 			pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Additionals Table.", noRows));
 		}
@@ -194,7 +200,7 @@ class LBackup {
 		fileName = dataDir + "cases.txt";
 		input = "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t"
 				+ "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Cases ORDER BY CAID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM cases ORDER BY caid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -202,18 +208,25 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getLong("CAID"), rst.getShort("FAID"), rst.getShort("SBID"),
-						rst.getShort("SMID"), rst.getShort("GRID"), rst.getShort("EMID"), rst.getShort("MIID"),
-						rst.getShort("ROID"), rst.getShort("FNID"), rst.getShort("GRTA"), rst.getShort("EMTA"),
-						rst.getShort("MITA"), rst.getShort("ROTA"), rst.getShort("FNTA"), rst.getShort("CASP"),
-						rst.getShort("CABL"), rst.getShort("CASL"), rst.getShort("CASY"), rst.getShort("CAFS"),
-						rst.getShort("CAHE"), rst.getShort("CASS"), rst.getShort("CAIH"), rst.getShort("CAMO"),
-						rst.getShort("CAV5"), rst.getTimestamp("ACED").getTime(), rst.getTimestamp("GRED").getTime(),
-						rst.getTimestamp("EMED").getTime(), rst.getTimestamp("MIED").getTime(),
-						rst.getTimestamp("ROED").getTime(), rst.getTimestamp("FNED").getTime(), rst.getDouble("CAV1"),
-						rst.getDouble("CAV2"), rst.getDouble("CAV3"), rst.getDouble("CAV4"), rst.getString("CANO"));
+				output = String.format(input, rst.getLong("caid"), rst.getShort("faid"), rst.getShort("sbid"),
+						rst.getShort("smid"), rst.getShort("grid"), rst.getShort("emid"), rst.getShort("miid"),
+						rst.getShort("roid"), rst.getShort("fnid"), rst.getShort("grta"), rst.getShort("emta"),
+						rst.getShort("mita"), rst.getShort("rota"), rst.getShort("fnta"), rst.getShort("casp"),
+						rst.getShort("cabl"), rst.getShort("casl"), rst.getShort("casy"), rst.getShort("cafs"),
+						rst.getShort("cahe"), rst.getShort("cass"), rst.getShort("caih"), rst.getShort("camo"),
+						rst.getShort("cav5"), rst.getTimestamp("aced").getTime(), rst.getTimestamp("gred").getTime(),
+						rst.getTimestamp("emed").getTime(), rst.getTimestamp("mied").getTime(),
+						rst.getTimestamp("roed").getTime(), rst.getTimestamp("fned").getTime(), rst.getDouble("cav1"),
+						rst.getDouble("cav2"), rst.getDouble("cav3"), rst.getDouble("cav4"), rst.getString("cano"));
 				fos.write(output.getBytes());
 				noRows++;
+				if (noRows % 2000 == 0) {
+					pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Cases Table.", noRows));
+					try {
+						Thread.sleep(LConstants.SLEEP_TIME);
+					} catch (InterruptedException e) {
+					}
+				}
 			}
 			pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Cases Table.", noRows));
 		}
@@ -226,11 +239,11 @@ class LBackup {
 	}
 
 	private void backupCoders() throws SQLException, IOException {
-		String[] tables = { "Coder1", "Coder2", "Coder3", "Coder4" };
+		String[] tables = { "coder1", "coder2", "coder3", "coder4" };
 		input = "%d\t%d\t%d\t%f\t%f\t%f\t%s\t%s\n";
 		for (int i = 0; i < 4; i++) {
 			fileName = dataDir + tables[i].toLowerCase() + ".txt";
-			rst = pj.dbPowerJ.getResultSet("SELECT * FROM " + tables[i] + " ORDER BY COID");
+			rst = pj.dbPowerJ.getResultSet("SELECT * FROM " + tables[i] + " ORDER BY coid");
 			file = new File(fileName);
 			if (!file.exists())
 				file.createNewFile();
@@ -238,9 +251,9 @@ class LBackup {
 				noRows = 0;
 				fos = new FileOutputStream(file);
 				while (rst.next()) {
-					output = String.format(input, rst.getShort("COID"), rst.getShort("RUID"), rst.getShort("COQY"),
-							rst.getDouble("COV1"), rst.getDouble("COV2"), rst.getDouble("COV3"), rst.getString("CONM"),
-							rst.getString("CODC"));
+					output = String.format(input, rst.getShort("coid"), rst.getShort("ruid"), rst.getShort("coqy"),
+							rst.getDouble("cov1"), rst.getDouble("cov2"), rst.getDouble("cov3"), rst.getString("conm"),
+							formatLines(rst.getString("codc")));
 					fos.write(output.getBytes());
 					noRows++;
 				}
@@ -254,7 +267,7 @@ class LBackup {
 	private void backupComments() throws SQLException, IOException {
 		fileName = dataDir + "comments.txt";
 		input = "%d\t%s\t%s\t%s\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Comments ORDER BY CAID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM comments ORDER BY caid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -262,11 +275,18 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getLong("CAID"), formatLines(rst.getString("COM1")),
-						formatLines(rst.getString("COM2")), formatLines(rst.getString("COM3")),
-						formatLines(rst.getString("COM4")));
+				output = String.format(input, rst.getLong("caid"), formatLines(rst.getString("com1")),
+						formatLines(rst.getString("com2")), formatLines(rst.getString("com3")),
+						formatLines(rst.getString("com4")));
 				fos.write(output.getBytes());
 				noRows++;
+				if (noRows % 2000 == 0) {
+					pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Comments Table.", noRows));
+					try {
+						Thread.sleep(LConstants.SLEEP_TIME);
+					} catch (InterruptedException e) {
+					}
+				}
 			}
 			pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Comments Table.", noRows));
 		}
@@ -276,7 +296,7 @@ class LBackup {
 
 	private void backupErrors() throws SQLException, IOException {
 		fileName = dataDir + "errors.txt";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Errors ORDER BY CAID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM errors ORDER BY caid");
 		input = "%d\t%d\t%s\t%s\n";
 		file = new File(fileName);
 		if (!file.exists())
@@ -285,10 +305,17 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getLong("CAID"), rst.getShort("ERID"), rst.getString("CANO"),
-						formatLines(rst.getString("ERDC")));
+				output = String.format(input, rst.getLong("caid"), rst.getShort("erid"), rst.getString("cano"),
+						formatLines(rst.getString("erdc")));
 				fos.write(output.getBytes());
 				noRows++;
+				if (noRows % 2000 == 0) {
+					pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Errors Table.", noRows));
+					try {
+						Thread.sleep(LConstants.SLEEP_TIME);
+					} catch (InterruptedException e) {
+					}
+				}
 			}
 			pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Errors Table.", noRows));
 		}
@@ -299,7 +326,7 @@ class LBackup {
 	private void backupFacilities() throws SQLException, IOException {
 		fileName = dataDir + "facilities.txt";
 		input = "%d\t%s\t%s\t%s\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Facilities ORDER BY FAID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM facilities ORDER BY faid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -307,8 +334,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("FAID"), rst.getString("FAFL"), rst.getString("FALD"),
-						rst.getString("FANM"), rst.getString("FADC"));
+				output = String.format(input, rst.getShort("faid"), rst.getString("fafl"), rst.getString("fald"),
+						rst.getString("fanm"), formatString(rst.getString("fadc")));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -321,7 +348,7 @@ class LBackup {
 	private void backupFrozens() throws SQLException, IOException {
 		fileName = dataDir + "frozens.txt";
 		input = "%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Frozens ORDER BY SPID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM frozens ORDER BY spid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -329,11 +356,18 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getLong("SPID"), rst.getShort("PRID"), rst.getShort("FRBL"),
-						rst.getShort("FRSL"), rst.getInt("FRV5"), rst.getDouble("FRV1"), rst.getDouble("FRV2"),
-						rst.getDouble("FRV3"), rst.getDouble("FRV4"));
+				output = String.format(input, rst.getLong("spid"), rst.getShort("prid"), rst.getShort("frbl"),
+						rst.getShort("frsl"), rst.getInt("frv5"), rst.getDouble("frv1"), rst.getDouble("frv2"),
+						rst.getDouble("frv3"), rst.getDouble("frv4"));
 				fos.write(output.getBytes());
 				noRows++;
+				if (noRows % 2000 == 0) {
+					pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Frozens Table.", noRows));
+					try {
+						Thread.sleep(LConstants.SLEEP_TIME);
+					} catch (InterruptedException e) {
+					}
+				}
 			}
 			pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Frozens Table.", noRows));
 		}
@@ -344,7 +378,7 @@ class LBackup {
 	private void backupOrderGroups() throws SQLException, IOException {
 		fileName = dataDir + "ordergroups.txt";
 		input = "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM OrderGroups ORDER BY OGID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM ordergroups ORDER BY ogid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -352,9 +386,9 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("OGID"), rst.getShort("OTID"), rst.getShort("OGC1"),
-						rst.getShort("OGC2"), rst.getShort("OGC3"), rst.getShort("OGC4"), rst.getInt("OGC5"),
-						rst.getString("OGNM"), rst.getString("OGDC"));
+				output = String.format(input, rst.getShort("ogid"), rst.getShort("otid"), rst.getShort("ogc1"),
+						rst.getShort("ogc2"), rst.getShort("ogc3"), rst.getShort("ogc4"), rst.getInt("ogc5"),
+						rst.getString("ognm"), formatString(rst.getString("ogdc")));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -367,7 +401,7 @@ class LBackup {
 	private void backupOrderMaster() throws SQLException, IOException {
 		fileName = dataDir + "ordermaster.txt";
 		input = "%d\t%d\t%s\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM OrderMaster ORDER BY OMID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM ordermaster ORDER BY omid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -375,8 +409,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("OMID"), rst.getShort("OGID"), rst.getString("OMNM"),
-						rst.getString("OMDC"));
+				output = String.format(input, rst.getShort("omid"), rst.getShort("ogid"), rst.getString("omnm"),
+						formatString(rst.getString("omdc")));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -389,7 +423,7 @@ class LBackup {
 	private void backupOrderTypes() throws SQLException, IOException {
 		fileName = dataDir + "ordertypes.txt";
 		input = "%d\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM OrderTypes ORDER BY OTID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM OrderTypes ORDER BY otid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -397,7 +431,7 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("OTID"), rst.getString("OTNM"));
+				output = String.format(input, rst.getShort("otid"), rst.getString("otnm"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -410,7 +444,7 @@ class LBackup {
 	private void backupOrders() throws SQLException, IOException {
 		fileName = dataDir + "orders.txt";
 		input = "%d\t%d\t%d\t%f\t%f\t%f\t%f\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Orders ORDER BY SPID, OGID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM orders ORDER BY spid, ogid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -418,10 +452,17 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getLong("SPID"), rst.getShort("OGID"), rst.getShort("ORQY"),
-						rst.getDouble("ORV1"), rst.getDouble("ORV2"), rst.getDouble("ORV3"), rst.getDouble("ORV4"));
+				output = String.format(input, rst.getLong("spid"), rst.getShort("ogid"), rst.getShort("orqy"),
+						rst.getDouble("orv1"), rst.getDouble("orv2"), rst.getDouble("orv3"), rst.getDouble("orv4"));
 				fos.write(output.getBytes());
 				noRows++;
+				if (noRows % 2000 == 0) {
+					pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Orders Table.", noRows));
+					try {
+						Thread.sleep(LConstants.SLEEP_TIME);
+					} catch (InterruptedException e) {
+					}
+				}
 			}
 			pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Orders Table.", noRows));
 		}
@@ -432,7 +473,7 @@ class LBackup {
 	private void backupPending() throws SQLException, IOException {
 		fileName = dataDir + "pending.txt";
 		input = "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Pending ORDER BY PNID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM pending ORDER BY pnid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -440,16 +481,23 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getLong("PNID"), rst.getShort("FAID"), rst.getShort("SBID"),
-						rst.getShort("SMID"), rst.getShort("POID"), rst.getShort("GRID"), rst.getShort("EMID"),
-						rst.getShort("MIID"), rst.getShort("ROID"), rst.getShort("FNID"), rst.getShort("GRTA"),
-						rst.getShort("EMTA"), rst.getShort("MITA"), rst.getShort("ROTA"), rst.getShort("FNTA"),
-						rst.getShort("PNST"), rst.getShort("PNSP"), rst.getShort("PNBL"), rst.getShort("PNSL"),
-						rst.getInt("PNV5"), rst.getTimestamp("ACED").getTime(), rst.getTimestamp("GRED").getTime(),
-						rst.getTimestamp("EMED").getTime(), rst.getTimestamp("MIED").getTime(),
-						rst.getTimestamp("ROED").getTime(), rst.getTimestamp("FNED").getTime(), rst.getString("PNNO"));
+				output = String.format(input, rst.getLong("pnid"), rst.getShort("faid"), rst.getShort("sbid"),
+						rst.getShort("smid"), rst.getShort("poid"), rst.getShort("grid"), rst.getShort("emid"),
+						rst.getShort("miid"), rst.getShort("roid"), rst.getShort("fnid"), rst.getShort("grta"),
+						rst.getShort("emta"), rst.getShort("mita"), rst.getShort("rota"), rst.getShort("fnta"),
+						rst.getShort("pnst"), rst.getShort("pnsp"), rst.getShort("pnbl"), rst.getShort("pnsl"),
+						rst.getInt("pnv5"), rst.getTimestamp("aced").getTime(), rst.getTimestamp("gred").getTime(),
+						rst.getTimestamp("emed").getTime(), rst.getTimestamp("mied").getTime(),
+						rst.getTimestamp("roed").getTime(), rst.getTimestamp("fned").getTime(), rst.getString("pnno"));
 				fos.write(output.getBytes());
 				noRows++;
+				if (noRows % 2000 == 0) {
+					pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Pending Table.", noRows));
+					try {
+						Thread.sleep(LConstants.SLEEP_TIME);
+					} catch (InterruptedException e) {
+					}
+				}
 			}
 			pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Pending Table.", noRows));
 		}
@@ -460,7 +508,7 @@ class LBackup {
 	private void backupPersons() throws SQLException, IOException {
 		fileName = dataDir + "persons.txt";
 		input = "%d\t%d\t%d\t%s\t%s\t%s\t%s\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Persons ORDER BY PRID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM persons ORDER BY prid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -468,9 +516,9 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("PRID"), rst.getInt("PRVL"), rst.getDate("PRDT").getTime(),
-						rst.getString("PRCD"), rst.getString("PRAC"), rst.getString("PRNM"), rst.getString("PRLS"),
-						rst.getString("PRFR"));
+				output = String.format(input, rst.getShort("prid"), rst.getInt("prvl"), rst.getDate("prdt").getTime(),
+						rst.getString("prcd"), rst.getString("prac"), rst.getString("prnm"), formatString(rst.getString("prls")),
+						formatString(rst.getString("prfr")));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -483,7 +531,7 @@ class LBackup {
 	private void backupProcedures() throws SQLException, IOException {
 		fileName = dataDir + "procedures.txt";
 		input = "%d\t%s\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Procedures ORDER BY POID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM procedures ORDER BY poid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -491,7 +539,7 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("POID"), rst.getString("PONM"), rst.getString("PODC"));
+				output = String.format(input, rst.getShort("poid"), rst.getString("ponm"), formatString(rst.getString("podc")));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -504,7 +552,7 @@ class LBackup {
 	private void backupRules() throws SQLException, IOException {
 		fileName = dataDir + "rules.txt";
 		input = "%d\t%s\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Rules ORDER BY RUID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM rules ORDER BY ruid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -512,7 +560,7 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("RUID"), rst.getString("RUNM"), rst.getString("RUDC"));
+				output = String.format(input, rst.getShort("ruid"), rst.getString("runm"), formatLines(rst.getString("rudc")));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -525,7 +573,7 @@ class LBackup {
 	private void backupSchedules() throws SQLException, IOException {
 		fileName = dataDir + "schedules.txt";
 		input = "%d\t%d\t%d\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Schedules ORDER BY WDID, SRID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM schedules ORDER BY wdid, srid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -533,9 +581,16 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getInt("WDID"), rst.getShort("PRID"), rst.getShort("SRID"));
+				output = String.format(input, rst.getInt("wdid"), rst.getShort("prid"), rst.getShort("srid"));
 				fos.write(output.getBytes());
 				noRows++;
+				if (noRows % 2000 == 0) {
+					pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Schedules Table.", noRows));
+					try {
+						Thread.sleep(LConstants.SLEEP_TIME);
+					} catch (InterruptedException e) {
+					}
+				}
 			}
 			pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Schedules Table.", noRows));
 		}
@@ -546,7 +601,7 @@ class LBackup {
 	private void backupServices() throws SQLException, IOException {
 		fileName = dataDir + "services.txt";
 		input = "%d\t%d\t%d\t%d\t%s\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Services ORDER BY SRID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM services ORDER BY srid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -554,8 +609,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("SRID"), rst.getShort("FAID"), rst.getShort("SBID"),
-						rst.getShort("SRCD"), rst.getString("SRNM"), rst.getString("SRDC"));
+				output = String.format(input, rst.getShort("srid"), rst.getShort("faid"), rst.getShort("sbid"),
+						rst.getShort("srcd"), rst.getString("srnm"), formatString(rst.getString("srdc")));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -568,7 +623,7 @@ class LBackup {
 	private void backupSetup() throws SQLException, IOException {
 		fileName = dataDir + "setup.txt";
 		input = "%d\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Setup ORDER BY STID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM setup ORDER BY stid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -576,11 +631,11 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("STID"), rst.getString("STVA"));
+				output = String.format(input, rst.getShort("stid"), formatLines(rst.getString("stva")));
 				fos.write(output.getBytes());
 				noRows++;
 			}
-			pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Setup Table.", noRows));
+			pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from setup Table.", noRows));
 		}
 		rst.close();
 		fos.close();
@@ -589,7 +644,7 @@ class LBackup {
 	private void backupSpecialties() throws SQLException, IOException {
 		fileName = dataDir + "specialties.txt";
 		input = "%d\t%s\t%s\t%s\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Specialties ORDER BY SYID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM specialties ORDER BY syid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -597,8 +652,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("SYID"), rst.getString("SYFL"), rst.getString("SYLD"),
-						rst.getString("SYSP"), rst.getString("SYNM"));
+				output = String.format(input, rst.getShort("syid"), rst.getString("syfl"), rst.getString("syld"),
+						rst.getString("sysp"), formatString(rst.getString("synm")));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -611,7 +666,7 @@ class LBackup {
 	private void backupSpecimens() throws SQLException, IOException {
 		fileName = dataDir + "specimens.txt";
 		input = "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Specimens ORDER BY SPID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM specimens ORDER BY spid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -619,13 +674,20 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getLong("SPID"), rst.getLong("CAID"), rst.getShort("SMID"),
-						rst.getShort("SPBL"), rst.getShort("SPSL"), rst.getShort("SPFR"), rst.getShort("SPHE"),
-						rst.getShort("SPSS"), rst.getShort("SPIH"), rst.getShort("SPMO"), rst.getInt("SPV5"),
-						rst.getDouble("SPV1"), rst.getDouble("SPV2"), rst.getDouble("SPV3"), rst.getDouble("SPV4"),
-						rst.getString("SPDC"));
+				output = String.format(input, rst.getLong("spid"), rst.getLong("caid"), rst.getShort("smid"),
+						rst.getShort("spbl"), rst.getShort("spsl"), rst.getShort("spfr"), rst.getShort("sphe"),
+						rst.getShort("spss"), rst.getShort("spih"), rst.getShort("spmo"), rst.getInt("spv5"),
+						rst.getDouble("spv1"), rst.getDouble("spv2"), rst.getDouble("spv3"), rst.getDouble("spv4"),
+						formatString(rst.getString("spdc")));
 				fos.write(output.getBytes());
 				noRows++;
+				if (noRows % 2000 == 0) {
+					pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Specimens Table.", noRows));
+					try {
+						Thread.sleep(LConstants.SLEEP_TIME);
+					} catch (InterruptedException e) {
+					}
+				}
 			}
 			pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Specimens Table.", noRows));
 		}
@@ -636,7 +698,7 @@ class LBackup {
 	private void backupSpeciGroups() throws SQLException, IOException {
 		fileName = dataDir + "specimengroups.txt";
 		input = "%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM SpeciGroups ORDER BY SGID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM specigroups ORDER BY sgid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -644,11 +706,11 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("SGID"), rst.getShort("SBID"), rst.getShort("POID"),
-						rst.getShort("SG1B"), rst.getShort("SG1M"), rst.getShort("SG1R"), rst.getShort("SG2B"),
-						rst.getShort("SG2M"), rst.getShort("SG2R"), rst.getShort("SG3B"), rst.getShort("SG3M"),
-						rst.getShort("SG3R"), rst.getShort("SG4B"), rst.getShort("SG4M"), rst.getShort("SG4R"),
-						rst.getInt("SGV5"), rst.getString("SGLN"), rst.getString("SGDC"));
+				output = String.format(input, rst.getShort("sgid"), rst.getShort("sbid"), rst.getShort("poid"),
+						rst.getShort("sg1b"), rst.getShort("sg1m"), rst.getShort("sg1r"), rst.getShort("sg2b"),
+						rst.getShort("sg2m"), rst.getShort("sg2r"), rst.getShort("sg3b"), rst.getShort("sg3m"),
+						rst.getShort("sg3r"), rst.getShort("sg4b"), rst.getShort("sg4m"), rst.getShort("sg4r"),
+						rst.getInt("sgv5"), rst.getString("sgln"), formatString(rst.getString("sgdc")));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -661,7 +723,7 @@ class LBackup {
 	private void backupSpeciMaster() throws SQLException, IOException {
 		fileName = dataDir + "specimenmaster.txt";
 		input = "%d\t%d\t%d\t%s\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM SpeciMaster ORDER BY SMID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM specimaster ORDER BY smid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -669,8 +731,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("SMID"), rst.getShort("SGID"), rst.getShort("TAID"),
-						rst.getString("SMNM"), rst.getString("SMDC"));
+				output = String.format(input, rst.getShort("smid"), rst.getShort("sgid"), rst.getShort("taid"),
+						rst.getString("smnm"), formatString(rst.getString("smdc")));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -683,7 +745,7 @@ class LBackup {
 	private void backupSubspecial() throws SQLException, IOException {
 		fileName = dataDir + "subspecialties.txt";
 		input = "%d\t%d\t%s\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Subspecial ORDER BY SBID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM subspecial ORDER BY sbid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -691,8 +753,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("SBID"), rst.getShort("SYID"), rst.getString("SBNM"),
-						rst.getString("SBDC"));
+				output = String.format(input, rst.getShort("sbid"), rst.getShort("syid"), rst.getString("sbnm"),
+						formatString(rst.getString("sbdc")));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -705,7 +767,7 @@ class LBackup {
 	private void backupTurnaround() throws SQLException, IOException {
 		fileName = dataDir + "turnaround.txt";
 		input = "%d\t%d\t%d\t%d\t%d\t%d\t%s\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Turnaround ORDER BY TAID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM turnaround ORDER BY taid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -713,8 +775,8 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getShort("TAID"), rst.getShort("GRSS"), rst.getShort("EMBD"),
-						rst.getShort("MICR"), rst.getShort("ROUT"), rst.getShort("FINL"), rst.getString("TANM"));
+				output = String.format(input, rst.getShort("taid"), rst.getShort("grss"), rst.getShort("embd"),
+						rst.getShort("micr"), rst.getShort("rout"), rst.getShort("finl"), rst.getString("tanm"));
 				fos.write(output.getBytes());
 				noRows++;
 			}
@@ -727,7 +789,7 @@ class LBackup {
 	private void backupWorkdays() throws SQLException, IOException {
 		fileName = dataDir + "workdays.txt";
 		input = "%d\t%d\t%s\t%d\n";
-		rst = pj.dbPowerJ.getResultSet("SELECT * FROM Workdays ORDER BY WDID");
+		rst = pj.dbPowerJ.getResultSet("SELECT * FROM workdays ORDER BY wdid");
 		file = new File(fileName);
 		if (!file.exists())
 			file.createNewFile();
@@ -735,10 +797,17 @@ class LBackup {
 			noRows = 0;
 			fos = new FileOutputStream(file);
 			while (rst.next()) {
-				output = String.format(input, rst.getInt("WDID"), rst.getInt("WDNO"), rst.getString("WDTP"),
-						rst.getDate("WDDT").getTime());
+				output = String.format(input, rst.getInt("wdid"), rst.getInt("wdno"), rst.getString("wdtp"),
+						rst.getDate("wddt").getTime());
 				fos.write(output.getBytes());
 				noRows++;
+				if (noRows % 2000 == 0) {
+					pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Workdays Table.", noRows));
+					try {
+						Thread.sleep(LConstants.SLEEP_TIME);
+					} catch (InterruptedException e) {
+					}
+				}
 			}
 			pj.log(LConstants.ERROR_NONE, String.format("Saved %d rows from Workdays Table.", noRows));
 		}
@@ -775,55 +844,92 @@ class LBackup {
 	}
 
 	private String formatLines(String in) {
-		return in.replaceAll("\\", "\\\\");
+		return in.replaceAll("\n", "}]").replaceAll("\t", "]}").replaceAll("\\\\", "]]");
+	}
+
+	private String formatString(String in) {
+		return in.replaceAll("\n", " ").replaceAll("\t", " ").replaceAll("\\\\", " ");
 	}
 
 	void restore() {
 		try {
 			pj.setBusy(true);
 			if (getDir()) {
-				for (int i = 0; i < 15; i++) {
+				for (int i = 23; i < 26; i++) {
 					switch (i) {
 					case 0:
-						restoreFacilities();
+						restoreSetup();
 						break;
 					case 1:
-						restorePersons();
+						restoreWorkdays();
 						break;
 					case 2:
-						restoreAccessions();
+						restoreProcedures();
 						break;
 					case 3:
-						restoreOrderMaster();
+						restoreRules();
 						break;
 					case 4:
-						restoreSpeciMaster();
+						restoreSpecialties();
 						break;
 					case 5:
-						restoreServices();
+						restoreSubspecial();
 						break;
 					case 6:
-						restoreSchedules();
+						restoreCoders();
 						break;
 					case 7:
-						restorePending();
+						restoreTurnaround();
 						break;
 					case 8:
-						restoreCases();
+						restoreOrderTypes();
 						break;
 					case 9:
-						restoreSpecimens();
+						restoreOrderGroups();
 						break;
 					case 10:
-						restoreOrders();
+						restoreSpecimenGroups();
 						break;
 					case 11:
-						restoreFrozens();
+						restoreFacilities();
 						break;
 					case 12:
-						restoreAdditionals();
+						restorePersons();
 						break;
 					case 13:
+						restoreAccessions();
+						break;
+					case 14:
+						restoreOrderMaster();
+						break;
+					case 15:
+						restoreSpecimenMaster();
+						break;
+					case 16:
+						restoreServices();
+						break;
+					case 17:
+						restoreSchedules();
+						break;
+					case 18:
+						restorePending();
+						break;
+					case 19:
+						restoreCases();
+						break;
+					case 20:
+						restoreSpecimens();
+						break;
+					case 21:
+						restoreOrders();
+						break;
+					case 22:
+						restoreFrozens();
+						break;
+					case 23:
+						restoreAdditionals();
+						break;
+					case 24:
 						restoreComments();
 						break;
 					default:
@@ -837,21 +943,24 @@ class LBackup {
 				pj.log(LConstants.ERROR_NONE, "Restore completed successfully.");
 			}
 		} catch (SQLException e) {
-			pj.log(LConstants.ERROR_SQL, "Backup", e);
+			pj.log(LConstants.ERROR_SQL, "Restore", e);
 		} catch (NumberFormatException e) {
-			pj.log(LConstants.ERROR_NUMBER_FORMAT, "Backup", e);
+			pj.log(LConstants.ERROR_NUMBER_FORMAT, "Restore", e);
 		} catch (NullPointerException e) {
-			pj.log(LConstants.ERROR_NULL, "Backup", e);
+			pj.log(LConstants.ERROR_NULL, "Restore", e);
 		} catch (FileNotFoundException e) {
-			pj.log(LConstants.ERROR_FILE_NOT_FOUND, "Backup", e);
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, "Restore", e);
 		} catch (Exception e) {
-			pj.log(LConstants.ERROR_UNEXPECTED, "Backup", e);
+			pj.log(LConstants.ERROR_UNEXPECTED, "Restore", e);
 		} finally {
 			try {
 				pstm.close();
 			} catch (Exception e) {
 			}
-			scanner.close();
+			try {
+				scanner.close();
+			} catch (Exception e) {
+			}
 			pj.setBusy(false);
 		}
 	}
@@ -862,18 +971,17 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ
-					.prepareStatement("INSERT INTO Accessions (ACID, SYID, ACFL, ACLD, ACNM) VALUES (?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_ACC_INSERT));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
 					if (!input.startsWith("-")) {
 						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setShort(2, Short.valueOf(columns[1]));
-						pstm.setString(3, columns[2]);
-						pstm.setString(4, columns[3]);
-						pstm.setString(5, columns[4]);
+						pstm.setShort(1, Short.valueOf(columns[1]));
+						pstm.setString(2, columns[2]);
+						pstm.setString(3, columns[3]);
+						pstm.setString(4, columns[4]);
+						pstm.setShort(5, Short.valueOf(columns[0]));
 						pstm.executeUpdate();
 						noRows++;
 					}
@@ -890,8 +998,7 @@ class LBackup {
 		file = new File(fileName);
 		if (file.exists()) {
 			noRows = 0;
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Additionals (CAID, PRID, ADCD, ADV5, ADDT, ADV1, "
-					+ "ADV2, ADV3, ADV4) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_ADD_INSERT));
 			scanner = new Scanner(new FileReader(fileName));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
@@ -901,18 +1008,25 @@ class LBackup {
 						pstm.setLong(1, Long.valueOf(columns[0]));
 						pstm.setShort(2, Short.valueOf(columns[1]));
 						pstm.setShort(3, Short.valueOf(columns[2]));
-						pstm.setInt(4, Integer.valueOf(columns[3]));
-						pstm.setTimestamp(5, new Timestamp(Long.valueOf(columns[4])));
-						pstm.setDouble(6, Double.valueOf(columns[5]));
-						pstm.setDouble(7, Double.valueOf(columns[6]));
-						pstm.setDouble(8, Double.valueOf(columns[7]));
-						pstm.setDouble(9, Double.valueOf(columns[8]));
+						pstm.setTimestamp(4, new Timestamp(Long.valueOf(columns[4])));
+						pstm.setDouble(5, Double.valueOf(columns[5]));
+						pstm.setDouble(6, Double.valueOf(columns[6]));
+						pstm.setDouble(7, Double.valueOf(columns[7]));
+						pstm.setDouble(8, Double.valueOf(columns[8]));
+						pstm.setInt(9, Integer.valueOf(columns[3]));
 						pstm.executeUpdate();
 						noRows++;
+						if (noRows % 2000 == 0) {
+							pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Additionals Table.", noRows));
+							try {
+								Thread.sleep(LConstants.SLEEP_TIME);
+							} catch (InterruptedException e) {
+							}
+						}
 					}
 				}
 			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %1$8d rows to Additionals Table.", noRows));
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Additionals Table.", noRows));
 			scanner.close();
 			pstm.close();
 		}
@@ -923,53 +1037,57 @@ class LBackup {
 		file = new File(fileName);
 		if (file.exists()) {
 			noRows = 0;
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Cases (CAID, FAID, SBID, SMID, GRID, "
-					+ "EMID, MIID, ROID, FNID, GRTA, EMTA, MITA, ROTA, FNTA, CASP, CABL, CASL, CASY, "
-					+ "CAFS, CAHE, CASS, CAIH, CAMO, CAV5, ACED, GRED, EMED, MIED, ROED, FNED, CAV1, "
-					+ "CAV2, CAV3, CAV4, CANO) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-					+ "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			scanner = new Scanner(new FileReader(fileName));
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_CSE_INSERT));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
 					if (!input.startsWith("-")) {
 						columns = input.split(tab);
-						pstm.setLong(1, Long.valueOf(columns[0]));
-						pstm.setShort(2, Short.valueOf(columns[1]));
-						pstm.setShort(3, Short.valueOf(columns[2]));
-						pstm.setShort(4, Short.valueOf(columns[3]));
-						pstm.setShort(5, Short.valueOf(columns[4]));
-						pstm.setShort(6, Short.valueOf(columns[5]));
-						pstm.setShort(7, Short.valueOf(columns[6]));
-						pstm.setShort(8, Short.valueOf(columns[7]));
-						pstm.setShort(9, Short.valueOf(columns[8]));
-						pstm.setShort(10, Short.valueOf(columns[9]));
-						pstm.setShort(11, Short.valueOf(columns[10]));
-						pstm.setShort(12, Short.valueOf(columns[11]));
-						pstm.setShort(13, Short.valueOf(columns[12]));
-						pstm.setShort(14, Short.valueOf(columns[13]));
-						pstm.setShort(15, Short.valueOf(columns[14]));
-						pstm.setShort(16, Short.valueOf(columns[15]));
-						pstm.setShort(17, Short.valueOf(columns[16]));
-						pstm.setShort(18, Short.valueOf(columns[17]));
-						pstm.setShort(19, Short.valueOf(columns[18]));
-						pstm.setShort(20, Short.valueOf(columns[19]));
-						pstm.setShort(21, Short.valueOf(columns[20]));
-						pstm.setShort(22, Short.valueOf(columns[21]));
-						pstm.setShort(23, Short.valueOf(columns[22]));
-						pstm.setShort(24, Short.valueOf(columns[23]));
-						pstm.setTimestamp(25, new Timestamp(Long.valueOf(columns[24])));
-						pstm.setTimestamp(26, new Timestamp(Long.valueOf(columns[25])));
-						pstm.setTimestamp(27, new Timestamp(Long.valueOf(columns[26])));
-						pstm.setTimestamp(28, new Timestamp(Long.valueOf(columns[27])));
-						pstm.setTimestamp(29, new Timestamp(Long.valueOf(columns[28])));
-						pstm.setTimestamp(30, new Timestamp(Long.valueOf(columns[29])));
-						pstm.setDouble(31, Double.valueOf(columns[30]));
-						pstm.setDouble(32, Double.valueOf(columns[31]));
-						pstm.setDouble(33, Double.valueOf(columns[32]));
-						pstm.setDouble(34, Double.valueOf(columns[33]));
-						pstm.setString(35, columns[34]);
+						pstm.setShort(1, Short.valueOf(columns[1]));
+						pstm.setShort(2, Short.valueOf(columns[2]));
+						pstm.setShort(3, Short.valueOf(columns[3]));
+						pstm.setShort(4, Short.valueOf(columns[4]));
+						pstm.setShort(5, Short.valueOf(columns[5]));
+						pstm.setShort(6, Short.valueOf(columns[6]));
+						pstm.setShort(7, Short.valueOf(columns[7]));
+						pstm.setShort(8, Short.valueOf(columns[8]));
+						pstm.setShort(9, Short.valueOf(columns[9]));
+						pstm.setShort(10, Short.valueOf(columns[10]));
+						pstm.setShort(11, Short.valueOf(columns[11]));
+						pstm.setShort(12, Short.valueOf(columns[12]));
+						pstm.setShort(13, Short.valueOf(columns[13]));
+						pstm.setShort(14, Short.valueOf(columns[14]));
+						pstm.setShort(15, Short.valueOf(columns[15]));
+						pstm.setShort(16, Short.valueOf(columns[16]));
+						pstm.setShort(17, Short.valueOf(columns[17]));
+						pstm.setShort(18, Short.valueOf(columns[18]));
+						pstm.setShort(19, Short.valueOf(columns[19]));
+						pstm.setShort(20, Short.valueOf(columns[20]));
+						pstm.setShort(21, Short.valueOf(columns[21]));
+						pstm.setShort(22, Short.valueOf(columns[22]));
+						pstm.setShort(23, Short.valueOf(columns[23]));
+						pstm.setTimestamp(24, new Timestamp(Long.valueOf(columns[24])));
+						pstm.setTimestamp(25, new Timestamp(Long.valueOf(columns[25])));
+						pstm.setTimestamp(26, new Timestamp(Long.valueOf(columns[26])));
+						pstm.setTimestamp(27, new Timestamp(Long.valueOf(columns[27])));
+						pstm.setTimestamp(28, new Timestamp(Long.valueOf(columns[28])));
+						pstm.setTimestamp(29, new Timestamp(Long.valueOf(columns[29])));
+						pstm.setDouble(30, Double.valueOf(columns[30]));
+						pstm.setDouble(31, Double.valueOf(columns[31]));
+						pstm.setDouble(32, Double.valueOf(columns[32]));
+						pstm.setDouble(33, Double.valueOf(columns[33]));
+						pstm.setString(34, columns[34]);
+						pstm.setLong(35, Long.valueOf(columns[0]));
 						pstm.executeUpdate();
 						noRows++;
+						if (noRows % 1000 == 0) {
+							pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Cases Table.", noRows));
+							try {
+								Thread.sleep(LConstants.SLEEP_TIME);
+							} catch (InterruptedException e) {
+							}
+						}
 					}
 				}
 			}
@@ -979,25 +1097,82 @@ class LBackup {
 		}
 	}
 
+	private void restoreCoders() throws SQLException, FileNotFoundException, NumberFormatException {
+		final String[] tables = { "coder1", "coder2", "coder3", "coder4" };
+		for (int i = 0; i < 4; i++) {
+			fileName = dataDir + tables[i] + ".txt";
+			file = new File(fileName);
+			if (file.exists()) {
+				noRows = 0;
+				scanner = new Scanner(new FileReader(fileName));
+				switch (i) {
+				case 0:
+					pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_CD1_INSERT));
+					break;
+				case 1:
+					pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_CD2_INSERT));
+					break;
+				case 2:
+					pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_CD3_INSERT));
+					break;
+				default:
+					pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_CD4_INSERT));
+				}
+				while (scanner.hasNextLine()) {
+					input = scanner.nextLine();
+					if (input.length() > 1) {
+						if (!input.startsWith("-")) {
+							columns = input.split(tab);
+							pstm.setShort(1, Short.valueOf(columns[1]));
+							pstm.setShort(2, Short.valueOf(columns[2]));
+							pstm.setDouble(3, Double.valueOf(columns[3]));
+							pstm.setDouble(4, Double.valueOf(columns[4]));
+							pstm.setDouble(5, Double.valueOf(columns[5]));
+							pstm.setString(6, columns[6]);
+							pstm.setString(7, unformatLines(columns[7]));
+							pstm.setShort(8, Short.valueOf(columns[0]));
+							pstm.executeUpdate();
+							noRows++;
+						}
+					}
+				}
+				pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to %s Table.", noRows, tables[i]));
+				scanner.close();
+				pstm.close();
+				try {
+					Thread.sleep(LConstants.SLEEP_TIME);
+				} catch (InterruptedException e) {
+				}
+			}
+		}
+	}
+
 	private void restoreComments() throws SQLException, FileNotFoundException, NumberFormatException {
 		fileName = dataDir + "comments.txt";
 		file = new File(fileName);
 		if (file.exists()) {
 			noRows = 0;
-			pstm = pj.dbPowerJ.prepareStatement(
-					"INSERT INTO Comments (CAID, COM1, COM2, COM3, COM4) " + "VALUES (?, ?, ?, ?, ?)");
+			scanner = new Scanner(new FileReader(fileName));
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_CMT_INSERT));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
 					if (!input.startsWith("-")) {
 						columns = input.split(tab);
-						pstm.setLong(1, Long.valueOf(columns[0]));
-						pstm.setString(2, unformatLines(columns[1]));
-						pstm.setString(3, unformatLines(columns[2]));
-						pstm.setString(4, unformatLines(columns[3]));
-						pstm.setString(5, unformatLines(columns[4]));
+						pstm.setString(1, unformatLines(columns[1]));
+						pstm.setString(2, unformatLines(columns[2]));
+						pstm.setString(3, unformatLines(columns[3]));
+						pstm.setString(4, unformatLines(columns[4]));
+						pstm.setLong(5, Long.valueOf(columns[0]));
 						pstm.executeUpdate();
 						noRows++;
+						if (noRows % 1000 == 0) {
+							pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Comments Table.", noRows));
+							try {
+								Thread.sleep(LConstants.SLEEP_TIME);
+							} catch (InterruptedException e) {
+							}
+						}
 					}
 				}
 			}
@@ -1013,7 +1188,7 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Errors (CAID, ERID, CANO, ERDC) VALUES (?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_ERR_INSERT));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
@@ -1025,10 +1200,17 @@ class LBackup {
 						pstm.setString(4, unformatLines(columns[3]));
 						pstm.executeUpdate();
 						noRows++;
+						if (noRows % 2000 == 0) {
+							pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Errors Table.", noRows));
+							try {
+								Thread.sleep(LConstants.SLEEP_TIME);
+							} catch (InterruptedException e) {
+							}
+						}
 					}
 				}
 			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %1$4d rows to Errors Table.", noRows));
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Errors Table.", noRows));
 			scanner.close();
 			pstm.close();
 		}
@@ -1040,18 +1222,17 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ
-					.prepareStatement("INSERT INTO Facilities (FAID, FAFL, FALD, FANM, FADC) VALUES (?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_FAC_INSERT));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
 					if (!input.startsWith("-")) {
 						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setString(2, columns[1]);
-						pstm.setString(3, columns[2]);
-						pstm.setString(4, columns[3]);
-						pstm.setString(5, columns[4]);
+						pstm.setString(1, columns[1]);
+						pstm.setString(2, columns[2]);
+						pstm.setString(3, columns[3]);
+						pstm.setString(4, columns[4]);
+						pstm.setShort(5, Short.valueOf(columns[0]));
 						pstm.executeUpdate();
 						noRows++;
 					}
@@ -1064,34 +1245,71 @@ class LBackup {
 	}
 
 	private void restoreFrozens() throws SQLException, FileNotFoundException, NumberFormatException {
-		fileNo = 1;
-		fileName = dataDir + "frozens" + fileNo + ".txt";
+		fileName = dataDir + "frozens.txt";
 		file = new File(fileName);
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Frozens (SPID, PRID, FRBL, FRSL, FRV5, "
-					+ "FRV1, FRV2, FRV3, FRV4) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_FRZ_INSERT));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
 					if (!input.startsWith("-")) {
 						columns = input.split(tab);
-						pstm.setLong(1, Long.valueOf(columns[0]));
-						pstm.setInt(2, Short.valueOf(columns[1]));
-						pstm.setShort(3, Short.valueOf(columns[2]));
-						pstm.setShort(4, Short.valueOf(columns[3]));
-						pstm.setInt(5, Short.valueOf(columns[4]));
-						pstm.setDouble(6, Double.valueOf(columns[5]));
-						pstm.setDouble(7, Double.valueOf(columns[6]));
-						pstm.setDouble(8, Double.valueOf(columns[7]));
-						pstm.setDouble(9, Double.valueOf(columns[8]));
+						pstm.setShort(1, Short.valueOf(columns[2]));
+						pstm.setShort(2, Short.valueOf(columns[3]));
+						pstm.setInt(3, Short.valueOf(columns[1]));
+						pstm.setInt(4, Short.valueOf(columns[4]));
+						pstm.setDouble(5, Double.valueOf(columns[5]));
+						pstm.setDouble(6, Double.valueOf(columns[6]));
+						pstm.setDouble(7, Double.valueOf(columns[7]));
+						pstm.setDouble(8, Double.valueOf(columns[8]));
+						pstm.setLong(9, Long.valueOf(columns[0]));
+						pstm.executeUpdate();
+						noRows++;
+						if (noRows % 2000 == 0) {
+							pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to frozens Table.", noRows));
+							try {
+								Thread.sleep(LConstants.SLEEP_TIME);
+							} catch (InterruptedException e) {
+							}
+						}
+					}
+				}
+			}
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to frozens Table.", noRows));
+			scanner.close();
+			pstm.close();
+		}
+	}
+
+	private void restoreOrderGroups() throws SQLException, FileNotFoundException, NumberFormatException {
+		fileName = dataDir + "ordergroups.txt";
+		file = new File(fileName);
+		if (file.exists()) {
+			noRows = 0;
+			scanner = new Scanner(new FileReader(fileName));
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_ORG_INSERT));
+			while (scanner.hasNextLine()) {
+				input = scanner.nextLine();
+				if (input.length() > 1) {
+					if (!input.startsWith("-")) {
+						columns = input.split(tab);
+						pstm.setShort(1, Short.valueOf(columns[1]));
+						pstm.setShort(2, Short.valueOf(columns[2]));
+						pstm.setShort(3, Short.valueOf(columns[3]));
+						pstm.setShort(4, Short.valueOf(columns[4]));
+						pstm.setShort(5, Short.valueOf(columns[5]));
+						pstm.setInt(6, Integer.valueOf(columns[6]));
+						pstm.setString(7, columns[7]);
+						pstm.setString(8, columns[8]);
+						pstm.setShort(9, Short.valueOf(columns[0]));
 						pstm.executeUpdate();
 						noRows++;
 					}
 				}
 			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to frozens Table.", noRows));
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Order Groups Table.", noRows));
 			scanner.close();
 			pstm.close();
 		}
@@ -1103,16 +1321,16 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO OrderMaster (OMID, OGID, OMNM, OMDC) VALUES (?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_ORM_INSERT));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
 					if (!input.startsWith("-")) {
 						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setShort(2, Short.valueOf(columns[1]));
-						pstm.setString(3, columns[2]);
-						pstm.setString(4, columns[3]);
+						pstm.setShort(1, Short.valueOf(columns[1]));
+						pstm.setString(2, columns[2]);
+						pstm.setString(3, columns[3]);
+						pstm.setShort(4, Short.valueOf(columns[0]));
 						pstm.executeUpdate();
 						noRows++;
 					}
@@ -1129,27 +1347,58 @@ class LBackup {
 		file = new File(fileName);
 		if (file.exists()) {
 			noRows = 0;
-			pstm = pj.dbPowerJ.prepareStatement(
-					"INSERT INTO Orders (SPID, OGID, ORQY, ORV1, ORV2, " + "ORV3, ORV4) VALUES (?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_ORD_INSERT));
 			scanner = new Scanner(new FileReader(fileName));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
 					if (!input.startsWith("-")) {
 						columns = input.split(tab);
-						pstm.setLong(1, Long.valueOf(columns[0]));
-						pstm.setShort(2, Short.valueOf(columns[1]));
-						pstm.setShort(3, Short.valueOf(columns[2]));
-						pstm.setDouble(4, Double.valueOf(columns[3]));
-						pstm.setDouble(5, Double.valueOf(columns[4]));
-						pstm.setDouble(6, Double.valueOf(columns[5]));
-						pstm.setDouble(7, Double.valueOf(columns[6]));
+						pstm.setShort(1, Short.valueOf(columns[2]));
+						pstm.setDouble(2, Double.valueOf(columns[3]));
+						pstm.setDouble(3, Double.valueOf(columns[4]));
+						pstm.setDouble(4, Double.valueOf(columns[5]));
+						pstm.setDouble(5, Double.valueOf(columns[6]));
+						pstm.setShort(6, Short.valueOf(columns[1]));
+						pstm.setLong(7, Long.valueOf(columns[0]));
+						pstm.executeUpdate();
+						noRows++;
+						if (noRows % 2000 == 0) {
+							pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Orders Table.", noRows));
+							try {
+								Thread.sleep(LConstants.SLEEP_TIME);
+							} catch (InterruptedException e) {
+							}
+						}
+					}
+				}
+			}
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Orders Table.", noRows));
+			scanner.close();
+			pstm.close();
+		}
+	}
+
+	private void restoreOrderTypes() throws SQLException, FileNotFoundException, NumberFormatException {
+		fileName = dataDir + "ordertypes.txt";
+		file = new File(fileName);
+		if (file.exists()) {
+			noRows = 0;
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_ORT_INSERT));
+			scanner = new Scanner(new FileReader(fileName));
+			while (scanner.hasNextLine()) {
+				input = scanner.nextLine();
+				if (input.length() > 1) {
+					if (!input.startsWith("-")) {
+						columns = input.split(tab);
+						pstm.setShort(1, Short.valueOf(columns[0]));
+						pstm.setString(2, columns[1]);
 						pstm.executeUpdate();
 						noRows++;
 					}
 				}
 			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Orders Table.", noRows));
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Order Types Table.", noRows));
 			scanner.close();
 			pstm.close();
 		}
@@ -1160,45 +1409,49 @@ class LBackup {
 		file = new File(fileName);
 		if (file.exists()) {
 			noRows = 0;
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Pending (PNID, FAID, SBID, SMID, POID, "
-					+ "GRID, EMID, MIID, ROID, FNID, GRTA, EMTA, MITA, ROTA, FNTA, PNST, PNSP, PNBL, "
-					+ "PNSL, PNV5, ACED, GRED, EMED, MIED, ROED, FNED, PNNO) VALUES (?, ?, ?, ?, ?, ?, "
-					+ "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_PND_INSERT));
 			scanner = new Scanner(new FileReader(fileName));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
 					if (!input.startsWith("-")) {
 						columns = input.split(tab);
-						pstm.setLong(1, Long.valueOf(columns[0]));
-						pstm.setShort(2, Short.valueOf(columns[1]));
-						pstm.setShort(3, Short.valueOf(columns[2]));
+						pstm.setShort(1, Short.valueOf(columns[1]));
+						pstm.setShort(2, Short.valueOf(columns[2]));
+						pstm.setShort(3, Short.valueOf(columns[4]));
 						pstm.setShort(4, Short.valueOf(columns[3]));
-						pstm.setShort(5, Short.valueOf(columns[4]));
-						pstm.setShort(6, Short.valueOf(columns[5]));
-						pstm.setShort(7, Short.valueOf(columns[6]));
-						pstm.setShort(8, Short.valueOf(columns[7]));
-						pstm.setShort(9, Short.valueOf(columns[8]));
-						pstm.setShort(10, Short.valueOf(columns[9]));
-						pstm.setShort(11, Short.valueOf(columns[10]));
-						pstm.setShort(12, Short.valueOf(columns[11]));
-						pstm.setShort(13, Short.valueOf(columns[12]));
-						pstm.setShort(14, Short.valueOf(columns[13]));
-						pstm.setShort(15, Short.valueOf(columns[14]));
-						pstm.setShort(16, Short.valueOf(columns[15]));
-						pstm.setShort(17, Short.valueOf(columns[16]));
-						pstm.setShort(18, Short.valueOf(columns[17]));
-						pstm.setShort(19, Short.valueOf(columns[18]));
-						pstm.setInt(20, Integer.valueOf(columns[19]));
-						pstm.setTimestamp(21, new Timestamp(Long.valueOf(columns[20])));
-						pstm.setTimestamp(22, new Timestamp(Long.valueOf(columns[21])));
-						pstm.setTimestamp(23, new Timestamp(Long.valueOf(columns[22])));
-						pstm.setTimestamp(24, new Timestamp(Long.valueOf(columns[23])));
-						pstm.setTimestamp(25, new Timestamp(Long.valueOf(columns[24])));
-						pstm.setTimestamp(26, new Timestamp(Long.valueOf(columns[25])));
-						pstm.setString(27, columns[26]);
+						pstm.setShort(5, Short.valueOf(columns[5]));
+						pstm.setShort(6, Short.valueOf(columns[6]));
+						pstm.setShort(7, Short.valueOf(columns[7]));
+						pstm.setShort(8, Short.valueOf(columns[8]));
+						pstm.setShort(9, Short.valueOf(columns[9]));
+						pstm.setShort(10, Short.valueOf(columns[10]));
+						pstm.setShort(11, Short.valueOf(columns[11]));
+						pstm.setShort(12, Short.valueOf(columns[12]));
+						pstm.setShort(13, Short.valueOf(columns[13]));
+						pstm.setShort(14, Short.valueOf(columns[14]));
+						pstm.setShort(15, Short.valueOf(columns[15]));
+						pstm.setShort(16, Short.valueOf(columns[16]));
+						pstm.setShort(17, Short.valueOf(columns[17]));
+						pstm.setShort(18, Short.valueOf(columns[18]));
+						pstm.setInt(19, Integer.valueOf(columns[19]));
+						pstm.setTimestamp(20, new Timestamp(Long.valueOf(columns[20])));
+						pstm.setTimestamp(21, new Timestamp(Long.valueOf(columns[21])));
+						pstm.setTimestamp(22, new Timestamp(Long.valueOf(columns[22])));
+						pstm.setTimestamp(23, new Timestamp(Long.valueOf(columns[23])));
+						pstm.setTimestamp(24, new Timestamp(Long.valueOf(columns[24])));
+						pstm.setTimestamp(25, new Timestamp(Long.valueOf(columns[25])));
+						pstm.setString(26, columns[26]);
+						pstm.setLong(27, Long.valueOf(columns[0]));
 						pstm.executeUpdate();
 						noRows++;
+						if (noRows % 1000 == 0) {
+							pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Pending Table.", noRows));
+							try {
+								Thread.sleep(LConstants.SLEEP_TIME);
+							} catch (InterruptedException e) {
+							}
+						}
 					}
 				}
 			}
@@ -1214,27 +1467,78 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Persons (PRID, PRVL, PRDT, PRCD, PRAC, "
-					+ "PRNM, PRLS, PRFR) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_PRS_INSERT));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
 					if (!input.startsWith("-")) {
 						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setInt(2, Integer.valueOf(columns[1]));
-						pstm.setDate(3, new Date(Long.valueOf(columns[2])));
-						pstm.setString(4, columns[3]);
-						pstm.setString(5, columns[4]);
-						pstm.setString(6, columns[5]);
-						pstm.setString(7, columns[6]);
-						pstm.setString(8, columns[7]);
+						pstm.setInt(1, Integer.valueOf(columns[1]));
+						pstm.setDate(2, new Date(Long.valueOf(columns[2])));
+						pstm.setString(3, columns[3]);
+						pstm.setString(4, columns[4]);
+						pstm.setString(5, columns[5]);
+						pstm.setString(6, columns[6]);
+						pstm.setString(7, columns[7]);
+						pstm.setShort(8, Short.valueOf(columns[0]));
 						pstm.executeUpdate();
 						noRows++;
 					}
 				}
 			}
-			pj.log(LConstants.ERROR_NONE, String.format("Restored %1$3d rows to Persons Table.", noRows));
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Persons Table.", noRows));
+			scanner.close();
+			pstm.close();
+		}
+	}
+
+	private void restoreProcedures() throws SQLException, FileNotFoundException, NumberFormatException {
+		fileName = dataDir + "procedures.txt";
+		file = new File(fileName);
+		if (file.exists()) {
+			noRows = 0;
+			scanner = new Scanner(new FileReader(fileName));
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_PRO_INSERT));
+			while (scanner.hasNextLine()) {
+				input = scanner.nextLine();
+				if (input.length() > 1) {
+					if (!input.startsWith("-")) {
+						columns = input.split(tab);
+						pstm.setString(1, columns[1]);
+						pstm.setString(2, columns[2]);
+						pstm.setShort(3, Short.valueOf(columns[0]));
+						pstm.executeUpdate();
+						noRows++;
+					}
+				}
+			}
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Procedures Table.", noRows));
+			scanner.close();
+			pstm.close();
+		}
+	}
+
+	private void restoreRules() throws SQLException, FileNotFoundException, NumberFormatException {
+		fileName = dataDir + "rules.txt";
+		file = new File(fileName);
+		if (file.exists()) {
+			noRows = 0;
+			scanner = new Scanner(new FileReader(fileName));
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_RUL_INSERT));
+			while (scanner.hasNextLine()) {
+				input = scanner.nextLine();
+				if (input.length() > 1) {
+					if (!input.startsWith("-")) {
+						columns = input.split(tab);
+						pstm.setString(1, columns[1]);
+						pstm.setString(2, unformatLines(columns[2]));
+						pstm.setShort(3, Short.valueOf(columns[0]));
+						pstm.executeUpdate();
+						noRows++;
+					}
+				}
+			}
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Persons Table.", noRows));
 			scanner.close();
 			pstm.close();
 		}
@@ -1246,17 +1550,24 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Schedules (WDID, PRID, SRID) VALUES (?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_SCH_INSERT));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
 					if (!input.startsWith("-")) {
 						columns = input.split(tab);
-						pstm.setInt(1, Integer.valueOf(columns[0]));
-						pstm.setShort(2, Short.valueOf(columns[1]));
-						pstm.setShort(3, Short.valueOf(columns[2]));
+						pstm.setShort(1, Short.valueOf(columns[1]));
+						pstm.setShort(2, Short.valueOf(columns[2]));
+						pstm.setInt(3, Integer.valueOf(columns[0]));
 						pstm.executeUpdate();
 						noRows++;
+						if (noRows % 2000 == 0) {
+							pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Schedules Table.", noRows));
+							try {
+								Thread.sleep(LConstants.SLEEP_TIME);
+							} catch (InterruptedException e) {
+							}
+						}
 					}
 				}
 			}
@@ -1272,19 +1583,18 @@ class LBackup {
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ.prepareStatement(
-					"INSERT INTO Services (SRID, FAID, SBID, SRCD, SRNM, SRDC) VALUES (?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_SRV_INSERT));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
 					if (!input.startsWith("-")) {
 						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setShort(2, Short.valueOf(columns[1]));
-						pstm.setShort(3, Short.valueOf(columns[2]));
-						pstm.setShort(4, Short.valueOf(columns[3]));
-						pstm.setString(5, columns[4]);
-						pstm.setString(6, columns[5]);
+						pstm.setShort(1, Short.valueOf(columns[1]));
+						pstm.setShort(2, Short.valueOf(columns[2]));
+						pstm.setShort(3, Short.valueOf(columns[3]));
+						pstm.setString(4, columns[4]);
+						pstm.setString(5, columns[5]);
+						pstm.setShort(6, Short.valueOf(columns[0]));
 						pstm.executeUpdate();
 						noRows++;
 					}
@@ -1296,24 +1606,117 @@ class LBackup {
 		}
 	}
 
-	private void restoreSpeciMaster() throws SQLException, FileNotFoundException, NumberFormatException {
-		fileName = dataDir + "specimenmaster.txt";
+	private void restoreSetup() throws SQLException, FileNotFoundException, NumberFormatException {
+		fileName = dataDir + "setup.txt";
 		file = new File(fileName);
 		if (file.exists()) {
 			noRows = 0;
 			scanner = new Scanner(new FileReader(fileName));
-			pstm = pj.dbPowerJ
-					.prepareStatement("INSERT INTO SpeciMaster (SMID, SGID, TAID, SMNM, SMDC) VALUES (?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_STP_INSERT));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
 					if (!input.startsWith("-")) {
 						columns = input.split(tab);
-						pstm.setShort(1, Short.valueOf(columns[0]));
-						pstm.setShort(2, Short.valueOf(columns[1]));
-						pstm.setShort(3, Short.valueOf(columns[2]));
-						pstm.setString(4, columns[3]);
-						pstm.setString(5, columns[4]);
+						pstm.setString(1, unformatLines(columns[1]));
+						pstm.setShort(2, Short.valueOf(columns[0]));
+						pstm.executeUpdate();
+						noRows++;
+					}
+				}
+			}
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Services Table.", noRows));
+			scanner.close();
+			pstm.close();
+		}
+	}
+
+	private void restoreSpecialties() throws SQLException, FileNotFoundException, NumberFormatException {
+		fileName = dataDir + "specialties.txt";
+		file = new File(fileName);
+		if (file.exists()) {
+			noRows = 0;
+			scanner = new Scanner(new FileReader(fileName));
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_SPY_INSERT));
+			while (scanner.hasNextLine()) {
+				input = scanner.nextLine();
+				if (input.length() > 1) {
+					if (!input.startsWith("-")) {
+						columns = input.split(tab);
+						pstm.setString(1, columns[1]);
+						pstm.setString(2, columns[2]);
+						pstm.setString(3, columns[3]);
+						pstm.setString(4, columns[4]);
+						pstm.setShort(5, Short.valueOf(columns[0]));
+						pstm.executeUpdate();
+						noRows++;
+					}
+				}
+			}
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Specialties Table.", noRows));
+			scanner.close();
+			pstm.close();
+		}
+	}
+
+	private void restoreSpecimenGroups() throws SQLException, FileNotFoundException, NumberFormatException {
+		fileName = dataDir + "specimengroups.txt";
+		file = new File(fileName);
+		if (file.exists()) {
+			noRows = 0;
+			scanner = new Scanner(new FileReader(fileName));
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_SPG_INSERT));
+			while (scanner.hasNextLine()) {
+				input = scanner.nextLine();
+				if (input.length() > 1) {
+					if (!input.startsWith("-")) {
+						columns = input.split(tab);
+						pstm.setShort(1, Short.valueOf(columns[1]));
+						pstm.setShort(2, Short.valueOf(columns[2]));
+						pstm.setShort(3, Short.valueOf(columns[3]));
+						pstm.setShort(4, Short.valueOf(columns[4]));
+						pstm.setShort(5, Short.valueOf(columns[5]));
+						pstm.setShort(6, Short.valueOf(columns[6]));
+						pstm.setShort(7, Short.valueOf(columns[7]));
+						pstm.setShort(8, Short.valueOf(columns[8]));
+						pstm.setShort(9, Short.valueOf(columns[9]));
+						pstm.setShort(10, Short.valueOf(columns[10]));
+						pstm.setShort(11, Short.valueOf(columns[11]));
+						pstm.setShort(12, Short.valueOf(columns[12]));
+						pstm.setShort(13, Short.valueOf(columns[13]));
+						pstm.setShort(14, Short.valueOf(columns[14]));
+						pstm.setInt(15, Integer.valueOf(columns[15]));
+						pstm.setString(16, columns[16]);
+						pstm.setString(17, columns[17]);
+						pstm.setShort(18, Short.valueOf(columns[0]));
+						pstm.executeUpdate();
+						noRows++;
+					}
+				}
+			}
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Specimen Groups Table.", noRows));
+			scanner.close();
+			pstm.close();
+		}
+	}
+
+	private void restoreSpecimenMaster() throws SQLException, FileNotFoundException, NumberFormatException {
+		fileName = dataDir + "specimenmaster.txt";
+		file = new File(fileName);
+		if (file.exists()) {
+			noRows = 0;
+			scanner = new Scanner(new FileReader(fileName));
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_SPM_INSERT));
+			while (scanner.hasNextLine()) {
+				input = scanner.nextLine();
+				if (input.length() > 1) {
+					if (!input.startsWith("-")) {
+						columns = input.split(tab);
+						pstm.setShort(1, Short.valueOf(columns[1]));
+						pstm.setShort(2, Short.valueOf(columns[2]));
+						pstm.setString(3, columns[3]);
+						pstm.setString(4, columns[4]);
+						pstm.setShort(5, Short.valueOf(columns[0]));
 						pstm.executeUpdate();
 						noRows++;
 					}
@@ -1326,38 +1729,42 @@ class LBackup {
 	}
 
 	private void restoreSpecimens() throws SQLException, FileNotFoundException, NumberFormatException {
-		fileNo = 1;
-		fileName = dataDir + "specimens" + fileNo + ".txt";
+		fileName = dataDir + "specimens.txt";
 		file = new File(fileName);
 		if (file.exists()) {
 			noRows = 0;
-			pstm = pj.dbPowerJ.prepareStatement("INSERT INTO Specimens (SPID, CAID, SMID, SPBL, SPSL, "
-					+ "SPFR, SPHE, SPSS, SPIH, SPMO, SPV5, SPV1, SPV2, SPV3, SPV4, SPDC) VALUES (?, ?, "
-					+ "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_SPE_INSERT));
 			scanner = new Scanner(new FileReader(fileName));
 			while (scanner.hasNextLine()) {
 				input = scanner.nextLine();
 				if (input.length() > 1) {
 					if (!input.startsWith("-")) {
 						columns = input.split(tab);
-						pstm.setLong(1, Long.valueOf(columns[0]));
-						pstm.setLong(2, Long.valueOf(columns[1]));
-						pstm.setShort(3, Short.valueOf(columns[2]));
-						pstm.setShort(4, Short.valueOf(columns[3]));
-						pstm.setShort(5, Short.valueOf(columns[4]));
-						pstm.setShort(6, Short.valueOf(columns[5]));
-						pstm.setShort(7, Short.valueOf(columns[6]));
-						pstm.setShort(8, Short.valueOf(columns[7]));
-						pstm.setShort(9, Short.valueOf(columns[8]));
-						pstm.setShort(10, Short.valueOf(columns[9]));
-						pstm.setInt(11, Integer.valueOf(columns[10]));
-						pstm.setDouble(12, Double.valueOf(columns[11]));
-						pstm.setDouble(13, Double.valueOf(columns[12]));
-						pstm.setDouble(14, Double.valueOf(columns[13]));
-						pstm.setDouble(15, Double.valueOf(columns[14]));
-						pstm.setString(16, columns[15]);
+						pstm.setLong(1, Long.valueOf(columns[1]));
+						pstm.setShort(2, Short.valueOf(columns[2]));
+						pstm.setShort(3, Short.valueOf(columns[3]));
+						pstm.setShort(4, Short.valueOf(columns[4]));
+						pstm.setShort(5, Short.valueOf(columns[5]));
+						pstm.setShort(6, Short.valueOf(columns[6]));
+						pstm.setShort(7, Short.valueOf(columns[7]));
+						pstm.setShort(8, Short.valueOf(columns[8]));
+						pstm.setShort(9, Short.valueOf(columns[9]));
+						pstm.setInt(10, Integer.valueOf(columns[10]));
+						pstm.setDouble(11, Double.valueOf(columns[11]));
+						pstm.setDouble(12, Double.valueOf(columns[12]));
+						pstm.setDouble(13, Double.valueOf(columns[13]));
+						pstm.setDouble(14, Double.valueOf(columns[14]));
+						pstm.setString(15, columns[15]);
+						pstm.setLong(16, Long.valueOf(columns[0]));
 						pstm.executeUpdate();
 						noRows++;
+						if (noRows % 2000 == 0) {
+							pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Specimens Table.", noRows));
+							try {
+								Thread.sleep(LConstants.SLEEP_TIME);
+							} catch (InterruptedException e) {
+							}
+						}
 					}
 				}
 			}
@@ -1367,7 +1774,98 @@ class LBackup {
 		}
 	}
 
+	private void restoreSubspecial() throws SQLException, FileNotFoundException, NumberFormatException {
+		fileName = dataDir + "subspecialties.txt";
+		file = new File(fileName);
+		if (file.exists()) {
+			noRows = 0;
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_SUB_INSERT));
+			scanner = new Scanner(new FileReader(fileName));
+			while (scanner.hasNextLine()) {
+				input = scanner.nextLine();
+				if (input.length() > 1) {
+					if (!input.startsWith("-")) {
+						columns = input.split(tab);
+						pstm.setShort(1, Short.valueOf(columns[1]));
+						pstm.setString(2, columns[2]);
+						pstm.setString(3, columns[3]);
+						pstm.setShort(4, Short.valueOf(columns[0]));
+						pstm.executeUpdate();
+						noRows++;
+					}
+				}
+			}
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Subspecialties Table.", noRows));
+			scanner.close();
+			pstm.close();
+		}
+	}
+
+	private void restoreTurnaround() throws SQLException, FileNotFoundException, NumberFormatException {
+		fileName = dataDir + "turnaround.txt";
+		file = new File(fileName);
+		if (file.exists()) {
+			noRows = 0;
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_TUR_INSERT));
+			scanner = new Scanner(new FileReader(fileName));
+			while (scanner.hasNextLine()) {
+				input = scanner.nextLine();
+				if (input.length() > 1) {
+					if (!input.startsWith("-")) {
+						columns = input.split(tab);
+						pstm.setShort(1, Short.valueOf(columns[1]));
+						pstm.setShort(2, Short.valueOf(columns[2]));
+						pstm.setShort(3, Short.valueOf(columns[3]));
+						pstm.setShort(4, Short.valueOf(columns[4]));
+						pstm.setShort(5, Short.valueOf(columns[5]));
+						pstm.setString(6, columns[6]);
+						pstm.setShort(7, Short.valueOf(columns[0]));
+						pstm.executeUpdate();
+						noRows++;
+					}
+				}
+			}
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Turnaround Table.", noRows));
+			scanner.close();
+			pstm.close();
+		}
+	}
+
+	private void restoreWorkdays() throws SQLException, FileNotFoundException, NumberFormatException {
+		fileName = dataDir + "workdays.txt";
+		file = new File(fileName);
+		if (file.exists()) {
+			noRows = 0;
+			pstm = pj.dbPowerJ.prepareStatement(pj.dbPowerJ.setSQL(DPowerJ.STM_WDY_INSERT));
+			scanner = new Scanner(new FileReader(fileName));
+			while (scanner.hasNextLine()) {
+				input = scanner.nextLine();
+				if (input.length() > 1) {
+					if (!input.startsWith("-")) {
+						columns = input.split(tab);
+						pstm.setTimestamp(1, new Timestamp(Long.valueOf(columns[3])));
+						pstm.setString(2, columns[2]);
+						pstm.setInt(3, Integer.valueOf(columns[1]));
+						pstm.setInt(4, Integer.valueOf(columns[0]));
+						pstm.executeUpdate();
+						noRows++;
+						if (noRows % 2000 == 0) {
+							pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Workdays Table.", noRows));
+							try {
+								Thread.sleep(LConstants.SLEEP_TIME);
+							} catch (InterruptedException e) {
+							}
+						}
+					}
+				}
+			}
+			pj.log(LConstants.ERROR_NONE, String.format("Restored %d rows to Workdays Table.", noRows));
+			scanner.close();
+			pstm.close();
+		}
+	}
+
 	private String unformatLines(String in) {
-		return in.replaceAll("\\\\", "\\");
+		return in.replaceAll("]]", "\\\\").replaceAll("}]", "\n").replaceAll("]}", "\t");
 	}
 }

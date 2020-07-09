@@ -51,7 +51,11 @@ class NWorkload extends NBase implements KeyListener {
 
 	@Override
 	boolean close() {
+		altered = false;
 		super.close();
+		if (chartCases != null) {
+			chartCases.close();
+		}
 		if (chartCoder1 != null) {
 			chartCoder1.close();
 		}
@@ -123,17 +127,18 @@ class NWorkload extends NBase implements KeyListener {
 		splitBottom.setOneTouchExpandable(true);
 		splitBottom.setDividerLocation(500);
 		splitBottom.setMinimumSize(new Dimension(1300, 900));
-		Calendar calStart = Calendar.getInstance();
-		Calendar calEnd = Calendar.getInstance();
+		Calendar calStart = pj.dates.setMidnight(null);
+		Calendar calEnd = pj.dates.setMidnight(null);
 		Calendar calMin = Calendar.getInstance();
 		Calendar calMax = Calendar.getInstance();
-		calStart.setTimeInMillis(timeFrom);
-		calEnd.setTimeInMillis(timeTo);
+		calStart.add(Calendar.YEAR, -1);
+		timeFrom = calStart.getTimeInMillis();
+		timeTo = calEnd.getTimeInMillis();
 		calMax.setTimeInMillis(timeTo);
 		calMin.setTimeInMillis(pj.setup.getLong(LSetup.VAR_MIN_WL_DATE));
 		setLayout(new BorderLayout());
 		setOpaque(true);
-		add(new IToolBar(this, calStart, calEnd, calMin, calMax, pj.userAccess[LConstants.ACCESS_NAMES]),
+		add(new IToolBar(this, calStart, calEnd, calMin, calMax, rowsView),
 				BorderLayout.NORTH);
 		add(splitBottom, BorderLayout.CENTER);
 	}
@@ -245,11 +250,6 @@ class NWorkload extends NBase implements KeyListener {
 			rowsView[3] = IPanelRows.ROW_SUBSPECIAL;
 			rowsView[4] = IPanelRows.ROW_PROCEDURE;
 		}
-		Calendar calStart = pj.dates.setMidnight(null);
-		Calendar calEnd = pj.dates.setMidnight(null);
-		calStart.add(Calendar.YEAR, -1);
-		timeFrom = calStart.getTimeInMillis();
-		timeTo = calEnd.getTimeInMillis();
 	}
 
 	@Override
@@ -264,10 +264,11 @@ class NWorkload extends NBase implements KeyListener {
 	void setFilter(short id, short value) {
 		// Go button
 		if (altered && timeTo > timeFrom) {
+			pj.setBusy(true);
 			WorkerData worker = new WorkerData();
 			worker.execute();
+			altered = false;
 		}
-		altered = false;
 	}
 
 	@Override
@@ -360,6 +361,7 @@ class NWorkload extends NBase implements KeyListener {
 
 		@Override
 		protected Void doInBackground() throws Exception {
+			setName("WorkerData");
 			getData();
 			structureData();
 			return null;
@@ -387,41 +389,41 @@ class NWorkload extends NBase implements KeyListener {
 				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CSE_SL_SUM));
 				while (rst.next()) {
 					row = new OWorkload();
-					row.spyID = rst.getByte("SYID");
-					row.subID = rst.getByte("SBID");
-					row.proID = rst.getByte("POID");
-					row.facID = rst.getShort("FAID");
-					row.prsID = rst.getShort("FNID");
-					row.noCases = rst.getInt("CACA");
-					row.noSpecs = rst.getInt("CASP");
-					row.noBlocks = rst.getInt("CABL");
-					row.noSlides = rst.getInt("CASL");
-					row.fte1 = rst.getDouble("CAV1");
-					row.fte2 = rst.getDouble("CAV2");
-					row.fte3 = rst.getDouble("CAV3");
-					row.fte4 = rst.getDouble("CAV4");
-					row.fte5 = rst.getDouble("CAV5");
-					row.facility = rst.getString("FANM").trim();
-					row.specialty = rst.getString("SYNM").trim();
-					row.subspecial = rst.getString("SBNM").trim();
-					row.procedure = rst.getString("PONM").trim();
+					row.spyID = rst.getByte("syid");
+					row.subID = rst.getByte("sbid");
+					row.proID = rst.getByte("poid");
+					row.facID = rst.getShort("faid");
+					row.prsID = rst.getShort("fnid");
+					row.noCases = rst.getInt("caca");
+					row.noSpecs = rst.getInt("casp");
+					row.noBlocks = rst.getInt("cabl");
+					row.noSlides = rst.getInt("casl");
+					row.fte1 = rst.getDouble("cav1");
+					row.fte2 = rst.getDouble("cav2");
+					row.fte3 = rst.getDouble("cav3");
+					row.fte4 = rst.getDouble("cav4");
+					row.fte5 = rst.getDouble("cav5");
+					row.facility = rst.getString("fanm");
+					row.specialty = rst.getString("synm");
+					row.subspecial = rst.getString("sbnm");
+					row.procedure = rst.getString("ponm");
 					if (pj.userAccess[LConstants.ACCESS_NAMES] || row.prsID == pj.userID) {
 						// Hide names except the current user
-						row.staff = rst.getString("FNNM").trim();
+						row.staff = rst.getString("fnnm");
 					}
 					rows.add(row);
 				}
 				rst.close();
-				// Frozen Sections
+				// Frozen Section
 				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_SUM), 1, timeFrom);
 				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_SUM), 2, timeTo);
 				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_FRZ_SL_SUM));
 				while (rst.next()) {
 					exists = false;
 					for (int i = 0; i < rows.size(); i++) {
-						if (rows.get(i).facID == rst.getShort("FAID") && rows.get(i).spyID == rst.getByte("SYID")
-								&& rows.get(i).subID == rst.getByte("SBID") && rows.get(i).proID == rst.getByte("POID")
-								&& rows.get(i).prsID == rst.getShort("PRID")) {
+						if (rows.get(i).facID == rst.getShort("faid") && rows.get(i).spyID == rst.getByte("syid")
+								&& rows.get(i).subID == rst.getByte("sbid") && rows.get(i).proID == rst.getByte("poid")
+								&& rows.get(i).prsID == rst.getShort("prid")) {
 							row = rows.get(i);
 							exists = true;
 							break;
@@ -429,28 +431,25 @@ class NWorkload extends NBase implements KeyListener {
 					}
 					if (!exists) {
 						row = new OWorkload();
-						row.spyID = rst.getByte("SYID");
-						row.subID = rst.getByte("SBID");
-						row.proID = rst.getByte("POID");
-						row.facID = rst.getShort("FAID");
-						row.prsID = rst.getShort("PRID");
-						row.facility = rst.getString("FANM").trim();
-						row.specialty = rst.getString("SYNM").trim();
-						row.subspecial = rst.getString("SBNM").trim();
-						row.procedure = rst.getString("PONM").trim();
+						row.spyID = rst.getByte("syid");
+						row.subID = rst.getByte("sbid");
+						row.proID = rst.getByte("poid");
+						row.facID = rst.getShort("faid");
+						row.prsID = rst.getShort("prid");
+						row.facility = rst.getString("fanm");
+						row.specialty = rst.getString("synm");
+						row.subspecial = rst.getString("sbnm");
+						row.procedure = rst.getString("ponm");
 						if (pj.userAccess[LConstants.ACCESS_NAMES] || row.prsID == pj.userID) {
-							row.staff = rst.getString("PRNM").trim();
+							row.staff = rst.getString("prnm");
 						}
 						rows.add(row);
 					}
-					row.noSpecs += rst.getInt("FRSP");
-					row.noBlocks += rst.getInt("FRBL");
-					row.noSlides += rst.getInt("FRSL");
-					row.fte1 += rst.getDouble("FRV1");
-					row.fte2 += rst.getDouble("FRV2");
-					row.fte3 += rst.getDouble("FRV3");
-					row.fte4 += rst.getDouble("FRV4");
-					row.fte5 += rst.getDouble("FRV5");
+					row.fte1 += rst.getDouble("frv1");
+					row.fte2 += rst.getDouble("frv2");
+					row.fte3 += rst.getDouble("frv3");
+					row.fte4 += rst.getDouble("frv4");
+					row.fte5 += rst.getDouble("frv5");
 				}
 				rst.close();
 				// Additional
@@ -460,9 +459,9 @@ class NWorkload extends NBase implements KeyListener {
 				while (rst.next()) {
 					exists = false;
 					for (int i = 0; i < rows.size(); i++) {
-						if (rows.get(i).facID == rst.getShort("FAID") && rows.get(i).spyID == rst.getByte("SYID")
-								&& rows.get(i).subID == rst.getByte("SBID") && rows.get(i).proID == rst.getByte("POID")
-								&& rows.get(i).prsID == rst.getShort("PRID")) {
+						if (rows.get(i).facID == rst.getShort("faid") && rows.get(i).spyID == rst.getByte("syid")
+								&& rows.get(i).subID == rst.getByte("sbid") && rows.get(i).proID == rst.getByte("poid")
+								&& rows.get(i).prsID == rst.getShort("prid")) {
 							row = rows.get(i);
 							exists = true;
 							break;
@@ -470,26 +469,25 @@ class NWorkload extends NBase implements KeyListener {
 					}
 					if (!exists) {
 						row = new OWorkload();
-						row.spyID = rst.getByte("SYID");
-						row.subID = rst.getByte("SBID");
-						row.proID = rst.getByte("POID");
-						row.facID = rst.getShort("FAID");
-						row.prsID = rst.getShort("PRID");
-						row.facility = rst.getString("FANM").trim();
-						row.specialty = rst.getString("SYNM").trim();
-						row.subspecial = rst.getString("SBNM").trim();
-						row.procedure = rst.getString("PONM").trim();
+						row.spyID = rst.getByte("syid");
+						row.subID = rst.getByte("sbid");
+						row.proID = rst.getByte("poid");
+						row.facID = rst.getShort("faid");
+						row.prsID = rst.getShort("prid");
+						row.facility = rst.getString("fanm");
+						row.specialty = rst.getString("synm");
+						row.subspecial = rst.getString("sbnm");
+						row.procedure = rst.getString("ponm");
 						if (pj.userAccess[LConstants.ACCESS_NAMES] || row.prsID == pj.userID) {
-							row.staff = rst.getString("PRNM").trim();
+							row.staff = rst.getString("prnm");
 						}
 						rows.add(row);
 					}
-					row.noCases += rst.getInt("ADCA");
-					row.fte1 += rst.getDouble("ADV1");
-					row.fte2 += rst.getDouble("ADV2");
-					row.fte3 += rst.getDouble("ADV3");
-					row.fte4 += rst.getDouble("ADV4");
-					row.fte5 += rst.getDouble("ADV5");
+					row.fte1 += rst.getDouble("adv1");
+					row.fte2 += rst.getDouble("adv2");
+					row.fte3 += rst.getDouble("adv3");
+					row.fte4 += rst.getDouble("adv4");
+					row.fte5 += rst.getDouble("adv5");
 				}
 				Thread.sleep(LConstants.SLEEP_TIME);
 			} catch (InterruptedException ignore) {
@@ -651,11 +649,11 @@ class NWorkload extends NBase implements KeyListener {
 			int rowNos[] = new int[rowsView.length];
 			int size = rows.size();
 			int noDays = pj.dates.getNoDays(timeFrom, timeTo);
-			double fte1 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER1_FTE) / 365;
-			double fte2 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER2_FTE) / 365;
-			double fte3 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER3_FTE) / 365;
-			double fte4 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER4_FTE) / 365;
-			double fte5 = 1.0 * noDays * pj.setup.getInt(LSetup.VAR_V5_FTE) / 365;
+			double fte1 = pj.setup.getShort(LSetup.VAR_CODER1_FTE) * noDays / 365.0;
+			double fte2 = pj.setup.getShort(LSetup.VAR_CODER2_FTE) * noDays / 365.0;
+			double fte3 = pj.setup.getShort(LSetup.VAR_CODER3_FTE) * noDays / 365.0;
+			double fte4 = pj.setup.getShort(LSetup.VAR_CODER4_FTE) * noDays / 365.0;
+			double fte5 = pj.setup.getInt(LSetup.VAR_V5_FTE) * noDays / 365.0;
 			String name = "";
 			OWorklist data0 = new OWorklist();
 			OWorklist data1 = new OWorklist();

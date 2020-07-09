@@ -1,10 +1,9 @@
 package ca.powerj;
 
-class OSpecimen {
-	short  facID      = 0;
-	byte   spyID      = 0;
-	byte   subID      = 0;
-	short  spgID      = 0;
+import java.util.ArrayList;
+
+class OSpeclist {
+	short  id       = 0;
 	int    noSpecs  = 0;
 	int    noBlocks = 0;
 	int    noSlides = 0;
@@ -16,8 +15,6 @@ class OSpecimen {
 	double fte3     = 0;
 	double fte4     = 0;
 	double fte5     = 0;
-	String facility   = "";
-	String specialty  = "";
-	String subspecial = "";
-	String specimen  = "";
+	String name     = "";
+	ArrayList<OSpeclist> children = new ArrayList<OSpeclist>();
 }

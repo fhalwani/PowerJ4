@@ -122,7 +122,7 @@ class NFinals extends NBase {
 	private short[] filters = { 0, 0, 0, 0 };
 	private String[] columns = { "NO", "FAC", "SPY", "SUB", "PROC", "SPEC", "", "", "", "", "", "SPECS", "BLKS", "SLDS",
 			"H&E", "SS", "IHC", "MOL", "SYNP", "FS", "ACCESS", "GROSS", "EMBED", "MICRO", "ROUTE", "FINAL", "GRNM",
-			"EMNM", "MINM", "RONM", "FINM", "GRTA", "EMTA", "MITA", "ROTA", "FITA" };
+			"EMNM", "MINM", "RONM", "FINM", "grta", "emta", "mita", "rota", "FITA" };
 	private long caseID = 0;
 	private long specID = 0;
 	private ArrayList<OCaseFinal> cases = new ArrayList<OCaseFinal>();
@@ -624,7 +624,6 @@ class NFinals extends NBase {
 		String comment = "";
 		ResultSet rst = null;
 		try {
-			pj.setBusy(true);
 			programmaticChange = true;
 			specID = 0;
 			specimens.clear();
@@ -635,17 +634,17 @@ class NFinals extends NBase {
 			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CMT_SELECT));
 			while (rst.next()) {
 				// deleted after a year
-				if (rst.getString("COM1") != null && rst.getString("COM1").length() > 2) {
-					comment = rst.getString("COM1");
+				if (rst.getString("com1") != null && rst.getString("com1").length() > 2) {
+					comment = rst.getString("com1");
 				}
-				if (rst.getString("COM2") != null && rst.getString("COM2").length() > 2) {
-					comment += rst.getString("COM2");
+				if (rst.getString("com2") != null && rst.getString("com2").length() > 2) {
+					comment += rst.getString("com2");
 				}
-				if (rst.getString("COM3") != null && rst.getString("COM3").length() > 2) {
-					comment += rst.getString("COM3");
+				if (rst.getString("com3") != null && rst.getString("com3").length() > 2) {
+					comment += rst.getString("com3");
 				}
-				if (rst.getString("COM4") != null && rst.getString("COM4").length() > 2) {
-					comment += rst.getString("COM4");
+				if (rst.getString("com4") != null && rst.getString("com4").length() > 2) {
+					comment += rst.getString("com4");
 				}
 			}
 			pj.dbPowerJ.close(rst);
@@ -654,21 +653,21 @@ class NFinals extends NBase {
 			OSpecFinal specimen = new OSpecFinal();
 			while (rst.next()) {
 				specimen = new OSpecFinal();
-				specimen.noBlocks = rst.getShort("SPBL");
-				specimen.noSlides = rst.getShort("SPSL");
-				specimen.noHE = rst.getShort("SPHE");
-				specimen.noSS = rst.getShort("SPSS");
-				specimen.noIHC = rst.getShort("SPIH");
-				specimen.noMOL = rst.getShort("SPMO");
-				specimen.noFrags = rst.getShort("SPFR");
-				specimen.value5 = rst.getInt("SPV5");
-				specimen.specID = rst.getLong("SPID");
-				specimen.value1 = rst.getDouble("SPV1");
-				specimen.value2 = rst.getDouble("SPV2");
-				specimen.value3 = rst.getDouble("SPV3");
-				specimen.value4 = rst.getDouble("SPV4");
-				specimen.name = rst.getString("SMNM");
-				specimen.descr = rst.getString("SPDC");
+				specimen.noBlocks = rst.getShort("spbl");
+				specimen.noSlides = rst.getShort("spsl");
+				specimen.noHE = rst.getShort("sphe");
+				specimen.noSS = rst.getShort("spss");
+				specimen.noIHC = rst.getShort("spih");
+				specimen.noMOL = rst.getShort("spmo");
+				specimen.noFrags = rst.getShort("spfr");
+				specimen.value5 = rst.getInt("spv5");
+				specimen.specID = rst.getLong("spid");
+				specimen.value1 = rst.getDouble("spv1");
+				specimen.value2 = rst.getDouble("spv2");
+				specimen.value3 = rst.getDouble("spv3");
+				specimen.value4 = rst.getDouble("spv4");
+				specimen.name = rst.getString("smnm");
+				specimen.descr = rst.getString("spdc");
 				specimens.add(specimen);
 			}
 			pj.dbPowerJ.close(rst);
@@ -678,28 +677,27 @@ class NFinals extends NBase {
 			final String[] codes = { "NIL", "AMND", "ADDN", "CORR", "REVW" };
 			OAdditional additional = new OAdditional();
 			while (rst.next()) {
-				if (rst.getShort("ADCD") > 4) {
+				if (rst.getShort("adcd") > 4) {
 					// Reviews
 					codeID = 4;
 				} else {
-					codeID = rst.getByte("ADCD");
+					codeID = rst.getByte("adcd");
 				}
 				additional = new OAdditional();
 				additional.code = codes[codeID];
-				additional.value5 = rst.getInt("ADV5");
-				additional.value1 = rst.getDouble("ADV1");
-				additional.value2 = rst.getDouble("ADV2");
-				additional.value3 = rst.getDouble("ADV3");
-				additional.value4 = rst.getDouble("ADV4");
-				additional.finalName = rst.getString("PRNM");
-				additional.finalFull = rst.getString("PRLS") + ", " + rst.getString("PRFR").substring(0, 1);
-				additional.finaled.setTimeInMillis(rst.getTimestamp("ADDT").getTime());
+				additional.value5 = rst.getInt("adv5");
+				additional.value1 = rst.getDouble("adv1");
+				additional.value2 = rst.getDouble("adv2");
+				additional.value3 = rst.getDouble("adv3");
+				additional.value4 = rst.getDouble("adv4");
+				additional.finalName = rst.getString("prnm");
+				additional.finalFull = rst.getString("prls") + ", " + rst.getString("prfr").substring(0, 1);
+				additional.finaled.setTimeInMillis(rst.getTimestamp("addt").getTime());
 				additionals.add(additional);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.setBusy(false);
 			programmaticChange = false;
 			pj.dbPowerJ.close(rst);
 			modelAddl.fireTableDataChanged();
@@ -737,6 +735,7 @@ class NFinals extends NBase {
 		orders.clear();
 		frozens.clear();
 		txtComment.setText("");
+		pj.setBusy(true);
 		// Must initialize a new instance each time
 		WorkerData worker = new WorkerData();
 		worker.execute();
@@ -747,7 +746,6 @@ class NFinals extends NBase {
 			return;
 		ResultSet rst = null;
 		try {
-			pj.setBusy(true);
 			programmaticChange = true;
 			orders.clear();
 			frozens.clear();
@@ -756,12 +754,12 @@ class NFinals extends NBase {
 			OOrderFinal order = new OOrderFinal();
 			while (rst.next()) {
 				order = new OOrderFinal();
-				order.qty = rst.getShort("ORQY");
-				order.value1 = rst.getDouble("ORV1");
-				order.value2 = rst.getDouble("ORV2");
-				order.value3 = rst.getDouble("ORV3");
-				order.value4 = rst.getDouble("ORV4");
-				order.name = rst.getString("OGNM");
+				order.qty = rst.getShort("orqy");
+				order.value1 = rst.getDouble("orv1");
+				order.value2 = rst.getDouble("orv2");
+				order.value3 = rst.getDouble("orv3");
+				order.value4 = rst.getDouble("orv4");
+				order.name = rst.getString("ognm");
 				orders.add(order);
 			}
 			pj.dbPowerJ.close(rst);
@@ -770,21 +768,20 @@ class NFinals extends NBase {
 			OFrozen frozen = new OFrozen();
 			while (rst.next()) {
 				frozen = new OFrozen();
-				frozen.noBlocks = rst.getShort("FRBL");
-				frozen.noSlides = rst.getShort("FRSL");
-				frozen.value5 = rst.getInt("FRV5");
-				frozen.value1 = rst.getDouble("FRV1");
-				frozen.value2 = rst.getDouble("FRV2");
-				frozen.value3 = rst.getDouble("FRV3");
-				frozen.value4 = rst.getDouble("FRV4");
-				frozen.finalBy = rst.getString("PRNM");
-				frozen.name = rst.getString("PRLS") + ", " + rst.getString("PRFR").substring(0, 1);
+				frozen.noBlocks = rst.getShort("frbl");
+				frozen.noSlides = rst.getShort("frsl");
+				frozen.value5 = rst.getInt("frv5");
+				frozen.value1 = rst.getDouble("frv1");
+				frozen.value2 = rst.getDouble("frv2");
+				frozen.value3 = rst.getDouble("frv3");
+				frozen.value4 = rst.getDouble("frv4");
+				frozen.finalBy = rst.getString("prnm");
+				frozen.name = rst.getString("prls") + ", " + rst.getString("prfr").substring(0, 1);
 				frozens.add(frozen);
 			}
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, getName(), e);
 		} finally {
-			pj.setBusy(false);
 			programmaticChange = false;
 			pj.dbPowerJ.close(rst);
 			modelFrozen.fireTableDataChanged();
@@ -1477,13 +1474,12 @@ class NFinals extends NBase {
 
 		@Override
 		protected Void doInBackground() throws Exception {
-			final String[] fields = { " AND FAID = ", " AND SYID = ", " AND SBID = ", " AND POID = " };
+			final String[] fields = { " AND faid = ", " AND syid = ", " AND sbid = ", " AND poid = " };
 			int noRows = 0;
 			String filter = "";
 			ResultSet rst = null;
 			try {
-				pj.setBusy(true);
-				programmaticChange = true;
+				setName("WorkerData");
 				for (int i = 0; i < filters.length; i++) {
 					if (filters[i] > 0) {
 						filter += fields[i] + filters[i];
@@ -1495,48 +1491,48 @@ class NFinals extends NBase {
 				rst = pj.dbPowerJ.getResultSet(DPowerJ.STM_CSE_SELECT, filter);
 				while (rst.next()) {
 					OCaseFinal thisRow = new OCaseFinal();
-					thisRow.noSynop = rst.getByte("CASY");
-					thisRow.noSpec = rst.getByte("CASP");
-					thisRow.noFSSpec = rst.getByte("CAFS");
-					thisRow.noBlocks = rst.getShort("CABL");
-					thisRow.noSlides = rst.getShort("CASL");
-					thisRow.noHE = rst.getShort("CAHE");
-					thisRow.noSS = rst.getShort("CASS");
-					thisRow.noIHC = rst.getShort("CAIH");
-					thisRow.noMol = rst.getShort("CAMO");
-					thisRow.grossTAT = rst.getShort("GRTA");
-					thisRow.embedTAT = rst.getShort("EMTA");
-					thisRow.microTAT = rst.getShort("MITA");
-					thisRow.routeTAT = rst.getShort("ROTA");
-					thisRow.finalTAT = rst.getShort("FNTA");
-					thisRow.value5 = rst.getInt("CAV5");
-					thisRow.caseID = rst.getLong("CAID");
-					thisRow.value1 = rst.getDouble("CAV1");
-					thisRow.value2 = rst.getDouble("CAV2");
-					thisRow.value3 = rst.getDouble("CAV3");
-					thisRow.value4 = rst.getDouble("CAV4");
-					thisRow.caseNo = rst.getString("CANO");
-					thisRow.facName = rst.getString("FANM");
-					thisRow.spyName = rst.getString("SYNM");
-					thisRow.subName = rst.getString("SBNM");
-					thisRow.procName = rst.getString("PONM");
-					thisRow.specName = rst.getString("SMNM");
+					thisRow.noSynop = rst.getByte("casy");
+					thisRow.noSpec = rst.getByte("casp");
+					thisRow.noFSSpec = rst.getByte("cafs");
+					thisRow.noBlocks = rst.getShort("cabl");
+					thisRow.noSlides = rst.getShort("casl");
+					thisRow.noHE = rst.getShort("cahe");
+					thisRow.noSS = rst.getShort("cass");
+					thisRow.noIHC = rst.getShort("caih");
+					thisRow.noMol = rst.getShort("camo");
+					thisRow.grossTAT = rst.getShort("grta");
+					thisRow.embedTAT = rst.getShort("emta");
+					thisRow.microTAT = rst.getShort("mita");
+					thisRow.routeTAT = rst.getShort("rota");
+					thisRow.finalTAT = rst.getShort("fnta");
+					thisRow.value5 = rst.getInt("cav5");
+					thisRow.caseID = rst.getLong("caid");
+					thisRow.value1 = rst.getDouble("cav1");
+					thisRow.value2 = rst.getDouble("cav2");
+					thisRow.value3 = rst.getDouble("cav3");
+					thisRow.value4 = rst.getDouble("cav4");
+					thisRow.caseNo = rst.getString("cano");
+					thisRow.facName = rst.getString("fanm");
+					thisRow.spyName = rst.getString("synm");
+					thisRow.subName = rst.getString("sbnm");
+					thisRow.procName = rst.getString("ponm");
+					thisRow.specName = rst.getString("smnm");
 					thisRow.grossName = rst.getString("GRNM");
 					thisRow.embedName = rst.getString("EMNM");
 					thisRow.microName = rst.getString("MINM");
 					thisRow.routeName = rst.getString("RONM");
-					thisRow.finalName = rst.getString("FNNM");
+					thisRow.finalName = rst.getString("fnnm");
 					thisRow.grossFull = rst.getString("GRFR").trim() + " " + rst.getString("GRLS").trim();
 					thisRow.embedFull = rst.getString("EMFR").trim() + " " + rst.getString("EMLS").trim();
 					thisRow.microFull = rst.getString("MIFR").trim() + " " + rst.getString("MILS").trim();
 					thisRow.routeFull = rst.getString("ROFR").trim() + " " + rst.getString("ROLS").trim();
-					thisRow.finalFull = rst.getString("FNFR").trim() + " " + rst.getString("FNLS").trim();
-					thisRow.accessed.setTimeInMillis(rst.getTimestamp("ACED").getTime());
-					thisRow.grossed.setTimeInMillis(rst.getTimestamp("GRED").getTime());
-					thisRow.embeded.setTimeInMillis(rst.getTimestamp("EMED").getTime());
-					thisRow.microed.setTimeInMillis(rst.getTimestamp("MIED").getTime());
-					thisRow.routed.setTimeInMillis(rst.getTimestamp("ROED").getTime());
-					thisRow.finaled.setTimeInMillis(rst.getTimestamp("FNED").getTime());
+					thisRow.finalFull = rst.getString("fnfr").trim() + " " + rst.getString("fnls").trim();
+					thisRow.accessed.setTimeInMillis(rst.getTimestamp("aced").getTime());
+					thisRow.grossed.setTimeInMillis(rst.getTimestamp("gred").getTime());
+					thisRow.embeded.setTimeInMillis(rst.getTimestamp("emed").getTime());
+					thisRow.microed.setTimeInMillis(rst.getTimestamp("mied").getTime());
+					thisRow.routed.setTimeInMillis(rst.getTimestamp("roed").getTime());
+					thisRow.finaled.setTimeInMillis(rst.getTimestamp("fned").getTime());
 					cases.add(thisRow);
 					noRows++;
 					if (noRows % 1000 == 0) {
@@ -1550,8 +1546,6 @@ class NFinals extends NBase {
 				pj.log(LConstants.ERROR_SQL, getName(), e);
 			} finally {
 				pj.dbPowerJ.close(rst);
-				pj.setBusy(false);
-				programmaticChange = false;
 			}
 			return null;
 		}
@@ -1566,6 +1560,8 @@ class NFinals extends NBase {
 				modelSpec.fireTableDataChanged();
 			}
 			pj.statusBar.setMessage("No Rows: " + pj.numbers.formatNumber(tblCase.getRowCount()));
+			pj.setBusy(false);
+			programmaticChange = false;
 		}
 	}
 }

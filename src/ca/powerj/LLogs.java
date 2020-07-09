@@ -20,8 +20,8 @@ class LLogs {
 			logHandler.setLevel(Level.ALL);
 			// Assign handlers to logger object
 			logger.addHandler(logHandler);
-			// Disable output to stderr
-			logger.setUseParentHandlers(false);
+			// Enable output to stderr
+			logger.setUseParentHandlers(true);
 			// Test logging
 			logger.log(Level.INFO, LConstants.APP_NAME + " started.");
 		} catch (SecurityException e) {

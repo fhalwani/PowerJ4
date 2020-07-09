@@ -146,12 +146,12 @@ class NBacklog extends NBase {
 		try {
 			while (rst.next()) {
 				turnaround = new OTurnaround();
-				turnaround.turID = rst.getByte("TAID");
-				turnaround.gross = rst.getShort("GRSS");
-				turnaround.embed = rst.getShort("EMBD");
-				turnaround.micro = rst.getShort("MICR");
-				turnaround.route = rst.getShort("ROUT");
-				turnaround.diagn = rst.getShort("FINL");
+				turnaround.turID = rst.getByte("taid");
+				turnaround.gross = rst.getShort("grss");
+				turnaround.embed = rst.getShort("embd");
+				turnaround.micro = rst.getShort("micr");
+				turnaround.route = rst.getShort("rout");
+				turnaround.diagn = rst.getShort("finl");
 				turnarounds.put(turnaround.turID, turnaround);
 			}
 		} catch (SQLException e) {
@@ -575,29 +575,30 @@ class NBacklog extends NBase {
 			int buffer = 0;
 			ResultSet rst = null;
 			try {
+				setName("WorkerData");
 				Calendar calToday = Calendar.getInstance();
 				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PND_SELECT));
 				pendings.clear();
 				while (rst.next()) {
 					pending = new OCasePending();
-					pending.spyID = rst.getByte("SYID");
-					pending.subID = rst.getByte("SBID");
-					pending.procID = rst.getByte("POID");
-					pending.turID = rst.getByte("TAID");
-					pending.statusID = rst.getByte("PNST");
-					pending.noSpec = rst.getByte("PNSP");
-					pending.facID = rst.getShort("FAID");
-					pending.noBlocks = rst.getShort("PNBL");
-					pending.noSlides = rst.getShort("PNSL");
-					pending.value5 = rst.getInt("PNV5");
-					pending.caseNo = rst.getString("PNNO");
-					pending.facility = rst.getString("FANM");
-					pending.specialty = rst.getString("SYNM");
-					pending.subspecial = rst.getString("SBNM");
-					pending.procedure = rst.getString("PONM");
-					pending.specimen = rst.getString("SMNM");
-					pending.status = statuses[rst.getByte("PNST")];
-					pending.accessed.setTimeInMillis(rst.getTimestamp("ACED").getTime());
+					pending.spyID = rst.getByte("syid");
+					pending.subID = rst.getByte("sbid");
+					pending.procID = rst.getByte("poid");
+					pending.turID = rst.getByte("taid");
+					pending.statusID = rst.getByte("pnst");
+					pending.noSpec = rst.getByte("pnsp");
+					pending.facID = rst.getShort("faid");
+					pending.noBlocks = rst.getShort("pnbl");
+					pending.noSlides = rst.getShort("pnsl");
+					pending.value5 = rst.getInt("pnv5");
+					pending.caseNo = rst.getString("pnno");
+					pending.facility = rst.getString("fanm");
+					pending.specialty = rst.getString("synm");
+					pending.subspecial = rst.getString("sbnm");
+					pending.procedure = rst.getString("ponm");
+					pending.specimen = rst.getString("smnm");
+					pending.status = statuses[rst.getByte("pnst")];
+					pending.accessed.setTimeInMillis(rst.getTimestamp("aced").getTime());
 					pending.grossed.setTimeInMillis(0);
 					pending.embeded.setTimeInMillis(0);
 					pending.microed.setTimeInMillis(0);
@@ -606,25 +607,25 @@ class NBacklog extends NBase {
 					pending.cutoff = turnaround.gross;
 					turnaround = turnarounds.get(pending.turID);
 					if (pending.statusID > OCaseStatus.ID_ACCES) {
-						pending.grossed.setTimeInMillis(rst.getTimestamp("GRED").getTime());
+						pending.grossed.setTimeInMillis(rst.getTimestamp("gred").getTime());
 						pending.cutoff += turnaround.embed;
 					}
 					if (pending.statusID > OCaseStatus.ID_GROSS) {
-						pending.embeded.setTimeInMillis(rst.getTimestamp("EMED").getTime());
+						pending.embeded.setTimeInMillis(rst.getTimestamp("emed").getTime());
 						pending.cutoff += turnaround.micro;
 					}
 					if (pending.statusID > OCaseStatus.ID_EMBED) {
-						pending.microed.setTimeInMillis(rst.getTimestamp("MIED").getTime());
+						pending.microed.setTimeInMillis(rst.getTimestamp("mied").getTime());
 						pending.cutoff += turnaround.route;
 					}
 					if (pending.statusID > OCaseStatus.ID_MICRO) {
-						pending.routed.setTimeInMillis(rst.getTimestamp("ROED").getTime());
+						pending.routed.setTimeInMillis(rst.getTimestamp("roed").getTime());
 						pending.cutoff += turnaround.diagn;
 					}
 					if (pending.statusID > OCaseStatus.ID_ROUTE) {
-						pending.finaled.setTimeInMillis(rst.getTimestamp("FNED").getTime());
-						pending.finalName = rst.getString("FNNM");
-						pending.finalFull = rst.getString("FNFR").trim() + " " + rst.getString("FNLS").trim();
+						pending.finaled.setTimeInMillis(rst.getTimestamp("fned").getTime());
+						pending.finalName = rst.getString("fnnm");
+						pending.finalFull = rst.getString("fnfr").trim() + " " + rst.getString("fnls").trim();
 					}
 					if (pending.statusID == OCaseStatus.ID_FINAL) {
 						pending.passed = pending.finalTAT;

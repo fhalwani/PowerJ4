@@ -23,8 +23,8 @@ class DDesktop extends DPowerJ {
 			PreparedStatement pstm = prepareStatement(setSQL(STM_FAC_SELECT));
 			ResultSet rst = getResultSet(pstm);
 			while (rst.next()) {
-				if (rst.getString("FAFL").equalsIgnoreCase("Y") || rst.getString("FALD").equalsIgnoreCase("Y")) {
-					list.add(new OItem(rst.getShort("FAID"), rst.getString("FANM")));
+				if (rst.getString("fafl").equalsIgnoreCase("Y") || rst.getString("fald").equalsIgnoreCase("Y")) {
+					list.add(new OItem(rst.getShort("faid"), rst.getString("fanm")));
 				}
 			}
 			close(rst);
@@ -45,7 +45,7 @@ class DDesktop extends DPowerJ {
 			PreparedStatement pstm = prepareStatement(setSQL(STM_ORG_SELECT));
 			ResultSet rst = getResultSet(pstm);
 			while (rst.next()) {
-				list.add(new OItem(rst.getShort("OGID"), rst.getString("OGNM")));
+				list.add(new OItem(rst.getShort("ogid"), rst.getString("ognm")));
 			}
 			close(rst);
 			close(pstm);
@@ -65,7 +65,7 @@ class DDesktop extends DPowerJ {
 			PreparedStatement pstm = prepareStatement(setSQL(STM_PRO_SELECT));
 			ResultSet rst = getResultSet(pstm);
 			while (rst.next()) {
-				list.add(new OItem(rst.getShort("POID"), rst.getString("PONM")));
+				list.add(new OItem(rst.getShort("poid"), rst.getString("ponm")));
 			}
 			close(rst);
 			close(pstm);
@@ -85,7 +85,7 @@ class DDesktop extends DPowerJ {
 			PreparedStatement pstm = prepareStatement(setSQL(STM_SPY_SELECT));
 			ResultSet rst = getResultSet(pstm);
 			while (rst.next()) {
-				list.add(new OItem(rst.getShort("SYID"), rst.getString("SYNM")));
+				list.add(new OItem(rst.getShort("syid"), rst.getString("synm")));
 			}
 			close(rst);
 			close(pstm);
@@ -105,7 +105,7 @@ class DDesktop extends DPowerJ {
 			PreparedStatement pstm = prepareStatement(setSQL(STM_SUB_SELECT));
 			ResultSet rst = getResultSet(pstm);
 			while (rst.next()) {
-				list.add(new OItem(rst.getShort("SBID"), rst.getString("SBNM")));
+				list.add(new OItem(rst.getShort("sbid"), rst.getString("sbnm")));
 			}
 			close(rst);
 			close(pstm);
@@ -259,6 +259,8 @@ class DDesktop extends DPowerJ {
 			pstms.put(STM_SPY_UPDATE, prepareStatement(setSQL(STM_SPY_UPDATE)));
 			break;
 		case LConstants.ACTION_SPECIMEN:
+			pstms.put(STM_ADD_SL_SPG, prepareStatement(setSQL(STM_ADD_SL_SPG)));
+			pstms.put(STM_FRZ_SL_SUM, prepareStatement(setSQL(STM_FRZ_SL_SUM)));
 			pstms.put(STM_SPG_SL_SUM, prepareStatement(setSQL(STM_SPG_SL_SUM)));
 			break;
 		case LConstants.ACTION_SPECMASTER:
@@ -300,6 +302,7 @@ class DDesktop extends DPowerJ {
 			pstms.put(STM_ACC_SELECT, prepareStatement(setSQL(STM_ACC_SELECT)));
 			pstms.put(STM_FAC_SELECT, prepareStatement(setSQL(STM_FAC_SELECT)));
 			pstms.put(STM_ORM_SELECT, prepareStatement(setSQL(STM_ORM_SELECT)));
+			pstms.put(STM_PRS_SELECT, prepareStatement(setSQL(STM_PRS_SELECT)));
 			pstms.put(STM_PND_DEL_FN, prepareStatement(setSQL(STM_PND_DEL_FN)));
 			pstms.put(STM_PND_DEL_ID, prepareStatement(setSQL(STM_PND_DEL_ID)));
 			pstms.put(STM_PND_INSERT, prepareStatement(setSQL(STM_PND_INSERT)));
@@ -376,131 +379,144 @@ class DDesktop extends DPowerJ {
 	String setSQL(short id) {
 		switch (id) {
 		case STM_ACC_SELECT:
-			return "SELECT * FROM udvAccessions ORDER BY ACNM";
+			return "SELECT * FROM " + pj.pjSchema + ".udvaccessions ORDER BY acnm";
 		case STM_ADD_SL_CID:
-			return "SELECT PRID, ADCD, ADV5, ADV1, ADV2, ADV3, ADV4, ADDT, PRNM, PRLS, PRFR, CANO "
-					+ "FROM udvAdditionals WHERE CAID = ? ORDER BY ADDT";
+			return "SELECT prid, adcd, adv5, adv1, adv2, adv3, adv4, addt, prnm, prls, prfr, cano "
+					+ "FROM " + pj.pjSchema + ".udvadditionals WHERE caid = ? ORDER BY addt";
 		case STM_ADD_SL_LST:
-			return "SELECT MAX(ADDT) AS ADDT FROM Additionals WHERE ADCD = ?";
+			return "SELECT MAX(addt) AS addt FROM " + pj.pjSchema + ".additionals WHERE adcd = ?";
+		case STM_ADD_SL_SPG:
+			return "SELECT b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm, "
+					+ "COUNT(a.caid) AS qty, SUM(a.adv1) AS adv1, SUM(a.adv2) AS adv2, "
+					+ "SUM(a.adv3) AS adv3, SUM(a.adv4) AS adv4, SUM(a.adv5) AS adv5 "
+					+ "FROM " + pj.pjSchema + ".additionals AS a "
+					+ "INNER JOIN " + pj.pjSchema + ".cases AS c ON c.caid = a.caid "
+					+ "INNER JOIN " + pj.pjSchema + ".facilities AS f ON f.faid = c.faid "
+					+ "INNER JOIN " + pj.pjSchema + ".specimaster AS m ON m.smid = c.smid "
+					+ "INNER JOIN " + pj.pjSchema + ".specigroups AS g ON g.sgid = m.sgid "
+					+ "INNER JOIN " + pj.pjSchema + ".subspecial AS b ON b.sbid = g.sbid "
+					+ "INNER JOIN " + pj.pjSchema + ".specialties AS y ON y.syid = b.syid "
+					+ "WHERE c.fned BETWEEN ? AND ? "
+					+ "GROUP BY b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm "
+					+ "ORDER BY b.syid, g.sbid, g.sgid, c.faid";
 		case STM_ADD_SL_SUM:
-			return "SELECT FAID, SYID, SBID, POID, PRID, FANM, SYNM, SBNM, PONM, PRNM, PRLS, PRFR, COUNT(CAID) AS ADCA, "
-					+ "SUM(CAST(ADV5 as INT)) AS ADV5, SUM(ADV1) AS ADV1, SUM(ADV2) AS ADV2, SUM(ADV3) AS ADV3, SUM(ADV4) AS ADV4 "
-					+ "FROM udvAdditionals WHERE (ADDT BETWEEN ? AND ?) "
-					+ "GROUP BY FAID, SYID, SBID, POID, PRID, FANM, SYNM, SBNM, PONM, PRNM, PRLS, PRFR "
-					+ "ORDER BY FAID, SYID, SBID, POID, PRID";
+			return "SELECT faid, syid, sbid, poid, prid, fanm, synm, sbnm, ponm, prnm, prls, prfr, COUNT(caid) AS adca, "
+					+ "SUM(CAST(adv5 as INT)) AS adv5, SUM(adv1) AS adv1, SUM(adv2) AS adv2, SUM(adv3) AS adv3, SUM(adv4) AS adv4 "
+					+ "FROM " + pj.pjSchema + ".udvadditionals WHERE (addt BETWEEN ? AND ?) "
+					+ "GROUP BY faid, syid, sbid, poid, prid, fanm, synm, sbnm, ponm, prnm, prls, prfr "
+					+ "ORDER BY faid, syid, sbid, poid, prid";
 		case STM_CD1_SELECT:
-			return "SELECT COID, RUID, COQY, COV1, COV2, COV3, CONM, CODC FROM Coder1 ORDER BY COID";
+			return "SELECT coid, ruid, coqy, cov1, cov2, cov3, conm, codc FROM " + pj.pjSchema + ".coder1 ORDER BY coid";
 		case STM_CD2_SELECT:
-			return "SELECT COID, RUID, COQY, COV1, COV2, COV3, CONM, CODC FROM Coder2 ORDER BY COID";
+			return "SELECT coid, ruid, coqy, cov1, cov2, cov3, conm, codc FROM " + pj.pjSchema + ".coder2 ORDER BY coid";
 		case STM_CD3_SELECT:
-			return "SELECT COID, RUID, COQY, COV1, COV2, COV3, CONM, CODC FROM Coder3 ORDER BY COID";
+			return "SELECT coid, ruid, coqy, cov1, cov2, cov3, conm, codc FROM " + pj.pjSchema + ".coder3 ORDER BY coid";
 		case STM_CD4_SELECT:
-			return "SELECT COID, RUID, COQY, COV1, COV2, COV3, CONM, CODC FROM Coder4 ORDER BY COID";
+			return "SELECT coid, ruid, coqy, cov1, cov2, cov3, conm, codc FROM " + pj.pjSchema + ".coder4 ORDER BY coid";
 		case STM_CMT_SELECT:
-			return "SELECT COM1, COM2, COM3, COM4 FROM Comments WHERE CAID = ?";
+			return "SELECT com1, com2, com3, com4 FROM " + pj.pjSchema + ".comments WHERE caid = ?";
 		case STM_CSE_SL_CID:
-			return "SELECT CAID FROM Cases WHERE CANO = ?";
+			return "SELECT caid FROM " + pj.pjSchema + ".cases WHERE cano = ?";
 		case STM_CSE_SL_CNO:
-			return "SELECT CANO FROM Cases WHERE CAID = ?";
+			return "SELECT cano FROM " + pj.pjSchema + ".cases WHERE caid = ?";
 		case STM_CSE_SL_SPE:
-			return "SELECT c.SMID, c.FNED, c.CANO, s.SPID FROM Cases AS c INNER JOIN Specimens AS s ON s.CAID = c.CAID "
-					+ "AND s.SMID = c.SMID WHERE c.CAID = ?";
+			return "SELECT c.smid, c.fned, c.cano, s.spid FROM " + pj.pjSchema + ".cases AS c INNER JOIN " + pj.pjSchema + ".specimens AS s ON s.caid = c.caid "
+					+ "AND s.smid = c.smid WHERE c.caid = ?";
 		case STM_CSE_SL_SUM:
-			return "SELECT FAID, SYID, SBID, POID, FNID, FANM, SYNM, SBNM, PONM, FNNM, FNLS, FNFR, COUNT(CAID) AS CACA, "
-					+ "SUM(CAST(CASP as INT)) AS CASP, SUM(CAST(CABL as INT)) AS CABL, SUM(CAST(CASL as INT)) AS CASL, SUM(CAST(CAHE as INT)) AS CAHE, "
-					+ "SUM(CAST(CASS as INT)) AS CASS, SUM(CAST(CAIH as INT)) AS CAIH, SUM(CAST(CAMO as INT)) AS CAMO, SUM(CAST(CAFS as INT)) AS CAFS, "
-					+ "SUM(CAST(CASY as INT)) AS CASY, SUM(CAST(GRTA as INT)) AS GRTA, SUM(CAST(EMTA as INT)) AS EMTA, SUM(CAST(MITA as INT)) AS MITA, "
-					+ "SUM(CAST(ROTA as INT)) AS ROTA, SUM(CAST(FNTA as INT)) AS FNTA, SUM(CAST(CAV5 as INT)) AS CAV5, SUM(CAV1) AS CAV1, SUM(CAV2) AS CAV2, "
-					+ "SUM(CAV3) AS CAV3, SUM(CAV4) AS CAV4 FROM udvCases WHERE (FNED BETWEEN ? AND ?) "
-					+ "GROUP BY FAID, SYID, SBID, POID, FNID, FANM, SYNM, SBNM, PONM, FNNM, FNLS, FNFR "
-					+ "ORDER BY FAID, SYID, SBID, POID, FNID";
+			return "SELECT faid, syid, sbid, poid, fnid, fanm, synm, sbnm, ponm, fnnm, fnls, fnfr, COUNT(caid) AS caca, "
+					+ "SUM(CAST(casp as INT)) AS casp, SUM(CAST(cabl as INT)) AS cabl, SUM(CAST(casl as INT)) AS casl, SUM(CAST(cahe as INT)) AS cahe, "
+					+ "SUM(CAST(cass as INT)) AS cass, SUM(CAST(caih as INT)) AS caih, SUM(CAST(camo as INT)) AS camo, SUM(CAST(cafs as INT)) AS cafs, "
+					+ "SUM(CAST(casy as INT)) AS casy, SUM(CAST(grta as INT)) AS grta, SUM(CAST(emta as INT)) AS emta, SUM(CAST(mita as INT)) AS mita, "
+					+ "SUM(CAST(rota as INT)) AS rota, SUM(CAST(fnta as INT)) AS fnta, SUM(CAST(cav5 as INT)) AS cav5, SUM(cav1) AS cav1, SUM(cav2) AS cav2, "
+					+ "SUM(cav3) AS cav3, SUM(cav4) AS cav4 FROM " + pj.pjSchema + ".udvcases WHERE (fned BETWEEN ? AND ?) "
+					+ "GROUP BY faid, syid, sbid, poid, fnid, fanm, synm, sbnm, ponm, fnnm, fnls, fnfr "
+					+ "ORDER BY faid, syid, sbid, poid, fnid";
 		case STM_ERR_SELECT:
-			return "SELECT CAID, ERID, CANO FROM Errors WHERE ERID > 0 ORDER BY CANO";
+			return "SELECT caid, erid, cano FROM " + pj.pjSchema + ".errors WHERE erid > 0 ORDER BY cano";
 		case STM_ERR_SL_CMT:
-			return "SELECT ERDC FROM Errors WHERE CAID = ?";
+			return "SELECT erdc FROM " + pj.pjSchema + ".errors WHERE caid = ?";
 		case STM_ERR_SL_FXD:
-			return "SELECT CAID FROM Errors WHERE ERID = 0 ORDER BY CAID";
+			return "SELECT caid FROM " + pj.pjSchema + ".errors WHERE erid = 0 ORDER BY caid";
 		case STM_FAC_SELECT:
-			return "SELECT FAID, FAFL, FALD, FANM, FADC FROM Facilities ORDER BY FAID";
+			return "SELECT faid, fafl, fald, fanm, fadc FROM " + pj.pjSchema + ".facilities ORDER BY faid";
 		case STM_FRZ_SL_SID:
-			return "SELECT PRID, FRBL, FRSL, FRV5, FRV1, FRV2, FRV3, FRV4, PRNM, PRLS, "
-					+ "PRFR, SPDC, SMNM FROM udvFrozens WHERE SPID = ?";
+			return "SELECT prid, frbl, frsl, frv5, frv1, frv2, frv3, frv4, prnm, prls, "
+					+ "prfr, spdc, smnm FROM " + pj.pjSchema + ".udvfrozens WHERE spid = ?";
 		case STM_FRZ_SL_SU5:
-			return "SELECT COUNT(*) AS QTY, SUM(FRV1) AS FRV1, SUM(FRV2) AS FRV2, "
-					+ "SUM(FRV3) AS FRV3, SUM(FRV4) AS FRV4 " + "FROM udvFrozens WHERE ACED BETWEEN ? AND ?";
+			return "SELECT COUNT(*) AS QTY, SUM(frv1) AS frv1, SUM(frv2) AS frv2, "
+					+ "SUM(frv3) AS frv3, SUM(frv4) AS frv4 FROM " + pj.pjSchema + ".udvfrozens WHERE aced BETWEEN ? AND ?";
 		case STM_FRZ_SL_SUM:
-			return "SELECT FAID, SYID, SBID, POID, PRID, FANM, SYNM, SBNM, PONM, PRNM, PRLS, PRFR, COUNT(SPID) AS FRSP, "
-					+ "SUM(CAST(FRBL as INT)) AS FRBL, SUM(CAST(FRSL as INT)) AS FRSL, SUM(CAST(FRV5 as INT)) AS FRV5, SUM(FRV1) AS FRV1, SUM(FRV2) AS FRV2, "
-					+ "SUM(FRV3) AS FRV3, SUM(FRV4) AS FRV4 FROM udvFrozens WHERE (ACED BETWEEN ? AND ?) "
-					+ "GROUP BY FAID, SYID, SBID, POID, PRID, FANM, SYNM, SBNM, PONM, PRNM, PRLS, PRFR "
-					+ "ORDER BY FAID, SYID, SBID, POID, PRID";
+			return "SELECT faid, syid, sbid, poid, prid, fanm, synm, sbnm, ponm, prnm, prls, prfr, COUNT(spid) AS frsp, "
+					+ "SUM(CAST(frbl as INT)) AS frbl, SUM(CAST(frsl as INT)) AS frsl, SUM(CAST(frv5 as INT)) AS frv5, SUM(frv1) AS frv1, SUM(frv2) AS frv2, "
+					+ "SUM(frv3) AS frv3, SUM(frv4) AS frv4 FROM " + pj.pjSchema + ".udvfrozens WHERE (aced BETWEEN ? AND ?) "
+					+ "GROUP BY faid, syid, sbid, poid, prid, fanm, synm, sbnm, ponm, prnm, prls, prfr "
+					+ "ORDER BY faid, syid, sbid, poid, prid";
 		case STM_ORD_SELECT:
-			return "SELECT ORQY, ORV1, ORV2, ORV3, ORV4, OGNM FROM udvOrders WHERE SPID = ? ORDER BY OGNM";
+			return "SELECT orqy, orv1, orv2, orv3, orv4, ognm FROM " + pj.pjSchema + ".udvorders WHERE spid = ? ORDER BY ognm";
 		case STM_ORG_SELECT:
-			return "SELECT * FROM udvOrderGroups ORDER BY OGNM";
+			return "SELECT * FROM " + pj.pjSchema + ".udvordergroups ORDER BY ognm";
 		case STM_ORM_SELECT:
-			return "SELECT * FROM udvOrderMaster ORDER BY OMNM";
+			return "SELECT * FROM " + pj.pjSchema + ".udvordermaster ORDER BY omnm";
 		case STM_PND_SELECT:
-			return "SELECT * FROM udvPending ORDER BY PNID";
+			return "SELECT * FROM " + pj.pjSchema + ".udvpending ORDER BY pnid";
 		case STM_PND_SL_ROU:
-			return "SELECT * FROM udvPending WHERE ROED BETWEEN ? AND ? ORDER BY PNID";
+			return "SELECT * FROM " + pj.pjSchema + ".udvpending WHERE roed BETWEEN ? AND ? ORDER BY pnid";
 		case STM_PRO_SELECT:
-			return "SELECT POID, PONM, PODC FROM Procedures ORDER BY PONM";
+			return "SELECT poid, ponm, podc FROM " + pj.pjSchema + ".procedures ORDER BY ponm";
 		case STM_PRS_SELECT:
-			return "SELECT * FROM Persons ORDER BY PRNM";
+			return "SELECT * FROM " + pj.pjSchema + ".persons ORDER BY prnm";
 		case STM_PRS_SL_PID:
-			return "SELECT PRVL FROM Persons WHERE PRID = ?";
+			return "SELECT prvl FROM " + pj.pjSchema + ".persons WHERE prid = ?";
 		case STM_RUL_SELECT:
-			return "SELECT RUID, RUNM, RUDC FROM Rules ORDER BY RUID";
+			return "SELECT ruid, runm, rudc FROM " + pj.pjSchema + ".rules ORDER BY ruid";
 		case STM_SCH_SL_SRV:
-			return "SELECT WDID, SRID, PRID, PRNM, SRNM FROM udvSchedules WHERE (WDDT BETWEEN ? AND ?) ORDER BY SRNM, WDID";
+			return "SELECT wdid, srid, prid, prnm, srnm FROM " + pj.pjSchema + ".udvschedules WHERE (wddt BETWEEN ? AND ?) ORDER BY srnm, wdid";
 		case STM_SCH_SL_SUM:
-			return "SELECT * FROM udvSchedules WHERE (WDDT BETWEEN ? AND ?) ORDER BY FAID, PRID, WDID, SRID";
+			return "SELECT * FROM " + pj.pjSchema + ".udvschedules WHERE (wddt BETWEEN ? AND ?) ORDER BY faid, prid, wdid, srid";
 		case STM_SCH_SL_STA:
-			return "SELECT WDID, SRID, PRID, PRNM, SRNM FROM udvSchedules WHERE (WDDT BETWEEN ? AND ?) ORDER BY PRNM, WDID, SRNM";
+			return "SELECT wdid, srid, prid, prnm, srnm FROM " + pj.pjSchema + ".udvschedules WHERE (wddt BETWEEN ? AND ?) ORDER BY prnm, wdid, srnm";
 		case STM_SPE_SELECT:
-			return "SELECT SPID, SMID, SPBL, SPSL, SPFR, SPHE, SPSS, SPIH, SPMO, SPV5, SPV1, SPV2, SPV3, "
-					+ "SPV4, SPDC, SMNM, SMDC, PONM FROM udvSpecimens WHERE CAID = ? ORDER BY SPID";
+			return "SELECT spid, smid, spbl, spsl, spfr, sphe, spss, spih, spmo, spv5, spv1, spv2, spv3, "
+					+ "spv4, spdc, smnm, smdc, ponm FROM " + pj.pjSchema + ".udvspecimens WHERE caid = ? ORDER BY spid";
 		case STM_SPG_SELECT:
-			return "SELECT * FROM udvSpeciGroups ORDER BY SGDC";
+			return "SELECT * FROM " + pj.pjSchema + ".udvspecigroups ORDER BY sgdc";
 		case STM_SPG_SL_SU5:
 			return "SELECT g.sgid, COUNT(s.spid) AS qty, SUM(s.spv1) AS spv1, "
 					+ "SUM(s.spv2) AS spv2, SUM(s.spv3) AS spv3, SUM(s.spv4) AS spv4 "
-					+ "FROM specigroups g INNER JOIN specimaster m ON g.sgid = m.sgid "
-					+ "INNER JOIN specimens s ON m.smid = s.smid INNER JOIN cases c ON c.caid = s.caid "
-					+ "WHERE c.fned BETWEEN ? AND ? " + "GROUP BY g.sgid";
+					+ "FROM " + pj.pjSchema + ".specigroups g INNER JOIN " + pj.pjSchema + ".specimaster m ON g.sgid = m.sgid "
+					+ "INNER JOIN " + pj.pjSchema + ".specimens s ON m.smid = s.smid INNER JOIN " + pj.pjSchema + ".cases c ON c.caid = s.caid "
+					+ "WHERE c.fned BETWEEN ? AND ? GROUP BY g.sgid";
 		case STM_SPG_SL_SUM:
-			return "SELECT b.syid, g.sbid, g.sgid, c.faid, c.fnid, y.synm, b.sbnm, b.sbdc, g.sgdc, f.fanm, "
-					+ "p.prnm, p.prls, p.prfr, COUNT(s.spid) AS qty, SUM(s.spbl) AS spbl, SUM(s.spsl) AS spsl, "
+			return "SELECT b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm, "
+					+ "COUNT(s.spid) AS qty, SUM(s.spbl) AS spbl, SUM(s.spsl) AS spsl, "
 					+ "SUM(s.sphe) AS sphe, SUM(s.spss) AS spss, SUM(s.spih) AS spih, SUM(s.spv1) AS spv1, "
 					+ "SUM(s.spv2) AS spv2, SUM(s.spv3) AS spv3, SUM(s.spv4) AS spv4, SUM(s.spv5) AS spv5 "
-					+ "FROM specigroups g INNER JOIN specimaster m ON g.sgid = m.sgid "
-					+ "INNER JOIN specimens s ON m.smid = s.smid INNER JOIN cases c ON c.caid = s.caid "
-					+ "INNER JOIN subspecial b ON b.sbid = g.sbid INNER JOIN specialties y ON y.syid = b.syid "
-					+ "INNER JOIN facilities f ON f.faid = c.faid INNER JOIN persons p ON p.prid = c.fnid "
-					+ "WHERE c.fned BETWEEN ? AND ? "
-					+ "GROUP BY b.syid, g.sbid, g.sgid, c.faid, c.fnid, y.synm, b.sbnm, b.sbdc, g.sgdc, f.fanm, p.prnm, p.prls, p.prfr "
-					+ "ORDER BY y.synm, b.sbnm, b.sbdc, g.sgdc, f.fanm, p.prnm, p.prls, p.prfr";
+					+ "FROM " + pj.pjSchema + ".specigroups g INNER JOIN " + pj.pjSchema + ".specimaster m ON g.sgid = m.sgid "
+					+ "INNER JOIN " + pj.pjSchema + ".specimens s ON m.smid = s.smid INNER JOIN " + pj.pjSchema + ".cases c ON c.caid = s.caid "
+					+ "INNER JOIN " + pj.pjSchema + ".subspecial b ON b.sbid = g.sbid INNER JOIN " + pj.pjSchema + ".specialties y ON y.syid = b.syid "
+					+ "INNER JOIN " + pj.pjSchema + ".facilities f ON f.faid = c.faid WHERE c.fned BETWEEN ? AND ? "
+					+ "GROUP BY b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm "
+					+ "ORDER BY y.synm, b.sbnm, g.sgdc, f.fanm";
 		case STM_SPM_SELECT:
-			return "SELECT * FROM udvSpeciMaster ORDER BY SMNM";
+			return "SELECT * FROM " + pj.pjSchema + ".udvspecimaster ORDER BY smnm";
 		case STM_SPY_SELECT:
-			return "SELECT * FROM Specialties ORDER BY SYNM";
+			return "SELECT * FROM " + pj.pjSchema + ".specialties ORDER BY synm";
 		case STM_STP_SELECT:
-			return "SELECT STID, STVA FROM Setup ORDER BY STID";
+			return "SELECT stid, stva FROM " + pj.pjSchema + ".setup ORDER BY stid";
 		case STM_STP_SL_SID:
-			return "SELECT STVA FROM Setup WHERE STID = ?";
+			return "SELECT stva FROM " + pj.pjSchema + ".setup WHERE stid = ?";
 		case STM_SUB_SELECT:
-			return "SELECT * FROM udvSubspecial ORDER BY SBNM";
+			return "SELECT * FROM " + pj.pjSchema + ".udvsubspecial ORDER BY sbnm";
 		case STM_TUR_SELECT:
-			return "SELECT TAID, GRSS, EMBD, MICR, ROUT, FINL, TANM FROM Turnaround ORDER BY TANM";
+			return "SELECT taid, grss, embd, micr, rout, finl, tanm FROM " + pj.pjSchema + ".turnaround ORDER BY tanm";
 		case STM_WDY_SELECT:
-			return "SELECT WDID, WDNO, WDTP, WDDT FROM Workdays WHERE WDDT >= ? ORDER BY WDDT";
+			return "SELECT wdid, wdno, wdtp, wddt FROM " + pj.pjSchema + ".workdays WHERE wddt >= ? ORDER BY wddt";
 		case STM_WDY_SL_DTE:
-			return "SELECT WDNO FROM Workdays WHERE WDDT = ?";
+			return "SELECT wdno FROM " + pj.pjSchema + ".workdays WHERE wddt = ?";
 		case STM_WDY_SL_NXT:
-			return "SELECT MIN(WDDT) AS WDDT FROM Workdays WHERE WDDT > ? AND WDTP = 'D'";
+			return "SELECT MIN(wddt) AS wddt FROM " + pj.pjSchema + ".workdays WHERE wddt > ? AND wdtp = 'D'";
 		case STM_WDY_SL_PRV:
-			return "SELECT MAX(WDDT) AS WDDT FROM Workdays WHERE WDDT < ? AND WDTP = 'D'";
+			return "SELECT MAX(wddt) AS wddt FROM " + pj.pjSchema + ".workdays WHERE wddt < ? AND wdtp = 'D'";
 		default:
 			return super.setSQL(id);
 		}

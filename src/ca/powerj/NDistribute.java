@@ -11,12 +11,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.SwingWorker;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -39,13 +42,14 @@ import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
 class NDistribute extends NBase {
-	private short facID = 0;
-	private double annualFte = 0;
+	private final byte FILTER_FAC = 0;
+	private final byte FILTER_SPY = 1;
+	private final byte FILTER_DATA = 2;
+	private short[] filters = { 0, 0, 1 };
+	private double annualFte = 1;
 	private long timeFrom = 0;
 	private long timeTo = 0;
-	private HashMap<Short, DataPerson> persons = new HashMap<Short, DataPerson>();
-	private HashMap<Byte, DataSubspec> subs = new HashMap<Byte, DataSubspec>();
-	private HashMap<Short, DataFacility> facilities = new HashMap<Short, DataFacility>();
+	private String coderName = "Cases";
 	private ArrayList<DataHeader> headers = new ArrayList<DataHeader>();
 	private ArrayList<DataPerson> list = new ArrayList<DataPerson>();
 	private ModelFTE model;
@@ -56,29 +60,15 @@ class NDistribute extends NBase {
 		super(parent);
 		setName("Distribution");
 		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_DISTRIBUTE);
-		annualFte = Double.parseDouble(parent.setup.getString(LSetup.VAR_V5_FTE));
-		if (annualFte < 1.00) {
-			annualFte = 1.00;
-		}
-		getData();
 		createPanel();
 		programmaticChange = false;
+		altered = true;
 	}
 
 	@Override
 	boolean close() {
+		altered = false;
 		super.close();
-		for (Entry<Short, DataFacility> entry1 : facilities.entrySet()) {
-			DataFacility facility = entry1.getValue();
-			for (Entry<Byte, DataSubspec> entry2 : facility.subspecs.entrySet()) {
-				DataSubspec subspec = entry2.getValue();
-				subspec.persons.clear();
-			}
-			facility.subspecs.clear();
-		}
-		facilities.clear();
-		persons.clear();
-		subs.clear();
 		headers.clear();
 		list.clear();
 		if (chartBar != null) {
@@ -95,22 +85,15 @@ class NDistribute extends NBase {
 				try {
 					JTable t = (JTable) e.getSource();
 					Point p = e.getPoint();
-					int v = rowAtPoint(p);
 					int c = columnAtPoint(p);
-					int m = t.convertRowIndexToModel(v);
-					String s = "";
-					if (c <= 0) {
-						s = list.get(m).prsFull;
-					} else if (c < headers.size()) {
-						s = list.get(m).prsFull + ": " + headers.get(c - 1).subDescr + ": "
-								+ list.get(m).subspecs.get(headers.get(c - 1).subID);
-					} else {
-						s = list.get(m).prsFull + ": " + list.get(m).fte;
+					if (c == 0) {
+						int v = rowAtPoint(p);
+						int m = t.convertRowIndexToModel(v);
+						return list.get(m).prsFull;
 					}
-					return s;
 				} catch (IndexOutOfBoundsException ignore) {
-					return null;
 				}
+				return null;
 			}
 		};
 		JScrollPane scrollList = IGUI.createJScrollPane(tblList);
@@ -124,140 +107,20 @@ class NDistribute extends NBase {
 		splitAll.setOneTouchExpandable(true);
 		splitAll.setDividerLocation(450);
 		splitAll.setPreferredSize(new Dimension(1100, 900));
+		Calendar calStart = pj.dates.setMidnight(null);
+		Calendar calEnd = pj.dates.setMidnight(null);
+		Calendar calMin = Calendar.getInstance();
+		Calendar calMax = Calendar.getInstance();
+		calStart.add(Calendar.YEAR, -1);
+		timeFrom = calStart.getTimeInMillis();
+		timeTo = calEnd.getTimeInMillis();
+		calMax.setTimeInMillis(timeTo);
+		calMin.setTimeInMillis(pj.setup.getLong(LSetup.VAR_MIN_WL_DATE));
 		setLayout(new BorderLayout());
 		setOpaque(true);
-		add(new IToolBar(this), BorderLayout.NORTH);
+		add(new IToolBar(this, calStart, calEnd, calMin, calMax, null),
+				BorderLayout.NORTH);
 		add(splitAll, BorderLayout.CENTER);
-	}
-
-	private void getData() {
-		ResultSet rst = null;
-		try {
-			for (Entry<Short, DataFacility> entry1 : facilities.entrySet()) {
-				DataFacility facility = entry1.getValue();
-				for (Entry<Byte, DataSubspec> entry2 : facility.subspecs.entrySet()) {
-					DataSubspec subspec = entry2.getValue();
-					subspec.persons.clear();
-				}
-				facility.subspecs.clear();
-			}
-			facilities.clear();
-			persons.clear();
-			subs.clear();
-			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_SUM), 1, timeFrom);
-			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_SUM), 2, timeTo);
-			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CSE_SL_SUM));
-			while (rst.next()) {
-				DataFacility facility = facilities.get(rst.getShort("FAID"));
-				if (facility == null) {
-					facility = new DataFacility();
-					facilities.put(rst.getShort("FAID"), facility);
-				}
-				DataSubspec subspec = facility.subspecs.get(rst.getByte("SBID"));
-				if (subspec == null) {
-					subspec = new DataSubspec();
-					subspec.subID = rst.getByte("SBID");
-					facility.subspecs.put(rst.getByte("SBID"), subspec);
-				}
-				DataPerson person = subspec.persons.get(rst.getShort("FNID"));
-				if (person == null) {
-					person = new DataPerson();
-					person.prsID = rst.getShort("FNID");
-					subspec.persons.put(rst.getShort("FNID"), person);
-				}
-				person.fte += rst.getDouble("CAV5");
-				subspec.fte += rst.getDouble("CAV5");
-				DataSubspec sub = subs.get(rst.getByte("SBID"));
-				if (sub == null) {
-					sub = new DataSubspec();
-					sub.subName = rst.getString("SBNM");
-					sub.subDescr = rst.getString("SBDC");
-				}
-				DataPerson staff = persons.get(rst.getShort("FNID"));
-				if (staff == null) {
-					staff = new DataPerson();
-					staff.prsName = rst.getString("FNNM");
-					staff.prsFull = rst.getString("FNLS");
-				}
-			}
-			rst.close();
-			// Frozen Sections
-			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_SUM), 1, timeFrom);
-			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_SUM), 2, timeTo);
-			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_FRZ_SL_SUM));
-			while (rst.next()) {
-				DataFacility facility = facilities.get(rst.getShort("FAID"));
-				if (facility == null) {
-					facility = new DataFacility();
-					facilities.put(rst.getShort("FAID"), facility);
-				}
-				DataSubspec subspec = facility.subspecs.get(rst.getByte("SBID"));
-				if (subspec == null) {
-					subspec = new DataSubspec();
-					subspec.subID = rst.getByte("SBID");
-					facility.subspecs.put(rst.getByte("SBID"), subspec);
-				}
-				DataPerson person = subspec.persons.get(rst.getShort("PRID"));
-				if (person == null) {
-					person = new DataPerson();
-					person.prsID = rst.getShort("PRID");
-					subspec.persons.put(rst.getShort("PRID"), person);
-				}
-				person.fte += rst.getDouble("CAV5");
-				DataSubspec sub = subs.get(rst.getByte("SBID"));
-				if (sub == null) {
-					sub = new DataSubspec();
-					sub.subName = rst.getString("SBNM");
-					sub.subDescr = rst.getString("SBDC");
-				}
-				DataPerson staff = persons.get(rst.getShort("PRID"));
-				if (staff == null) {
-					staff = new DataPerson();
-					staff.prsName = rst.getString("PRNM");
-					staff.prsFull = rst.getString("PRLS");
-				}
-			}
-			// Additional
-			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_ADD_SL_SUM), 1, timeFrom);
-			pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_ADD_SL_SUM), 2, timeTo);
-			rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ADD_SL_SUM));
-			while (rst.next()) {
-				DataFacility facility = facilities.get(rst.getShort("FAID"));
-				if (facility == null) {
-					facility = new DataFacility();
-					facilities.put(rst.getShort("FAID"), facility);
-				}
-				DataSubspec subspec = facility.subspecs.get(rst.getByte("SBID"));
-				if (subspec == null) {
-					subspec = new DataSubspec();
-					subspec.subID = rst.getByte("SBID");
-					facility.subspecs.put(rst.getByte("SBID"), subspec);
-				}
-				DataPerson person = subspec.persons.get(rst.getShort("PRID"));
-				if (person == null) {
-					person = new DataPerson();
-					person.prsID = rst.getShort("PRID");
-					subspec.persons.put(rst.getShort("PRID"), person);
-				}
-				person.fte += rst.getDouble("CAV5");
-				DataSubspec sub = subs.get(rst.getByte("SBID"));
-				if (sub == null) {
-					sub = new DataSubspec();
-					sub.subName = rst.getString("SBNM");
-					sub.subDescr = rst.getString("SBDC");
-				}
-				DataPerson staff = persons.get(rst.getShort("PRID"));
-				if (staff == null) {
-					staff = new DataPerson();
-					staff.prsName = rst.getString("PRNM");
-					staff.prsFull = rst.getString("PRLS");
-				}
-			}
-		} catch (SQLException e) {
-			pj.log(LConstants.ERROR_SQL, getName(), e);
-		} finally {
-			pj.dbPowerJ.close(rst);
-		}
 	}
 
 	@Override
@@ -323,7 +186,7 @@ class NDistribute extends NBase {
 						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
 					} else if (col < headers.size()) {
 						paragraph.add(new Chunk(
-								pj.numbers.formatDouble(2, list.get(i).subspecs.get(headers.get(col - 1).subID))));
+								pj.numbers.formatDouble(2, list.get(i).dSubs.get(headers.get(col - 1).subID))));
 						paragraph.setAlignment(Element.ALIGN_RIGHT);
 						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
 					} else {
@@ -344,96 +207,79 @@ class NDistribute extends NBase {
 		}
 	}
 
-	void setFilter() {
-		DataPerson rowTotal = new DataPerson();
-		headers.clear();
-		list.clear();
-		for (Entry<Short, DataFacility> entry1 : facilities.entrySet()) {
-			if (facID == 0 || facID == entry1.getKey()) {
-				DataFacility facility = entry1.getValue();
-				for (Entry<Byte, DataSubspec> entry2 : facility.subspecs.entrySet()) {
-					DataSubspec subspec = entry2.getValue();
-					if (subspec.fte > 0) {
-						boolean found = false;
-						DataHeader header = new DataHeader();
-						for (int i = 0; i < headers.size(); i++) {
-							header = headers.get(i);
-							if (header.subID == subspec.subID) {
-								found = true;
-								break;
-							}
-						}
-						if (!found) {
-							header = new DataHeader();
-							header.subID = subspec.subID;
-							header.subName = subs.get(subspec.subID).subName;
-							header.subDescr = subs.get(subspec.subID).subDescr;
-							headers.add(header);
-						}
-						for (Entry<Short, DataPerson> entry3 : subspec.persons.entrySet()) {
-							DataPerson person = entry3.getValue();
-							if (person.fte > 0) {
-								found = false;
-								DataPerson row = new DataPerson();
-								for (int i = 0; i < list.size(); i++) {
-									row = list.get(i);
-									if (row.prsID == person.prsID) {
-										found = true;
-										break;
-									}
-								}
-								if (!found) {
-									row = new DataPerson();
-									row.prsID = person.prsID;
-									row.prsName = persons.get(person.prsID).prsName;
-									row.prsFull = persons.get(person.prsID).prsFull;
-									list.add(row);
-								}
-								row.fte += person.fte;
-								Double fte5 = row.subspecs.get(header.subID);
-								if (fte5 == null) {
-									row.subspecs.put(header.subID, person.fte);
-								} else {
-									fte5 += person.fte;
-								}
-								rowTotal.fte += person.fte;
-								Double fteTotal = row.subspecs.get(header.subID);
-								if (fteTotal == null) {
-									rowTotal.subspecs.put(header.subID, person.fte);
-								} else {
-									fteTotal += person.fte;
-								}
-							}
-						}
-					}
-				}
+	@Override
+	void setFilter(short id, short value) {
+		switch (id) {
+		case IToolBar.TB_GO:
+			// Go button
+			if (altered && timeTo > timeFrom) {
+				pj.setBusy(true);
+				WorkerData worker = new WorkerData();
+				worker.execute();
+				altered = false;
+			}
+			break;
+		case IToolBar.TB_FAC:
+			filters[FILTER_FAC] = value;
+			altered = true;
+			break;
+		case IToolBar.TB_SPY:
+			filters[FILTER_SPY] = value;
+			altered = true;
+			break;
+		default:
+			filters[FILTER_DATA] = value;
+			altered = true;
+			switch (value) {
+			case IToolBar.TB_CASES:
+				coderName = "Cases";
+				annualFte = 1;
+				break;
+			case IToolBar.TB_SPECS:
+				coderName = "Specimens";
+				annualFte = 1;
+				break;
+			case IToolBar.TB_BLOCKS:
+				coderName = "Blocks";
+				annualFte = 1;
+				break;
+			case IToolBar.TB_SLIDES:
+				coderName = "Slides";
+				annualFte = 1;
+				break;
+			case IToolBar.TB_VALUE1:
+				coderName = pj.setup.getString(LSetup.VAR_CODER1_NAME);
+				annualFte = Double.parseDouble(pj.setup.getString(LSetup.VAR_CODER1_FTE));
+				break;
+			case IToolBar.TB_VALUE2:
+				coderName = pj.setup.getString(LSetup.VAR_CODER2_NAME);
+				annualFte = Double.parseDouble(pj.setup.getString(LSetup.VAR_CODER2_FTE));
+				break;
+			case IToolBar.TB_VALUE3:
+				coderName = pj.setup.getString(LSetup.VAR_CODER3_NAME);
+				annualFte = Double.parseDouble(pj.setup.getString(LSetup.VAR_CODER3_FTE));
+				break;
+			case IToolBar.TB_VALUE4:
+				coderName = pj.setup.getString(LSetup.VAR_CODER4_NAME);
+				annualFte = Double.parseDouble(pj.setup.getString(LSetup.VAR_CODER4_FTE));
+				break;
+			default:
+				coderName = pj.setup.getString(LSetup.VAR_V5_NAME);
+				annualFte = Double.parseDouble(pj.setup.getString(LSetup.VAR_V5_FTE));
 			}
 		}
-		rowTotal.prsName = "SUM";
-		rowTotal.prsFull = "Total";
-		list.add(rowTotal);
-		DataHeader colTotal = new DataHeader();
-		colTotal.subName = "SUM";
-		colTotal.subDescr = "Total";
-		headers.add(colTotal);
-		for (DataPerson row : list) {
-			for (Entry<Byte, Double> entry2 : row.subspecs.entrySet()) {
-				double d = entry2.getValue().doubleValue();
-				entry2.setValue(1.00 * d / annualFte);
-			}
+	}
+
+	@Override
+	void setFilter(short id, Calendar value) {
+		switch (id) {
+		case IToolBar.TB_FROM:
+			timeFrom = value.getTimeInMillis();
+			break;
+		default:
+			timeTo = value.getTimeInMillis();
 		}
-		if (list.size() > 1) {
-			// Chart Data Set
-			String[] x = new String[list.size() - 1];
-			double[] y = new double[list.size() - 1];
-			for (int i = 0; i < list.size(); i++) {
-				if (list.get(i).prsID > 0) {
-					x[i] = list.get(i).prsName;
-					y[i] = list.get(i).fte;
-				}
-			}
-			chartBar.setChart(x, y, "FTE Distribution");
-		}
+		altered = true;
 	}
 
 	@Override
@@ -482,7 +328,7 @@ class NDistribute extends NBase {
 					if (col == 0) {
 						xlsCell.setCellValue(list.get(i).prsName);
 					} else if (col < headers.size()) {
-						xlsCell.setCellValue(list.get(i).subspecs.get(headers.get(col - 1).subID));
+						xlsCell.setCellValue(list.get(i).dSubs.get(headers.get(col - 1).subID));
 					} else {
 						xlsCell.setCellValue(list.get(i).fte);
 					}
@@ -508,8 +354,11 @@ class NDistribute extends NBase {
 		public Class<?> getColumnClass(int col) {
 			if (col == 0) {
 				return String.class;
+			} else if (filters[FILTER_DATA] > IToolBar.TB_SLIDES) {
+				return Double.class;
+			} else {
+				return Integer.class;
 			}
-			return Double.class;
 		}
 
 		@Override
@@ -535,41 +384,542 @@ class NDistribute extends NBase {
 		public Object getValueAt(int row, int col) {
 			Object value = Object.class;
 			if (list.size() > 0 && row < list.size()) {
-				if (col == 0) {
+				switch (col) {
+				case 0:
 					return list.get(row).prsName;
-				} else if (col < headers.size()) {
-					return list.get(row).subspecs.get(headers.get(col - 1).subID);
-				} else {
-					return list.get(row).fte;
+				case 1:
+					if (filters[FILTER_DATA] > IToolBar.TB_SLIDES) {
+						return list.get(row).fte;
+					} else {
+						return list.get(row).count;
+					}
+				default:
+					if (filters[FILTER_DATA] > IToolBar.TB_SLIDES) {
+						return list.get(row).dSubs.get(headers.get(col - 1).subID);
+					} else {
+						return list.get(row).iSubs.get(headers.get(col - 1).subID);
+					}
 				}
 			}
 			return value;
 		}
 	}
 
-	private class DataFacility {
-		HashMap<Byte, DataSubspec> subspecs = new HashMap<Byte, DataSubspec>();
-	}
-
 	private class DataHeader {
 		byte subID = 0;
 		String subName = "";
-		String subDescr = "";
 	}
 
 	private class DataPerson {
 		short prsID = 0;
+		int count = 0;
 		double fte = 0;
 		String prsName = "";
 		String prsFull = "";
-		private HashMap<Byte, Double> subspecs = new HashMap<Byte, Double>();
+		HashMap<Byte, Double> dSubs = new HashMap<Byte, Double>();
+		HashMap<Byte, Integer> iSubs = new HashMap<Byte, Integer>();
 	}
 
 	private class DataSubspec {
-		byte subID = 0;
+		int count = 0;
 		double fte = 0;
-		String subName = "";
-		String subDescr = "";
+		HashMap<Short, Double> dPersons = new HashMap<Short, Double>();
+		HashMap<Short, Integer> iPersons = new HashMap<Short, Integer>();
+	}
+
+	private class WorkerData extends SwingWorker<Void, Void> {
 		private HashMap<Short, DataPerson> persons = new HashMap<Short, DataPerson>();
+		private HashMap<Byte, DataSubspec> subspecs = new HashMap<Byte, DataSubspec>();
+		private DataHeader header = new DataHeader();
+		private DataSubspec subspec = new DataSubspec();
+		private DataPerson person = new DataPerson();
+
+		@Override
+		protected Void doInBackground() throws Exception {
+			setName("WorkerData");
+			if (filters[FILTER_DATA] > IToolBar.TB_SLIDES) {
+				getDataDouble();
+				setListDouble();
+			} else {
+				getDataInteger();
+				setListInteger();
+			}
+			return null;
+		}
+
+		@Override
+		public void done() {
+			model.fireTableStructureChanged();
+			try {
+				Thread.sleep(LConstants.SLEEP_TIME);
+			} catch (InterruptedException ignore) {
+			}
+			if (list.size() > 1) {
+				// Chart Data Set
+				ArrayList<String> xData = new ArrayList<String>();
+				ArrayList<Double> yData = new ArrayList<Double>();
+				for (int i = 0; i < list.size(); i++) {
+					if (list.get(i).prsID > 0) {
+						xData.add(list.get(i).prsName);
+						if (filters[FILTER_DATA] > IToolBar.TB_SLIDES) {
+							yData.add(list.get(i).fte);
+						} else {
+							yData.add((double) list.get(i).count);
+						}
+						if (xData.size() == 40) {
+							break;
+						}
+					}
+				}
+				String[] x = new String[xData.size()];
+				double[] y = new double[yData.size()];
+				for (int i = 0; i < xData.size(); i++) {
+					x[i] = xData.get(i);
+					y[i] = yData.get(i);
+				}
+				chartBar.setChart(x, y, "Distribution");
+			}
+			pj.statusBar.setMessage("Distribution " + pj.dates.formatter(timeFrom, LDates.FORMAT_DATELONG) + " - "
+					+ pj.dates.formatter(timeTo, LDates.FORMAT_DATELONG));
+			pj.setBusy(false);
+		}
+
+		private void getDataDouble() {
+			boolean found = false;
+			byte subID = 0;
+			short prsID = 0;
+			Double newValue = 0.0;
+			Double subValue = 0.0;
+			Double prsValue = 0.0;
+			ResultSet rst = null;
+			headers.clear();
+			list.clear();
+			try {
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_SUM), 1, timeFrom);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_SUM), 2, timeTo);
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CSE_SL_SUM));
+				while (rst.next()) {
+					if (filters[FILTER_FAC] == 0 || filters[FILTER_FAC] == rst.getShort("faid")) {
+						if (filters[FILTER_SPY] == 0 || filters[FILTER_SPY] == rst.getByte("syid")) {
+							subID = rst.getByte("sbid");
+							prsID = rst.getShort("fnid");
+							found = false;
+							for (int i = 0; i < headers.size(); i++) {
+								header = headers.get(i);
+								if (header.subID == subID) {
+									found = true;
+									break;
+								}
+							}
+							if (!found) {
+								header = new DataHeader();
+								header.subID = subID;
+								header.subName = rst.getString("sbnm");
+								headers.add(header);
+							}
+							subspec = subspecs.get(subID);
+							if (subspec == null) {
+								subspec = new DataSubspec();
+								subspecs.put(subID, subspec);
+							}
+							person = persons.get(prsID);
+							if (person == null) {
+								person = new DataPerson();
+								person.prsName = rst.getString("fnnm");
+								person.prsFull = rst.getString("fnfr") + " " + rst.getString("fnls");
+								persons.put(prsID, person);
+							}
+							prsValue = person.dSubs.get(subID);
+							if (prsValue == null) {
+								prsValue = 0.0;
+								person.dSubs.put(subID, prsValue);
+							}
+							subValue = subspec.dPersons.get(prsID);
+							if (subValue == null) {
+								subValue = 0.0;
+								subspec.dPersons.put(prsID, subValue);
+							}
+							switch (filters[FILTER_DATA]) {
+							case IToolBar.TB_VALUE1:
+								newValue = rst.getDouble("cav1");
+								break;
+							case IToolBar.TB_VALUE2:
+								newValue = rst.getDouble("cav2");
+								break;
+							case IToolBar.TB_VALUE3:
+								newValue = rst.getDouble("cav3");
+								break;
+							case IToolBar.TB_VALUE4:
+								newValue = rst.getDouble("cav4");
+								break;
+							default:
+								newValue = rst.getDouble("cav5");
+							}
+							person.fte += newValue;
+							subspec.fte += newValue;
+							person.dSubs.replace(subID, (newValue + prsValue));
+							subspec.dPersons.replace(prsID, (newValue + subValue));
+						}
+					}
+				}
+				rst.close();
+				// Frozen Sections
+				if (filters[FILTER_SPY] == 0 || filters[FILTER_SPY] == 3) {
+					pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_SUM), 1, timeFrom);
+					pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_SUM), 2, timeTo);
+					rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_FRZ_SL_SUM));
+					while (rst.next()) {
+						subID = rst.getByte("sbid");
+						prsID = rst.getShort("prid");
+						found = false;
+						for (int i = 0; i < headers.size(); i++) {
+							header = headers.get(i);
+							if (header.subID == subID) {
+								found = true;
+								break;
+							}
+						}
+						if (!found) {
+							header = new DataHeader();
+							header.subID = subID;
+							header.subName = rst.getString("sbnm");
+							headers.add(header);
+						}
+						subspec = subspecs.get(subID);
+						if (subspec == null) {
+							subspec = new DataSubspec();
+							subspecs.put(subID, subspec);
+						}
+						person = persons.get(prsID);
+						if (person == null) {
+							person = new DataPerson();
+							person.prsName = rst.getString("prnm");
+							person.prsFull = rst.getString("prfr") + " " + rst.getString("prls");
+							persons.put(prsID, person);
+						}
+						prsValue = person.dSubs.get(subID);
+						if (prsValue == null) {
+							prsValue = 0.0;
+							person.dSubs.put(subID, prsValue);
+						}
+						subValue = subspec.dPersons.get(prsID);
+						if (subValue == null) {
+							subValue = 0.0;
+							subspec.dPersons.put(prsID, subValue);
+						}
+						switch (filters[FILTER_DATA]) {
+						case IToolBar.TB_VALUE1:
+							newValue = rst.getDouble("frv1");
+							break;
+						case IToolBar.TB_VALUE2:
+							newValue = rst.getDouble("frv2");
+							break;
+						case IToolBar.TB_VALUE3:
+							newValue = rst.getDouble("frv3");
+							break;
+						case IToolBar.TB_VALUE4:
+							newValue = rst.getDouble("frv4");
+							break;
+						default:
+							newValue = rst.getDouble("frv5");
+						}
+						person.fte += newValue;
+						subspec.fte += newValue;
+						person.dSubs.replace(subID, (newValue + prsValue));
+						subspec.dPersons.replace(prsID, (newValue + subValue));
+					}
+					rst.close();
+				}
+				// Additional
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_ADD_SL_SUM), 1, timeFrom);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_ADD_SL_SUM), 2, timeTo);
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ADD_SL_SUM));
+				while (rst.next()) {
+					subID = rst.getByte("sbid");
+					prsID = rst.getShort("prid");
+					found = false;
+					for (int i = 0; i < headers.size(); i++) {
+						header = headers.get(i);
+						if (header.subID == subID) {
+							found = true;
+							break;
+						}
+					}
+					if (!found) {
+						header = new DataHeader();
+						header.subID = subID;
+						header.subName = rst.getString("sbnm");
+						headers.add(header);
+					}
+					subspec = subspecs.get(subID);
+					if (subspec == null) {
+						subspec = new DataSubspec();
+						subspecs.put(subID, subspec);
+					}
+					person = persons.get(prsID);
+					if (person == null) {
+						person = new DataPerson();
+						person.prsName = rst.getString("prnm");
+						person.prsFull = rst.getString("prfr") + " " + rst.getString("prls");
+						persons.put(prsID, person);
+					}
+					prsValue = person.dSubs.get(subID);
+					if (prsValue == null) {
+						prsValue = 0.0;
+						person.dSubs.put(subID, prsValue);
+					}
+					subValue = subspec.dPersons.get(prsID);
+					if (subValue == null) {
+						subValue = 0.0;
+						subspec.dPersons.put(prsID, subValue);
+					}
+					switch (filters[FILTER_DATA]) {
+					case IToolBar.TB_VALUE1:
+						newValue = rst.getDouble("adv1");
+						break;
+					case IToolBar.TB_VALUE2:
+						newValue = rst.getDouble("adv2");
+						break;
+					case IToolBar.TB_VALUE3:
+						newValue = rst.getDouble("adv3");
+						break;
+					case IToolBar.TB_VALUE4:
+						newValue = rst.getDouble("adv4");
+						break;
+					default:
+						newValue = rst.getDouble("adv5");
+					}
+					person.fte += newValue;
+					subspec.fte += newValue;
+					person.dSubs.replace(subID, (newValue + prsValue));
+					subspec.dPersons.replace(prsID, (newValue + subValue));
+				}
+				rst.close();
+				Thread.sleep(LConstants.SLEEP_TIME);
+			} catch (InterruptedException ignore) {
+			} catch (SQLException e) {
+				pj.log(LConstants.ERROR_SQL, getName(), e);
+			} finally {
+				pj.dbPowerJ.close(rst);
+			}
+		}
+
+		private void getDataInteger() {
+			boolean found = false;
+			byte subID = 0;
+			short prsID = 0;
+			Integer newValue = 0;
+			Integer subValue = 0;
+			Integer prsValue = 0;
+			ResultSet rst = null;
+			headers.clear();
+			list.clear();
+			try {
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_SUM), 1, timeFrom);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_SUM), 2, timeTo);
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CSE_SL_SUM));
+				while (rst.next()) {
+					if (filters[FILTER_FAC] == 0 || filters[FILTER_FAC] == rst.getShort("faid")) {
+						if (filters[FILTER_SPY] == 0 || filters[FILTER_SPY] == rst.getByte("syid")) {
+							subID = rst.getByte("sbid");
+							prsID = rst.getShort("fnid");
+							found = false;
+							for (int i = 0; i < headers.size(); i++) {
+								header = headers.get(i);
+								if (header.subID == subID) {
+									found = true;
+									break;
+								}
+							}
+							if (!found) {
+								header = new DataHeader();
+								header.subID = subID;
+								header.subName = rst.getString("sbnm");
+								headers.add(header);
+							}
+							subspec = subspecs.get(subID);
+							if (subspec == null) {
+								subspec = new DataSubspec();
+								subspecs.put(subID, subspec);
+							}
+							person = persons.get(prsID);
+							if (person == null) {
+								person = new DataPerson();
+								person.prsName = rst.getString("fnnm");
+								person.prsFull = rst.getString("fnfr") + " " + rst.getString("fnls");
+								persons.put(prsID, person);
+							}
+							prsValue = person.iSubs.get(subID);
+							if (prsValue == null) {
+								prsValue = 0;
+								person.iSubs.put(subID, prsValue);
+							}
+							subValue = subspec.iPersons.get(prsID);
+							if (subValue == null) {
+								subValue = 0;
+								subspec.iPersons.put(prsID, subValue);
+							}
+							switch (filters[FILTER_DATA]) {
+							case IToolBar.TB_CASES:
+								newValue = rst.getInt("caca");
+								break;
+							case IToolBar.TB_SPECS:
+								newValue = rst.getInt("caSP");
+								break;
+							case IToolBar.TB_BLOCKS:
+								newValue = rst.getInt("cabl");
+								break;
+							default:
+								newValue = rst.getInt("casl");
+							}
+							person.count += newValue;
+							subspec.count += newValue;
+							person.iSubs.replace(subID, (newValue + prsValue));
+							subspec.iPersons.replace(prsID, (newValue + subValue));
+						}
+					}
+				}
+				rst.close();
+				Thread.sleep(LConstants.SLEEP_TIME);
+			} catch (InterruptedException ignore) {
+			} catch (SQLException e) {
+				pj.log(LConstants.ERROR_SQL, getName(), e);
+			} finally {
+				pj.dbPowerJ.close(rst);
+			}
+		}
+
+		private void setListDouble() {
+			double totalFTE = 0;
+			Double prsValue = 0.0;
+			DataPerson staff = new DataPerson();
+			header = new DataHeader();
+			header.subName = "aaaa";
+			headers.add(header);
+			Collections.sort(headers, new Comparator<DataHeader>() {
+				@Override
+				public int compare(DataHeader h1, DataHeader h2) {
+					return (h1.subName.compareToIgnoreCase(h2.subName));
+				}
+			});
+			header.subName = coderName;
+			if (annualFte < 1.00) {
+				annualFte = 1.00;
+			}
+			if (filters[FILTER_DATA] > IToolBar.TB_SLIDES) {
+				int noDays = pj.dates.getNoDays(timeFrom, timeTo);
+				annualFte = annualFte * noDays / 365.0;
+			}
+			for (Entry<Short, DataPerson> entry : persons.entrySet()) {
+				person = entry.getValue();
+				if (person.fte > 0.0) {
+					staff = new DataPerson();
+					staff.prsID = entry.getKey();
+					staff.prsName = person.prsName;
+					staff.prsFull = person.prsFull;
+					staff.fte = person.fte / annualFte;
+					for (int i = 0; i < headers.size(); i++) {
+						header = headers.get(i);
+						prsValue = person.dSubs.get(header.subID);
+						if (prsValue == null) {
+							prsValue = 0.0;
+						}
+						totalFTE += prsValue;
+						prsValue = prsValue / annualFte;
+						staff.dSubs.put(header.subID, prsValue);
+					}
+					list.add(staff);
+				}
+			}
+			Collections.sort(list, new Comparator<DataPerson>() {
+				@Override
+				public int compare(DataPerson p1, DataPerson p2) {
+					return (p1.fte > p2.fte ? -1 : (p1.fte < p2.fte ? 1 : 0));
+				}
+			});
+			DataPerson total = new DataPerson();
+			total.fte = totalFTE / annualFte;
+			total.prsName = "ZZZZ";
+			total.prsFull = "Total";
+			for (int i = 0; i < headers.size(); i++) {
+				header = headers.get(i);
+				if (header.subID > 0) {
+					subspec = subspecs.get(header.subID);
+					prsValue = subspec.fte;
+					if (filters[FILTER_DATA] > IToolBar.TB_SLIDES) {
+						prsValue = prsValue / annualFte;
+					}
+					total.dSubs.put(header.subID, prsValue);
+				}
+			}
+			list.add(total);
+			persons.clear();
+			subspecs.clear();
+			try {
+				Thread.sleep(LConstants.SLEEP_TIME);
+			} catch (InterruptedException ignore) {
+			}
+		}
+
+		private void setListInteger() {
+			int totalCount = 0;
+			Integer prsValue = 0;
+			DataPerson staff = new DataPerson();
+			header = new DataHeader();
+			header.subName = "aaaa";
+			headers.add(header);
+			Collections.sort(headers, new Comparator<DataHeader>() {
+				@Override
+				public int compare(DataHeader h1, DataHeader h2) {
+					return (h1.subName.compareToIgnoreCase(h2.subName));
+				}
+			});
+			header.subName = coderName;
+			for (Entry<Short, DataPerson> entry : persons.entrySet()) {
+				person = entry.getValue();
+				if (person.count > 0) {
+					staff = new DataPerson();
+					staff.prsID = entry.getKey();
+					staff.prsName = person.prsName;
+					staff.prsFull = person.prsFull;
+					staff.count = person.count;
+					for (int i = 0; i < headers.size(); i++) {
+						header = headers.get(i);
+						prsValue = person.iSubs.get(header.subID);
+						if (prsValue == null) {
+							prsValue = 0;
+						}
+						totalCount += prsValue;
+						staff.iSubs.put(header.subID, prsValue);
+					}
+					list.add(staff);
+				}
+			}
+			Collections.sort(list, new Comparator<DataPerson>() {
+				@Override
+				public int compare(DataPerson p1, DataPerson p2) {
+					return (p1.count > p2.count ? -1 : (p1.count < p2.count ? 1 : 0));
+				}
+			});
+			DataPerson total = new DataPerson();
+			total.count = totalCount;
+			total.prsName = "ZZZZ";
+			total.prsFull = "Total";
+			for (int i = 0; i < headers.size(); i++) {
+				header = headers.get(i);
+				if (header.subID > 0) {
+					subspec = subspecs.get(header.subID);
+					prsValue = subspec.count;
+					total.iSubs.put(header.subID, prsValue);
+				}
+			}
+			list.add(total);
+			persons.clear();
+			subspecs.clear();
+			try {
+				Thread.sleep(LConstants.SLEEP_TIME);
+			} catch (InterruptedException ignore) {
+			}
+		}
 	}
 }

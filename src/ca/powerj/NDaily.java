@@ -143,12 +143,12 @@ class NDaily extends NBase {
 		try {
 			while (rst.next()) {
 				turnaround = new OTurnaround();
-				turnaround.turID = rst.getByte("TAID");
-				turnaround.gross = rst.getShort("GRSS");
-				turnaround.embed = rst.getShort("EMBD");
-				turnaround.micro = rst.getShort("MICR");
-				turnaround.route = rst.getShort("ROUT");
-				turnaround.diagn = rst.getShort("FINL");
+				turnaround.turID = rst.getByte("taid");
+				turnaround.gross = rst.getShort("grss");
+				turnaround.embed = rst.getShort("embd");
+				turnaround.micro = rst.getShort("micr");
+				turnaround.route = rst.getShort("rout");
+				turnaround.diagn = rst.getShort("finl");
 				turnarounds.put(turnaround.turID, turnaround);
 			}
 		} catch (SQLException e) {
@@ -574,6 +574,7 @@ class NDaily extends NBase {
 			HashMap<Short, OWorkflow> mapPersons = new HashMap<Short, OWorkflow>();
 			ResultSet rst = null;
 			try {
+				setName("WorkerData");
 				pendings.clear();
 				// Cases routed from yesterday till today at cutoff time
 				startRoute.setTimeInMillis(pj.dates.getPreviousBusinessDay(endRoute));
@@ -589,29 +590,29 @@ class NDaily extends NBase {
 				startFinal.set(Calendar.SECOND, 0);
 				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PND_SELECT));
 				while (rst.next()) {
-					statusID = rst.getByte("PNST");
-					finalID = rst.getShort("FNID");
+					statusID = rst.getByte("pnst");
+					finalID = rst.getShort("fnid");
 					if (finalID < 1)
 						continue;
 					if (statusID > OCaseStatus.ID_MICRO && statusID < OCaseStatus.ID_FINAL) {
 						if (finalID == pj.userID) {
 							pending = new OCasePending();
-							pending.turID = rst.getByte("TAID");
-							pending.noSpec = rst.getByte("PNSP");
-							pending.noBlocks = rst.getShort("PNBL");
-							pending.noSlides = rst.getShort("PNSL");
-							pending.value5 = rst.getInt("PNV5");
-							pending.caseNo = rst.getString("PNNO");
-							pending.specialty = rst.getString("SYNM");
-							pending.subspecial = rst.getString("SBNM");
-							pending.procedure = rst.getString("PONM");
-							pending.specimen = rst.getString("SMNM");
+							pending.turID = rst.getByte("taid");
+							pending.noSpec = rst.getByte("pnsp");
+							pending.noBlocks = rst.getShort("pnbl");
+							pending.noSlides = rst.getShort("pnsl");
+							pending.value5 = rst.getInt("pnv5");
+							pending.caseNo = rst.getString("pnno");
+							pending.specialty = rst.getString("synm");
+							pending.subspecial = rst.getString("sbnm");
+							pending.procedure = rst.getString("ponm");
+							pending.specimen = rst.getString("smnm");
 							pending.routeName = rst.getString("RONM");
-							pending.finalName = rst.getString("FNNM");
+							pending.finalName = rst.getString("fnnm");
 							pending.routeFull = rst.getString("ROFR").trim() + " " + rst.getString("ROLS").trim();
-							pending.finalFull = rst.getString("FNFR").trim() + " " + rst.getString("FNLS").trim();
-							pending.accessed.setTimeInMillis(rst.getTimestamp("ACED").getTime());
-							pending.routed.setTimeInMillis(rst.getTimestamp("ROED").getTime());
+							pending.finalFull = rst.getString("fnfr").trim() + " " + rst.getString("fnls").trim();
+							pending.accessed.setTimeInMillis(rst.getTimestamp("aced").getTime());
+							pending.routed.setTimeInMillis(rst.getTimestamp("roed").getTime());
 							pending.passed = pj.dates.getBusinessHours(pending.accessed, endFinal);
 							turnaround = turnarounds.get(pending.turID);
 							pending.cutoff = (short) (turnaround.gross + turnaround.embed + turnaround.micro
@@ -632,42 +633,42 @@ class NDaily extends NBase {
 								person.prsID = finalID;
 								if (pj.userAccess[LConstants.ACCESS_NAMES] || finalID == pj.userID) {
 									// Else, leave blank to hide names later
-									person.name = rst.getString("FNNM");
+									person.name = rst.getString("fnnm");
 								}
 								mapPersons.put(finalID, person);
 							}
 						}
-						person.noPending += rst.getInt("PNV5");
+						person.noPending += rst.getInt("pnv5");
 					} else if (statusID == OCaseStatus.ID_FINAL) {
-						if (startFinal.getTimeInMillis() < rst.getTimestamp("FNED").getTime()) {
+						if (startFinal.getTimeInMillis() < rst.getTimestamp("fned").getTime()) {
 							if (person.prsID != finalID) {
 								person = mapPersons.get(finalID);
 								if (person == null) {
 									person = new OWorkflow();
 									person.prsID = finalID;
 									if (pj.userAccess[LConstants.ACCESS_NAMES] || finalID == pj.userID) {
-										person.name = rst.getString("FNNM");
+										person.name = rst.getString("fnnm");
 									}
 									mapPersons.put(finalID, person);
 								}
 							}
-							person.noOut += rst.getInt("PNV5");
+							person.noOut += rst.getInt("pnv5");
 						}
 					}
-					if (startRoute.getTimeInMillis() < rst.getTimestamp("ROED").getTime()) {
-						if (endRoute.getTimeInMillis() > rst.getTimestamp("ROED").getTime()) {
+					if (startRoute.getTimeInMillis() < rst.getTimestamp("roed").getTime()) {
+						if (endRoute.getTimeInMillis() > rst.getTimestamp("roed").getTime()) {
 							if (person.prsID != finalID) {
 								person = mapPersons.get(finalID);
 								if (person == null) {
 									person = new OWorkflow();
 									person.prsID = finalID;
 									if (pj.userAccess[LConstants.ACCESS_NAMES] || finalID == pj.userID) {
-										person.name = rst.getString("FNNM");
+										person.name = rst.getString("fnnm");
 									}
 									mapPersons.put(finalID, person);
 								}
 							}
-							person.noIn += rst.getInt("PNV5");
+							person.noIn += rst.getInt("pnv5");
 						}
 					}
 				}

@@ -21,13 +21,29 @@ class IRenderInteger extends JLabel implements TableCellRenderer {
 			int column) {
 		try {
 			if (value instanceof Integer) {
-				setText(numbers.formatNumber((Integer) value));
+				if ((Integer) value != 0) {
+					setText(numbers.formatNumber((Integer) value));
+				} else {
+					setText("");
+				}
 			} else if (value instanceof Short) {
-				setText(numbers.formatNumber((Short) value));
+				if ((Short) value != 0) {
+					setText(numbers.formatNumber((Short) value));
+				} else {
+					setText("");
+				}
 			} else if (value instanceof Byte) {
-				setText(numbers.formatNumber((Byte) value));
+				if ((Byte) value != 0) {
+					setText(numbers.formatNumber((Byte) value));
+				} else {
+					setText("");
+				}
 			} else if (value instanceof Long) {
-				setText(numbers.formatNumber((Long) value));
+				if ((Long) value != 0) {
+					setText(numbers.formatNumber((Long) value));
+				} else {
+					setText("");
+				}
 			} else {
 				setText(value.toString());
 			}

@@ -24,18 +24,20 @@ class IPanelRows extends JPanel {
 	static final byte ROW_SPECIALTY  = 2;
 	static final byte ROW_SUBSPECIAL = 3;
 	static final byte ROW_PROCEDURE  = 4;
+	static final byte ROW_SPECIMEN   = 4;
 	static final byte ROW_STAFF      = 5;
 	private final byte SPN_FACILITY   = 0;
 	private final byte SPN_SPECIALTY  = 1;
 	private final byte SPN_SUBSPECIAL = 2;
 	private final byte SPN_PROCEDURE  = 3;
+	private final byte SPN_SPECIMEN   = 3;
 	private final byte SPN_STAFF      = 4;
 	private volatile boolean programmaticChange;
 	private int[] selected, original, rank;
 	private ArrayList<JSpinner> spinners = new ArrayList<JSpinner>();
 	private Timer selectionTimer;
 
-	IPanelRows(int[] value) {
+	IPanelRows(int[] value, byte parent) {
 		super(new GridBagLayout());
 		original = value;
 		selected = new int[value.length];
@@ -53,7 +55,17 @@ class IPanelRows extends JPanel {
 		});
 		selectionTimer.setRepeats(false);
 		setRanks();
-		SpinnerNumberModel mdlFacility = new SpinnerNumberModel(rank[0], ROW_IGNORE, ROW_STAFF, 1);
+		JButton btnOkay = new JButton("OK");
+		btnOkay.setMnemonic(KeyEvent.VK_O);
+		btnOkay.setIcon(IGUI.getIcon(48, "ok"));
+		btnOkay.setActionCommand("Okay");
+		btnOkay.setFocusable(true);
+		btnOkay.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				IPanelRows.this.firePropertyChange("Confirm", null, getValue());
+			}
+		});
+		SpinnerNumberModel mdlFacility = new SpinnerNumberModel(rank[0], 0, rank.length, 1);
 		JSpinner spnFacility = new JSpinner(mdlFacility) {
 			public ComponentOrientation getComponentOrientation() {
 				return ComponentOrientation.RIGHT_TO_LEFT;
@@ -75,7 +87,7 @@ class IPanelRows extends JPanel {
 		// Make the format without a thousands separator.
 		spnFacility.setEditor(new JSpinner.NumberEditor(spnFacility, "#"));
 		spnFacility.addAncestorListener(new IFocusListener());
-		JLabel lblFacility = new JLabel("Facility");
+		JLabel lblFacility = new JLabel("Facility: ");
 		lblFacility.setDisplayedMnemonic(KeyEvent.VK_F);
 		lblFacility.setLabelFor(spnFacility);
 		IGUI.addComponent(lblFacility, 0, 0, 1, 1, 0.5, 0.2,
@@ -83,7 +95,7 @@ class IPanelRows extends JPanel {
 		IGUI.addComponent(spnFacility, 1, 0, 1, 1, 0.5, 0.2,
 				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
 		spinners.add(spnFacility);
-		SpinnerNumberModel mdlSpecialty = new SpinnerNumberModel(rank[1], ROW_IGNORE, ROW_STAFF, 1);
+		SpinnerNumberModel mdlSpecialty = new SpinnerNumberModel(rank[1], 0, rank.length, 1);
 		JSpinner spnSpecialty = new JSpinner(mdlSpecialty) {
 			public ComponentOrientation getComponentOrientation() {
 				return ComponentOrientation.RIGHT_TO_LEFT;
@@ -104,7 +116,7 @@ class IPanelRows extends JPanel {
 		}
 		// Make the format without a thousands separator.
 		spnSpecialty.setEditor(new JSpinner.NumberEditor(spnSpecialty, "#"));
-		JLabel lblSpecialty = new JLabel("Specialty");
+		JLabel lblSpecialty = new JLabel("Specialty: ");
 		lblSpecialty.setDisplayedMnemonic(KeyEvent.VK_S);
 		lblSpecialty.setLabelFor(spnSpecialty);
 		IGUI.addComponent(lblSpecialty, 0, 1, 1, 1, 0.5, 0.2,
@@ -112,7 +124,7 @@ class IPanelRows extends JPanel {
 		IGUI.addComponent(spnSpecialty, 1, 1, 1, 1, 0.5, 0.2,
 				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
 		spinners.add(spnSpecialty);
-		SpinnerNumberModel mdlSubspecialty = new SpinnerNumberModel(rank[2], ROW_IGNORE, ROW_STAFF, 1);
+		SpinnerNumberModel mdlSubspecialty = new SpinnerNumberModel(rank[2], 0, rank.length, 1);
 		JSpinner spnSubspecialty = new JSpinner(mdlSubspecialty) {
 			public ComponentOrientation getComponentOrientation() {
 				return ComponentOrientation.RIGHT_TO_LEFT;
@@ -133,7 +145,7 @@ class IPanelRows extends JPanel {
 		}
 		// Make the format without a thousands separator.
 		spnSubspecialty.setEditor(new JSpinner.NumberEditor(spnSubspecialty, "#"));
-		JLabel lblSubspecialty = new JLabel("Subspecialty");
+		JLabel lblSubspecialty = new JLabel("Subspecialty: ");
 		lblSubspecialty.setDisplayedMnemonic(KeyEvent.VK_B);
 		lblSubspecialty.setLabelFor(spnSubspecialty);
 		IGUI.addComponent(lblSubspecialty, 0, 2, 1, 1, 0.5, 0.2,
@@ -141,78 +153,102 @@ class IPanelRows extends JPanel {
 		IGUI.addComponent(spnSubspecialty, 1, 2, 1, 1, 0.5, 0.2,
 				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
 		spinners.add(spnSubspecialty);
-		SpinnerNumberModel mdlProcedures = new SpinnerNumberModel(rank[3], ROW_IGNORE, ROW_STAFF, 1);
-		JSpinner spnProcedure = new JSpinner(mdlProcedures) {
-			public ComponentOrientation getComponentOrientation() {
-				return ComponentOrientation.RIGHT_TO_LEFT;
-			}
-		};
-		spnProcedure.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				if (!programmaticChange) {
-					int newValue = (int) spinners.get(SPN_PROCEDURE).getValue();
-					resetValues(SPN_PROCEDURE, newValue);
-				}
-			}
-		});
-		JFormattedTextField ftfProcedures = getTextField(spnProcedure);
-		if (ftfProcedures != null ) {
-			ftfProcedures.setColumns(5);
-			ftfProcedures.setHorizontalAlignment(JTextField.RIGHT);
-		}
-		// Make the format without a thousands separator.
-		spnProcedure.setEditor(new JSpinner.NumberEditor(spnProcedure, "#"));
-		JLabel lblProcedures = new JLabel("Procedure");
-		lblProcedures.setDisplayedMnemonic(KeyEvent.VK_R);
-		lblProcedures.setLabelFor(spnProcedure);
-		IGUI.addComponent(lblProcedures, 0, 3, 1, 1, 0.5, 0.2,
-				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-		IGUI.addComponent(spnProcedure, 1, 3, 1, 1, 0.5, 0.2,
-				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-		spinners.add(spnProcedure);
-		JButton btnOkay = new JButton("OK");
-		btnOkay.setMnemonic(KeyEvent.VK_O);
-		btnOkay.setIcon(IGUI.getIcon(48, "ok"));
-		btnOkay.setActionCommand("Okay");
-		btnOkay.setFocusable(true);
-		btnOkay.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				IPanelRows.this.firePropertyChange("Confirm", null, getValue());
-			}
-		});
-		if (rank.length == 5) {
-			SpinnerNumberModel mdlStaff = new SpinnerNumberModel(rank[4], ROW_IGNORE, ROW_STAFF, 1);
-			JSpinner spnStaff= new JSpinner(mdlStaff) {
+		if (parent == IComboRows.PNL_LOAD) {
+			SpinnerNumberModel mdlProcedures = new SpinnerNumberModel(rank[3], 0, rank.length, 1);
+			JSpinner spnProcedure = new JSpinner(mdlProcedures) {
 				public ComponentOrientation getComponentOrientation() {
 					return ComponentOrientation.RIGHT_TO_LEFT;
 				}
 			};
-			spnStaff.addChangeListener(new ChangeListener() {
+			spnProcedure.addChangeListener(new ChangeListener() {
 				public void stateChanged(ChangeEvent e) {
 					if (!programmaticChange) {
-						int newValue = (int) spinners.get(SPN_STAFF).getValue();
-						resetValues(SPN_STAFF, newValue);
+						int newValue = (int) spinners.get(SPN_PROCEDURE).getValue();
+						resetValues(SPN_PROCEDURE, newValue);
 					}
 				}
 			});
-			JFormattedTextField ftfStaff = getTextField(spnStaff);
-			if (ftfStaff != null ) {
-				ftfStaff.setColumns(5);
-				ftfStaff.setHorizontalAlignment(JTextField.RIGHT);
+			JFormattedTextField ftfProcedures = getTextField(spnProcedure);
+			if (ftfProcedures != null ) {
+				ftfProcedures.setColumns(5);
+				ftfProcedures.setHorizontalAlignment(JTextField.RIGHT);
 			}
 			// Make the format without a thousands separator.
-			spnStaff.setEditor(new JSpinner.NumberEditor(spnStaff, "#"));
-			JLabel lblStaff = new JLabel("Staff");
-			lblStaff.setDisplayedMnemonic(KeyEvent.VK_P);
-			lblStaff.setLabelFor(spnStaff);
-			IGUI.addComponent(lblStaff, 0, 4, 1, 1, 0.5, 0.2,
+			spnProcedure.setEditor(new JSpinner.NumberEditor(spnProcedure, "#"));
+			JLabel lblProcedures = new JLabel("Procedure: ");
+			lblProcedures.setDisplayedMnemonic(KeyEvent.VK_R);
+			lblProcedures.setLabelFor(spnProcedure);
+			IGUI.addComponent(lblProcedures, 0, 3, 1, 1, 0.5, 0.2,
 					GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-			IGUI.addComponent(spnStaff, 1, 4, 1, 1, 0.5, 0.2,
+			IGUI.addComponent(spnProcedure, 1, 3, 1, 1, 0.5, 0.2,
 					GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-			spinners.add(spnStaff);
-			IGUI.addComponent(btnOkay, 0, 5, 2, 1, 1.0, 0.2,
-					GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
+			spinners.add(spnProcedure);
+			if (rank.length == 5) {
+				SpinnerNumberModel mdlStaff = new SpinnerNumberModel(rank[4], 0, rank.length, 1);
+				JSpinner spnStaff= new JSpinner(mdlStaff) {
+					public ComponentOrientation getComponentOrientation() {
+						return ComponentOrientation.RIGHT_TO_LEFT;
+					}
+				};
+				spnStaff.addChangeListener(new ChangeListener() {
+					public void stateChanged(ChangeEvent e) {
+						if (!programmaticChange) {
+							int newValue = (int) spinners.get(SPN_STAFF).getValue();
+							resetValues(SPN_STAFF, newValue);
+						}
+					}
+				});
+				JFormattedTextField ftfStaff = getTextField(spnStaff);
+				if (ftfStaff != null ) {
+					ftfStaff.setColumns(5);
+					ftfStaff.setHorizontalAlignment(JTextField.RIGHT);
+				}
+				// Make the format without a thousands separator.
+				spnStaff.setEditor(new JSpinner.NumberEditor(spnStaff, "#"));
+				JLabel lblStaff = new JLabel("Staff: ");
+				lblStaff.setDisplayedMnemonic(KeyEvent.VK_T);
+				lblStaff.setLabelFor(spnStaff);
+				IGUI.addComponent(lblStaff, 0, 4, 1, 1, 0.5, 0.2,
+						GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
+				IGUI.addComponent(spnStaff, 1, 4, 1, 1, 0.5, 0.2,
+						GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
+				spinners.add(spnStaff);
+				IGUI.addComponent(btnOkay, 0, 5, 2, 1, 1.0, 0.2,
+						GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
+			} else {
+				IGUI.addComponent(btnOkay, 0, 4, 2, 1, 1.0, 0.2,
+						GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
+			}
 		} else {
+			SpinnerNumberModel mdlSpecimens = new SpinnerNumberModel(rank[3], 0, rank.length, 1);
+			JSpinner spnSpecimen = new JSpinner(mdlSpecimens) {
+				public ComponentOrientation getComponentOrientation() {
+					return ComponentOrientation.RIGHT_TO_LEFT;
+				}
+			};
+			spnSpecimen.addChangeListener(new ChangeListener() {
+				public void stateChanged(ChangeEvent e) {
+					if (!programmaticChange) {
+						int newValue = (int) spinners.get(SPN_SPECIMEN).getValue();
+						resetValues(SPN_SPECIMEN, newValue);
+					}
+				}
+			});
+			JFormattedTextField ftfSpecimens = getTextField(spnSpecimen);
+			if (ftfSpecimens != null ) {
+				ftfSpecimens.setColumns(5);
+				ftfSpecimens.setHorizontalAlignment(JTextField.RIGHT);
+			}
+			// Make the format without a thousands separator.
+			spnSpecimen.setEditor(new JSpinner.NumberEditor(spnSpecimen, "#"));
+			JLabel lblSpecimens = new JLabel("Specimen: ");
+			lblSpecimens.setDisplayedMnemonic(KeyEvent.VK_P);
+			lblSpecimens.setLabelFor(spnSpecimen);
+			IGUI.addComponent(lblSpecimens, 0, 3, 1, 1, 0.5, 0.2,
+					GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
+			IGUI.addComponent(spnSpecimen, 1, 3, 1, 1, 0.5, 0.2,
+					GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
+			spinners.add(spnSpecimen);
 			IGUI.addComponent(btnOkay, 0, 4, 2, 1, 1.0, 0.2,
 					GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
 		}

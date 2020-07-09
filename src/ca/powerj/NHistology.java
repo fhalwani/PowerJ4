@@ -142,48 +142,49 @@ class NHistology extends NBase {
 			OCase row = new OCase();
 			ResultSet rst = null;
 			try {
+				setName("WorkerData");
 				rows.clear();
 				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_PND_SELECT));
 				while (rst.next()) {
-					if (rst.getByte("PNST") == OCaseStatus.ID_ACCES) {
+					if (rst.getByte("pnst") == OCaseStatus.ID_ACCES) {
 						continue;
 					}
 					included = false;
 					row = new OCase();
-					row.statusID = rst.getByte("PNST");
+					row.statusID = rst.getByte("pnst");
 					if (row.statusID > OCaseStatus.ID_ACCES) {
-						if (rst.getTimestamp("GRED").getTime() > startDate) {
+						if (rst.getTimestamp("gred").getTime() > startDate) {
 							row.grossed = (byte) pj.dates.getBusinessDays(startDate,
-									rst.getTimestamp("GRED").getTime());
+									rst.getTimestamp("gred").getTime());
 							included = true;
 						}
 					}
 					if (row.statusID > OCaseStatus.ID_GROSS) {
-						if (rst.getTimestamp("EMED").getTime() > startDate) {
+						if (rst.getTimestamp("emed").getTime() > startDate) {
 							row.embeded = (byte) pj.dates.getBusinessDays(startDate,
-									rst.getTimestamp("EMED").getTime());
+									rst.getTimestamp("emed").getTime());
 							included = true;
 						}
 					}
 					if (row.statusID > OCaseStatus.ID_EMBED) {
-						if (rst.getTimestamp("MIED").getTime() > startDate) {
+						if (rst.getTimestamp("mied").getTime() > startDate) {
 							row.microed = (byte) pj.dates.getBusinessDays(startDate,
-									rst.getTimestamp("MIED").getTime());
+									rst.getTimestamp("mied").getTime());
 							included = true;
 						}
 					}
 					if (row.statusID > OCaseStatus.ID_MICRO) {
-						if (rst.getTimestamp("ROED").getTime() > startDate) {
-							row.routed = (byte) pj.dates.getBusinessDays(startDate, rst.getTimestamp("ROED").getTime());
+						if (rst.getTimestamp("roed").getTime() > startDate) {
+							row.routed = (byte) pj.dates.getBusinessDays(startDate, rst.getTimestamp("roed").getTime());
 							included = true;
 						}
 					}
 					if (included) {
-						row.subID = rst.getByte("SBID");
-						row.procID = rst.getByte("POID");
-						row.facID = rst.getShort("FAID");
-						row.noBlocks = rst.getShort("PNBL");
-						row.noSlides = rst.getShort("PNSL");
+						row.subID = rst.getByte("sbid");
+						row.procID = rst.getByte("poid");
+						row.facID = rst.getShort("faid");
+						row.noBlocks = rst.getShort("pnbl");
+						row.noSlides = rst.getShort("pnsl");
 						rows.add(row);
 					}
 				}

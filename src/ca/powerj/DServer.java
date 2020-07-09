@@ -23,8 +23,8 @@ class DServer extends DPowerJ {
 			PreparedStatement pstm = prepareCallables(setSQL(STM_FAC_SELECT));
 			ResultSet rst = getResultSet(pstm);
 			while (rst.next()) {
-				if (rst.getString("FAFL").equalsIgnoreCase("Y") || rst.getString("FALD").equalsIgnoreCase("Y")) {
-					list.add(new OItem(rst.getShort("FAID"), rst.getString("FANM")));
+				if (rst.getString("fafl").equalsIgnoreCase("Y") || rst.getString("fald").equalsIgnoreCase("Y")) {
+					list.add(new OItem(rst.getShort("faid"), rst.getString("fanm")));
 				}
 			}
 			close(rst);
@@ -46,7 +46,7 @@ class DServer extends DPowerJ {
 			PreparedStatement pstm = prepareCallables(setSQL(STM_ORG_SELECT));
 			ResultSet rst = getResultSet(pstm);
 			while (rst.next()) {
-				list.add(new OItem(rst.getShort("OGID"), rst.getString("OGNM")));
+				list.add(new OItem(rst.getShort("ogid"), rst.getString("ognm")));
 			}
 			close(rst);
 			close(pstm);
@@ -66,7 +66,7 @@ class DServer extends DPowerJ {
 			PreparedStatement pstm = prepareCallables(setSQL(STM_PRO_SELECT));
 			ResultSet rst = getResultSet(pstm);
 			while (rst.next()) {
-				list.add(new OItem(rst.getShort("POID"), rst.getString("PONM")));
+				list.add(new OItem(rst.getShort("poid"), rst.getString("ponm")));
 			}
 			close(rst);
 			close(pstm);
@@ -86,7 +86,7 @@ class DServer extends DPowerJ {
 			PreparedStatement pstm = prepareCallables(setSQL(STM_SPY_SELECT));
 			ResultSet rst = getResultSet(pstm);
 			while (rst.next()) {
-				list.add(new OItem(rst.getShort("SYID"), rst.getString("SYNM")));
+				list.add(new OItem(rst.getShort("syid"), rst.getString("synm")));
 			}
 			close(rst);
 			close(pstm);
@@ -106,7 +106,7 @@ class DServer extends DPowerJ {
 			PreparedStatement pstm = prepareCallables(setSQL(STM_SUB_SELECT));
 			ResultSet rst = getResultSet(pstm);
 			while (rst.next()) {
-				list.add(new OItem(rst.getShort("SBID"), rst.getString("SBNM")));
+				list.add(new OItem(rst.getShort("sbid"), rst.getString("sbnm")));
 			}
 			close(rst);
 			close(pstm);
@@ -260,6 +260,8 @@ class DServer extends DPowerJ {
 			pstms.put(STM_SPY_UPDATE, prepareStatement(setSQL(STM_SPY_UPDATE)));
 			break;
 		case LConstants.ACTION_SPECIMEN:
+			pstms.put(STM_ADD_SL_SPG, prepareCallables(setSQL(STM_ADD_SL_SPG)));
+			pstms.put(STM_FRZ_SL_SUM, prepareCallables(setSQL(STM_FRZ_SL_SUM)));
 			pstms.put(STM_SPG_SL_SUM, prepareCallables(setSQL(STM_SPG_SL_SUM)));
 			break;
 		case LConstants.ACTION_SPECMASTER:
@@ -301,6 +303,7 @@ class DServer extends DPowerJ {
 			pstms.put(STM_ACC_SELECT, prepareCallables(setSQL(STM_ACC_SELECT)));
 			pstms.put(STM_FAC_SELECT, prepareCallables(setSQL(STM_FAC_SELECT)));
 			pstms.put(STM_ORM_SELECT, prepareCallables(setSQL(STM_ORM_SELECT)));
+			pstms.put(STM_PRS_SELECT, prepareCallables(setSQL(STM_PRS_SELECT)));
 			pstms.put(STM_PND_DEL_FN, prepareStatement(setSQL(STM_PND_DEL_FN)));
 			pstms.put(STM_PND_DEL_ID, prepareStatement(setSQL(STM_PND_DEL_ID)));
 			pstms.put(STM_PND_INSERT, prepareStatement(setSQL(STM_PND_INSERT)));
@@ -377,99 +380,101 @@ class DServer extends DPowerJ {
 	String setSQL(short id) {
 		switch (id) {
 		case STM_ACC_SELECT:
-			return "{call udpAccessions}";
+			return "{call " + pj.pjSchema + ".udpaccessions}";
 		case STM_ADD_SL_CID:
-			return "{call udpAdditionals(?)}";
+			return "{call " + pj.pjSchema + ".udpadditionals(?)}";
 		case STM_ADD_SL_LST:
-			return "{call udpAddLast(?)}";
+			return "{call " + pj.pjSchema + ".udpaddlast(?)}";
 		case STM_ADD_SL_SUM:
-			return "{call udpAddSum(?, ?)}";
+			return "{call " + pj.pjSchema + ".udpaddsum(?, ?)}";
 		case STM_CD1_SELECT:
-			return "{call udpCoder1}";
+			return "{call " + pj.pjSchema + ".udpcoder1}";
 		case STM_CD2_SELECT:
-			return "{call udpCoder2}";
+			return "{call " + pj.pjSchema + ".udpcoder2}";
 		case STM_CD3_SELECT:
-			return "{call udpCoder3}";
+			return "{call " + pj.pjSchema + ".udpcoder3}";
 		case STM_CD4_SELECT:
-			return "{call udpCoder4}";
+			return "{call " + pj.pjSchema + ".udpcoder4}";
 		case STM_CMT_SELECT:
-			return "{call udpCmt(?)}";
+			return "{call " + pj.pjSchema + ".udpcmt(?)}";
 		case STM_CSE_SL_CID:
-			return "{call udpCseID(?)}";
+			return "{call " + pj.pjSchema + ".udpcseid(?)}";
 		case STM_CSE_SL_CNO:
-			return "{call udpCseNo(?)}";
+			return "{call " + pj.pjSchema + ".udpcseno(?)}";
 		case STM_CSE_SL_SPE:
-			return "{call udpCseSpe(?)}";
+			return "{call " + pj.pjSchema + ".udpcsespe(?)}";
 		case STM_CSE_SL_SUM:
-			return "{call udpCseSum(?, ?)}";
+			return "{call " + pj.pjSchema + ".udpcsesum(?, ?)}";
 		case STM_CSE_SL_YER:
-			return "{call udpCseYear(?, ?)}";
+			return "{call " + pj.pjSchema + ".udpcseyear(?, ?)}";
 		case STM_ERR_SELECT:
-			return "{call udpErrSelect}";
+			return "{call " + pj.pjSchema + ".udperrselect}";
 		case STM_ERR_SL_CMT:
-			return "{call udpErrCmt(?)}";
+			return "{call " + pj.pjSchema + ".udperrcmt(?)}";
 		case STM_ERR_SL_FXD:
-			return "{call udpErrRedo}";
+			return "{call " + pj.pjSchema + ".udperrredo}";
 		case STM_FAC_SELECT:
-			return "{call udpFacility}";
+			return "{call " + pj.pjSchema + ".udpfacility}";
 		case STM_FRZ_SL_SID:
-			return "{call udpFrzSID(?)}";
+			return "{call " + pj.pjSchema + ".udpfrzsid(?)}";
 		case STM_FRZ_SL_SUM:
-			return "{call udpFrzSum(?, ?)}";
+			return "{call " + pj.pjSchema + ".udpfrzsum(?, ?)}";
 		case STM_ORD_SELECT:
-			return "{call udpOrder(?)}";
+			return "{call " + pj.pjSchema + ".udporder(?)}";
 		case STM_ORG_SELECT:
-			return "{call udpOrderGroup}";
+			return "{call " + pj.pjSchema + ".udpordergroup}";
 		case STM_ORM_SELECT:
-			return "{call udpOrderMaster}";
+			return "{call " + pj.pjSchema + ".udpordermaster}";
 		case STM_PND_SELECT:
-			return "{call udpPending}";
+			return "{call " + pj.pjSchema + ".udppending}";
 		case STM_PND_SL_ROU:
-			return "{call udpPendingRouted(?, ?)}";
+			return "{call " + pj.pjSchema + ".udppendingrouted(?, ?)}";
 		case STM_PRO_SELECT:
-			return "{call udpProcedure}";
+			return "{call " + pj.pjSchema + ".udpprocedure}";
 		case STM_PRS_SELECT:
-			return "{call udpPrsName}";
+			return "{call " + pj.pjSchema + ".udpprsname}";
 		case STM_PRS_SL_PID:
-			return "{call udpPrsID(?)}";
+			return "{call " + pj.pjSchema + ".udpprsid(?)}";
 		case STM_RUL_SELECT:
-			return "{call udpRule}";
+			return "{call " + pj.pjSchema + ".udprule}";
 		case STM_SCH_SL_SRV:
-			return "{call udpSchedServ(?, ?)}";
+			return "{call " + pj.pjSchema + ".udpschedserv(?, ?)}";
 		case STM_SCH_SL_SUM:
-			return "{call udpSchedSum(?, ?)}";
+			return "{call " + pj.pjSchema + ".udpschedsum(?, ?)}";
 		case STM_SCH_SL_STA:
-			return "{call udpSchedStaff(?, ?)}";
+			return "{call " + pj.pjSchema + ".udpschedstaff(?, ?)}";
 		case STM_SPE_SELECT:
-			return "{call udpSpecimens(?)}";
+			return "{call " + pj.pjSchema + ".udpspecimens(?)}";
 		case STM_SPG_SELECT:
-			return "{call udpSpecGroup}";
+			return "{call " + pj.pjSchema + ".udpspecgroup}";
+		case STM_ADD_SL_SPG:
+			return "{call " + pj.pjSchema + ".udpspecspg(?, ?)}";
 		case STM_SPG_SL_SU5:
-			return "{call udpSpecSu5(?, ?)}";
+			return "{call " + pj.pjSchema + ".udpspecsu5(?, ?)}";
 		case STM_SPG_SL_SUM:
-			return "{call udpSpecSum(?, ?)}";
+			return "{call " + pj.pjSchema + ".udpspecsum(?, ?)}";
 		case STM_SPM_SELECT:
-			return "{call udpSpecMaster}";
+			return "{call " + pj.pjSchema + ".udpspecmaster}";
 		case STM_SPY_SELECT:
-			return "{call udpSpecialty}";
+			return "{call " + pj.pjSchema + ".udpspecialty}";
 		case STM_SRV_SELECT:
-			return "{call udpService}";
+			return "{call " + pj.pjSchema + ".udpservice}";
 		case STM_STP_SELECT:
-			return "{call udpSetup}";
+			return "{call " + pj.pjSchema + ".udpsetup}";
 		case STM_STP_SL_SID:
-			return "{call udpStpID(?)}";
+			return "{call " + pj.pjSchema + ".udpstpid(?)}";
 		case STM_SUB_SELECT:
-			return "{call udpSubspecial}";
+			return "{call " + pj.pjSchema + ".udpsubspecial}";
 		case STM_TUR_SELECT:
-			return "{call udpTurnaround}";
+			return "{call " + pj.pjSchema + ".udpturnaround}";
 		case STM_WDY_SELECT:
-			return "{call udpWdy(?)}";
+			return "{call " + pj.pjSchema + ".udpwdy(?)}";
 		case STM_WDY_SL_DTE:
-			return "{call udpWdyDte(?)}";
+			return "{call " + pj.pjSchema + ".udpwdydte(?)}";
 		case STM_WDY_SL_NXT:
-			return "{call udpWdyNxt(?)}";
+			return "{call " + pj.pjSchema + ".udpwdynxt(?)}";
 		case STM_WDY_SL_PRV:
-			return "{call udpWdyPrv(?)}";
+			return "{call " + pj.pjSchema + ".udpwdyprv(?)}";
 		default:
 			return super.setSQL(id);
 		}

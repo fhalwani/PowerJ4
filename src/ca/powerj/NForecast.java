@@ -149,7 +149,7 @@ class NForecast extends NBase {
 		timeTo = calMax.getTimeInMillis();
 		setLayout(new BorderLayout());
 		setOpaque(true);
-		add(new IToolBar(this, calBeg, calEnd, calMin, calMax, true), BorderLayout.NORTH);
+		add(new IToolBar(this, calBeg, calEnd, calMin, calMax, null), BorderLayout.NORTH);
 		add(splitAll, BorderLayout.CENTER);
 	}
 
@@ -341,6 +341,7 @@ class NForecast extends NBase {
 
 		@Override
 		protected Void doInBackground() throws Exception {
+			setName("WorkerData");
 			getData();
 			structureData();
 			return null;
@@ -425,33 +426,33 @@ class NForecast extends NBase {
 				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_YER), 2, timeTo);
 				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CSE_SL_YER));
 				while (rst.next()) {
-					if (facID > 0 && facID != rst.getShort("FAID")) {
+					if (facID > 0 && facID != rst.getShort("faid")) {
 						continue;
 					}
 					annual = new OAnnual();
-					annual.facID = rst.getShort("FAID");
-					annual.spyID = rst.getByte("SYID");
-					annual.subID = rst.getByte("SBID");
-					annual.proID = rst.getByte("POID");
-					annual.facility = rst.getString("FANM").trim();
-					annual.specialty = rst.getString("SYNM").trim();
-					annual.subspecial = rst.getString("SBNM").trim();
-					annual.procedure = rst.getString("PONM").trim();
-					yearID = rst.getShort("FNYEAR");
-					annual.cases.put(yearID, rst.getInt("CACA"));
-					annual.specs.put(yearID, rst.getInt("CASP"));
-					annual.blocks.put(yearID, rst.getInt("CABL"));
-					annual.slides.put(yearID, rst.getInt("CASL"));
-					annual.synopt.put(yearID, rst.getInt("CASY"));
-					annual.frozen.put(yearID, rst.getInt("CAFS"));
-					annual.he.put(yearID, rst.getInt("CAHE"));
-					annual.ss.put(yearID, rst.getInt("CASS"));
-					annual.ihc.put(yearID, rst.getInt("CAIH"));
-					annual.fte5.put(yearID, rst.getDouble("CAV1"));
-					annual.fte2.put(yearID, rst.getDouble("CAV2"));
-					annual.fte3.put(yearID, rst.getDouble("CAV3"));
-					annual.fte4.put(yearID, rst.getDouble("CAV4"));
-					annual.fte5.put(yearID, (double) rst.getInt("CAV5"));
+					annual.facID = rst.getShort("faid");
+					annual.spyID = rst.getByte("syid");
+					annual.subID = rst.getByte("sbid");
+					annual.proID = rst.getByte("poid");
+					annual.facility = rst.getString("fanm").trim();
+					annual.specialty = rst.getString("synm").trim();
+					annual.subspecial = rst.getString("sbnm").trim();
+					annual.procedure = rst.getString("ponm").trim();
+					yearID = rst.getShort("fnyear");
+					annual.cases.put(yearID, rst.getInt("caca"));
+					annual.specs.put(yearID, rst.getInt("casp"));
+					annual.blocks.put(yearID, rst.getInt("cabl"));
+					annual.slides.put(yearID, rst.getInt("casl"));
+					annual.synopt.put(yearID, rst.getInt("casy"));
+					annual.frozen.put(yearID, rst.getInt("cafs"));
+					annual.he.put(yearID, rst.getInt("cahe"));
+					annual.ss.put(yearID, rst.getInt("cass"));
+					annual.ihc.put(yearID, rst.getInt("caih"));
+					annual.fte5.put(yearID, rst.getDouble("cav1"));
+					annual.fte2.put(yearID, rst.getDouble("cav2"));
+					annual.fte3.put(yearID, rst.getDouble("cav3"));
+					annual.fte4.put(yearID, rst.getDouble("cav4"));
+					annual.fte5.put(yearID, (double) rst.getInt("cav5"));
 					annuals.add(annual);
 					if (yearMin > yearID) {
 						yearMin = yearID;
