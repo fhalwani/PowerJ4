@@ -634,17 +634,17 @@ class NBacklog extends NBase {
 					}
 					if (pending.cutoff > 0) {
 						buffer = (100 * pending.passed) / pending.cutoff;
-						if (buffer < 10000) {
-							// Else, assume the case was abandoned & avoid overflow exception
-							pending.delay = (short) buffer;
-							pendings.add(pending);
+						if (buffer > 9999) {
+							buffer = 9999;
 						}
+						pending.delay = (short) buffer;
 					}
+					pendings.add(pending);
 				}
 				Collections.sort(pendings, new Comparator<OCasePending>() {
 					@Override
 					public int compare(OCasePending o1, OCasePending o2) {
-						return (o1.delay > o2.delay ? -1 : (o1.delay == o2.delay ? 0 : 1));
+						return (o1.delay > o2.delay ? -1 : (o1.delay < o2.delay ? 1 : 0));
 					}
 				});
 				Thread.sleep(LConstants.SLEEP_TIME);

@@ -381,10 +381,12 @@ class DServer extends DPowerJ {
 		switch (id) {
 		case STM_ACC_SELECT:
 			return "{call " + pj.pjSchema + ".udpaccessions}";
-		case STM_ADD_SL_CID:
-			return "{call " + pj.pjSchema + ".udpadditionals(?)}";
 		case STM_ADD_SL_LST:
 			return "{call " + pj.pjSchema + ".udpaddlast(?)}";
+		case STM_ADD_SL_CID:
+			return "{call " + pj.pjSchema + ".udpadditionals(?)}";
+		case STM_ADD_SL_SPG:
+			return "{call " + pj.pjSchema + ".udpaddspg(?, ?)}";
 		case STM_ADD_SL_SUM:
 			return "{call " + pj.pjSchema + ".udpaddsum(?, ?)}";
 		case STM_CD1_SELECT:
@@ -447,8 +449,6 @@ class DServer extends DPowerJ {
 			return "{call " + pj.pjSchema + ".udpspecimens(?)}";
 		case STM_SPG_SELECT:
 			return "{call " + pj.pjSchema + ".udpspecgroup}";
-		case STM_ADD_SL_SPG:
-			return "{call " + pj.pjSchema + ".udpspecspg(?, ?)}";
 		case STM_SPG_SL_SU5:
 			return "{call " + pj.pjSchema + ".udpspecsu5(?, ?)}";
 		case STM_SPG_SL_SUM:

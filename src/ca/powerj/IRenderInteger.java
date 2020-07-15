@@ -45,7 +45,7 @@ class IRenderInteger extends JLabel implements TableCellRenderer {
 					setText("");
 				}
 			} else {
-				setText(value.toString());
+				setText("");
 			}
 		} catch (IllegalArgumentException ignore) {}
 		if (isSelected) {

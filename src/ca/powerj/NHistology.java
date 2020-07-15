@@ -99,7 +99,7 @@ class NHistology extends NBase {
 		Collections.sort(dates, new Comparator<Date>() {
 			@Override
 			public int compare(Date o1, Date o2) {
-				return (o1.getTime() > o2.getTime() ? 1 : -1);
+				return (o1.getTime() > o2.getTime() ? 1 : (o1.getTime() < o2.getTime() ? -1 : 0));
 			}
 		});
 	}

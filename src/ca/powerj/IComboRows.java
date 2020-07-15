@@ -12,27 +12,48 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 class IComboRows extends JComboBox {
-	static final byte PNL_SPEC = 0;
-	static final byte PNL_LOAD = 1;
-	private static final String[] sLoad = {"", ":FAC", ":SPE", ":SUB", ":PRO", ":STA"};
-	private static final String[] sSpec = {"", ":FAC", ":SPE", ":SUB", ":SPE"};
+	static String[] choices = new String[6];
 	private final DefaultComboBoxModel model = new DefaultComboBoxModel();
 	private IPanelRows pnlRows;
 	private final JPopupMenu popupMenu = new JPopupMenu();
 
-	IComboRows(byte[] value, byte parent) {
+	IComboRows(byte[] rows, byte[] values) {
 		super();
-		int[] selected = new int[value.length];
-		for (int i = 0; i < value.length; i++) {
-			selected[i] = value[i];
+		int[] selected = new int[values.length];
+		for (int i = 0; i < values.length; i++) {
+			selected[i] = values[i];
+		}
+		choices[0] = "";
+		for (byte i = 0; i < rows.length; i++) {
+			switch (rows[i]) {
+			case IPanelRows.SPN_FACILITY:
+				choices[i+1] = ":Fac";
+				break;
+			case IPanelRows.SPN_SPECIALTY:
+				choices[i+1] = ":Spy";
+				break;
+			case IPanelRows.SPN_SUBSPECIAL:
+				choices[i+1] = ":Sub";
+				break;
+			case IPanelRows.SPN_PROCEDURE:
+				choices[i+1] = ":Pro";
+				break;
+			case IPanelRows.SPN_SPECIMEN:
+				choices[i+1] = ":Spe";
+				break;
+			case IPanelRows.SPN_STAFF:
+				choices[i+1] = ":Sta";
+				break;
+			default:
+				choices[i+1] = "";
+			}
 		}
 		Dimension dim = new Dimension(170, 24);
 		setPreferredSize(dim);
 		setMaximumSize(dim);
-		pnlRows = new IPanelRows(selected, parent);
+		pnlRows = new IPanelRows(rows, values);
 		model.addElement(selected);
 		setModel(model);
-		final byte parent2 = parent;
 		setRenderer(new DefaultListCellRenderer() {
 			public Component getListCellRendererComponent(JList list, Object value,
 					int index, boolean isSelected, boolean hasFocus) {
@@ -40,11 +61,7 @@ class IComboRows extends JComboBox {
 				int[] results = (int[]) model.getElementAt(0);
 				String display = "";
 				for (int i = 0; i < results.length; i++) {
-					if (parent2 == PNL_SPEC) {
-						display += sSpec[results[i]];
-					} else {
-						display += sLoad[results[i]];
-					}
+					display += choices[results[i]];
 				}
 				if (display.length() > 2) {
 					display = display.substring(1);

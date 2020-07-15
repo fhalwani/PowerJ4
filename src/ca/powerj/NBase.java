@@ -75,7 +75,7 @@ class NBase extends JPanel implements DocumentListener, FocusListener {
 
 	void save() {}
 
-	void setFilter(int[] rows) {}
+	void setFilter(int[] values) {}
 
 	void setFilter(short id, short value) {}
 

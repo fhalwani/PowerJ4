@@ -24,27 +24,27 @@ class IPanelRows extends JPanel {
 	static final byte ROW_SPECIALTY  = 2;
 	static final byte ROW_SUBSPECIAL = 3;
 	static final byte ROW_PROCEDURE  = 4;
-	static final byte ROW_SPECIMEN   = 4;
+	static final byte ROW_SPECIMEN   = 5;
 	static final byte ROW_STAFF      = 5;
-	private final byte SPN_FACILITY   = 0;
-	private final byte SPN_SPECIALTY  = 1;
-	private final byte SPN_SUBSPECIAL = 2;
-	private final byte SPN_PROCEDURE  = 3;
-	private final byte SPN_SPECIMEN   = 3;
-	private final byte SPN_STAFF      = 4;
+	static final byte SPN_FACILITY   = 0;
+	static final byte SPN_SPECIALTY  = 1;
+	static final byte SPN_SUBSPECIAL = 2;
+	static final byte SPN_PROCEDURE  = 3;
+	static final byte SPN_SPECIMEN   = 4;
+	static final byte SPN_STAFF      = 5;
 	private volatile boolean programmaticChange;
-	private int[] selected, original, rank;
+	private int[] original, selected, rank;
 	private ArrayList<JSpinner> spinners = new ArrayList<JSpinner>();
 	private Timer selectionTimer;
 
-	IPanelRows(int[] value, byte parent) {
+	IPanelRows(byte[] rows, byte[] values) {
 		super(new GridBagLayout());
-		original = value;
-		selected = new int[value.length];
-		rank = new int[value.length];
-		for (int i = 0; i < value.length; i++) {
-			selected[i] = value[i];
-			original[i] = value[i];
+		rank = new int[values.length];
+		selected = new int[values.length];
+		original = new int[values.length];
+		for (int i = 0; i < values.length; i++) {
+			selected[i] = values[i];
+			original[i] = values[i];
 		}
 		selectionTimer = new Timer(50, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -65,193 +65,65 @@ class IPanelRows extends JPanel {
 				IPanelRows.this.firePropertyChange("Confirm", null, getValue());
 			}
 		});
-		SpinnerNumberModel mdlFacility = new SpinnerNumberModel(rank[0], 0, rank.length, 1);
-		JSpinner spnFacility = new JSpinner(mdlFacility) {
-			public ComponentOrientation getComponentOrientation() {
-				return ComponentOrientation.RIGHT_TO_LEFT;
-			}
-		};
-		spnFacility.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				if (!programmaticChange) {
-					int newValue = (int) spinners.get(SPN_FACILITY).getValue();
-					resetValues(SPN_FACILITY, newValue);
-				}
-			}
-		});
-		JFormattedTextField ftfFacility = getTextField(spnFacility);
-		if (ftfFacility != null ) {
-			ftfFacility.setColumns(5);
-			ftfFacility.setHorizontalAlignment(JTextField.RIGHT);
-		}
-		// Make the format without a thousands separator.
-		spnFacility.setEditor(new JSpinner.NumberEditor(spnFacility, "#"));
-		spnFacility.addAncestorListener(new IFocusListener());
-		JLabel lblFacility = new JLabel("Facility: ");
-		lblFacility.setDisplayedMnemonic(KeyEvent.VK_F);
-		lblFacility.setLabelFor(spnFacility);
-		IGUI.addComponent(lblFacility, 0, 0, 1, 1, 0.5, 0.2,
-				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-		IGUI.addComponent(spnFacility, 1, 0, 1, 1, 0.5, 0.2,
-				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-		spinners.add(spnFacility);
-		SpinnerNumberModel mdlSpecialty = new SpinnerNumberModel(rank[1], 0, rank.length, 1);
-		JSpinner spnSpecialty = new JSpinner(mdlSpecialty) {
-			public ComponentOrientation getComponentOrientation() {
-				return ComponentOrientation.RIGHT_TO_LEFT;
-			}
-		};
-		spnSpecialty.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				if (!programmaticChange) {
-					int newValue = (int) spinners.get(SPN_SPECIALTY).getValue();
-					resetValues(SPN_SPECIALTY, newValue);
-				}
-			}
-		});
-		JFormattedTextField ftfSpecialty = getTextField(spnSpecialty);
-		if (ftfSpecialty != null ) {
-			ftfSpecialty.setColumns(5);
-			ftfSpecialty.setHorizontalAlignment(JTextField.RIGHT);
-		}
-		// Make the format without a thousands separator.
-		spnSpecialty.setEditor(new JSpinner.NumberEditor(spnSpecialty, "#"));
-		JLabel lblSpecialty = new JLabel("Specialty: ");
-		lblSpecialty.setDisplayedMnemonic(KeyEvent.VK_S);
-		lblSpecialty.setLabelFor(spnSpecialty);
-		IGUI.addComponent(lblSpecialty, 0, 1, 1, 1, 0.5, 0.2,
-				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-		IGUI.addComponent(spnSpecialty, 1, 1, 1, 1, 0.5, 0.2,
-				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-		spinners.add(spnSpecialty);
-		SpinnerNumberModel mdlSubspecialty = new SpinnerNumberModel(rank[2], 0, rank.length, 1);
-		JSpinner spnSubspecialty = new JSpinner(mdlSubspecialty) {
-			public ComponentOrientation getComponentOrientation() {
-				return ComponentOrientation.RIGHT_TO_LEFT;
-			}
-		};
-		spnSubspecialty.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				if (!programmaticChange) {
-					int newValue = (int) spinners.get(SPN_SUBSPECIAL).getValue();
-					resetValues(SPN_SUBSPECIAL, newValue);
-				}
-			}
-		});
-		JFormattedTextField ftfSubspecialty = getTextField(spnSubspecialty);
-		if (ftfSubspecialty != null ) {
-			ftfSubspecialty.setColumns(5);
-			ftfSubspecialty.setHorizontalAlignment(JTextField.RIGHT);
-		}
-		// Make the format without a thousands separator.
-		spnSubspecialty.setEditor(new JSpinner.NumberEditor(spnSubspecialty, "#"));
-		JLabel lblSubspecialty = new JLabel("Subspecialty: ");
-		lblSubspecialty.setDisplayedMnemonic(KeyEvent.VK_B);
-		lblSubspecialty.setLabelFor(spnSubspecialty);
-		IGUI.addComponent(lblSubspecialty, 0, 2, 1, 1, 0.5, 0.2,
-				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-		IGUI.addComponent(spnSubspecialty, 1, 2, 1, 1, 0.5, 0.2,
-				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-		spinners.add(spnSubspecialty);
-		if (parent == IComboRows.PNL_LOAD) {
-			SpinnerNumberModel mdlProcedures = new SpinnerNumberModel(rank[3], 0, rank.length, 1);
-			JSpinner spnProcedure = new JSpinner(mdlProcedures) {
+		for (byte i = 0; i < rows.length; i++) {
+			final byte position = i;
+			SpinnerNumberModel model = new SpinnerNumberModel(rank[i], 0, rank.length, 1);
+			JSpinner spinner = new JSpinner(model) {
 				public ComponentOrientation getComponentOrientation() {
 					return ComponentOrientation.RIGHT_TO_LEFT;
 				}
 			};
-			spnProcedure.addChangeListener(new ChangeListener() {
+			spinner.addChangeListener(new ChangeListener() {
 				public void stateChanged(ChangeEvent e) {
 					if (!programmaticChange) {
-						int newValue = (int) spinners.get(SPN_PROCEDURE).getValue();
-						resetValues(SPN_PROCEDURE, newValue);
+						int newValue = (int) spinners.get(position).getValue();
+						resetValues(position, newValue);
 					}
 				}
 			});
-			JFormattedTextField ftfProcedures = getTextField(spnProcedure);
-			if (ftfProcedures != null ) {
-				ftfProcedures.setColumns(5);
-				ftfProcedures.setHorizontalAlignment(JTextField.RIGHT);
+			JFormattedTextField textField = getTextField(spinner);
+			if (textField != null ) {
+				textField.setColumns(1);
+				textField.setHorizontalAlignment(JTextField.RIGHT);
 			}
-			// Make the format without a thousands separator.
-			spnProcedure.setEditor(new JSpinner.NumberEditor(spnProcedure, "#"));
-			JLabel lblProcedures = new JLabel("Procedure: ");
-			lblProcedures.setDisplayedMnemonic(KeyEvent.VK_R);
-			lblProcedures.setLabelFor(spnProcedure);
-			IGUI.addComponent(lblProcedures, 0, 3, 1, 1, 0.5, 0.2,
-					GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-			IGUI.addComponent(spnProcedure, 1, 3, 1, 1, 0.5, 0.2,
-					GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-			spinners.add(spnProcedure);
-			if (rank.length == 5) {
-				SpinnerNumberModel mdlStaff = new SpinnerNumberModel(rank[4], 0, rank.length, 1);
-				JSpinner spnStaff= new JSpinner(mdlStaff) {
-					public ComponentOrientation getComponentOrientation() {
-						return ComponentOrientation.RIGHT_TO_LEFT;
-					}
-				};
-				spnStaff.addChangeListener(new ChangeListener() {
-					public void stateChanged(ChangeEvent e) {
-						if (!programmaticChange) {
-							int newValue = (int) spinners.get(SPN_STAFF).getValue();
-							resetValues(SPN_STAFF, newValue);
-						}
-					}
-				});
-				JFormattedTextField ftfStaff = getTextField(spnStaff);
-				if (ftfStaff != null ) {
-					ftfStaff.setColumns(5);
-					ftfStaff.setHorizontalAlignment(JTextField.RIGHT);
-				}
-				// Make the format without a thousands separator.
-				spnStaff.setEditor(new JSpinner.NumberEditor(spnStaff, "#"));
-				JLabel lblStaff = new JLabel("Staff: ");
-				lblStaff.setDisplayedMnemonic(KeyEvent.VK_T);
-				lblStaff.setLabelFor(spnStaff);
-				IGUI.addComponent(lblStaff, 0, 4, 1, 1, 0.5, 0.2,
-						GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-				IGUI.addComponent(spnStaff, 1, 4, 1, 1, 0.5, 0.2,
-						GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-				spinners.add(spnStaff);
-				IGUI.addComponent(btnOkay, 0, 5, 2, 1, 1.0, 0.2,
-						GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-			} else {
-				IGUI.addComponent(btnOkay, 0, 4, 2, 1, 1.0, 0.2,
-						GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
+			JLabel label = new JLabel();
+			switch (rows[i]) {
+			case SPN_FACILITY:
+				label.setText("Facility: ");
+				label.setDisplayedMnemonic(KeyEvent.VK_F);
+				break;
+			case SPN_SPECIALTY:
+				label.setText("Specialty: ");
+				label.setDisplayedMnemonic(KeyEvent.VK_S);
+				break;
+			case SPN_SUBSPECIAL:
+				label.setText("Subspecialty: ");
+				label.setDisplayedMnemonic(KeyEvent.VK_U);
+				break;
+			case SPN_PROCEDURE:
+				label.setText("Procedure: ");
+				label.setDisplayedMnemonic(KeyEvent.VK_P);
+				break;
+			case SPN_SPECIMEN:
+				label.setText("Specimen: ");
+				label.setDisplayedMnemonic(KeyEvent.VK_E);
+				break;
+			default:
+				label.setText("Staff: ");
+				label.setDisplayedMnemonic(KeyEvent.VK_T);
 			}
-		} else {
-			SpinnerNumberModel mdlSpecimens = new SpinnerNumberModel(rank[3], 0, rank.length, 1);
-			JSpinner spnSpecimen = new JSpinner(mdlSpecimens) {
-				public ComponentOrientation getComponentOrientation() {
-					return ComponentOrientation.RIGHT_TO_LEFT;
-				}
-			};
-			spnSpecimen.addChangeListener(new ChangeListener() {
-				public void stateChanged(ChangeEvent e) {
-					if (!programmaticChange) {
-						int newValue = (int) spinners.get(SPN_SPECIMEN).getValue();
-						resetValues(SPN_SPECIMEN, newValue);
-					}
-				}
-			});
-			JFormattedTextField ftfSpecimens = getTextField(spnSpecimen);
-			if (ftfSpecimens != null ) {
-				ftfSpecimens.setColumns(5);
-				ftfSpecimens.setHorizontalAlignment(JTextField.RIGHT);
+			if (i == 0) {
+				spinner.addAncestorListener(new IFocusListener());
 			}
-			// Make the format without a thousands separator.
-			spnSpecimen.setEditor(new JSpinner.NumberEditor(spnSpecimen, "#"));
-			JLabel lblSpecimens = new JLabel("Specimen: ");
-			lblSpecimens.setDisplayedMnemonic(KeyEvent.VK_P);
-			lblSpecimens.setLabelFor(spnSpecimen);
-			IGUI.addComponent(lblSpecimens, 0, 3, 1, 1, 0.5, 0.2,
+			label.setLabelFor(spinner);
+			IGUI.addComponent(label, 0, i, 1, 1, 0.5, 0.2,
 					GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-			IGUI.addComponent(spnSpecimen, 1, 3, 1, 1, 0.5, 0.2,
+			IGUI.addComponent(spinner, 1, i, 1, 1, 0.5, 0.2,
 					GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
-			spinners.add(spnSpecimen);
-			IGUI.addComponent(btnOkay, 0, 4, 2, 1, 1.0, 0.2,
-					GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
+			spinners.add(spinner);
 		}
+		IGUI.addComponent(btnOkay, 0, rows.length, 2, 1, 1.0, 0.2,
+				GridBagConstraints.BOTH, GridBagConstraints.EAST, this);
 	}
 
 	private JFormattedTextField getTextField(JSpinner spinner) {
@@ -293,13 +165,13 @@ class IPanelRows extends JPanel {
 			}
 		}
 		rank[element] = newPos;
-		for (int i = 0; i < selected.length; i++) {
+		for (byte i = 0; i < selected.length; i++) {
 			selected[i] = 0;
 		}
-		for (int i = 0; i < rank.length; i++) {
+		for (byte i = 0; i < rank.length; i++) {
 			// Move zeros to the end
 			if (rank[i] > ROW_IGNORE) {
-				selected[rank[i] -1] = i +1;
+				selected[rank[i] -1] = (byte) (i +1);
 			}
 		}
 		setValue();
@@ -327,7 +199,7 @@ class IPanelRows extends JPanel {
 				rank[SPN_PROCEDURE] = ROW_PROCEDURE;
 				break;
 			case ROW_STAFF:
-				rank[SPN_STAFF] = ROW_STAFF;
+				rank[4] = ROW_STAFF;
 				break;
 			default:
 				// 0 = ignore
@@ -348,7 +220,7 @@ class IPanelRows extends JPanel {
 	}
 	
 	void setValue(int[] newValue) {
-		for (int i = 0; i < newValue.length; i++) {
+		for (byte i = 0; i < newValue.length; i++) {
 			selected[i] = newValue[i];
 		}
 		setValue();

@@ -465,7 +465,9 @@ class NWorkdays extends NBase {
 				Collections.sort(list, new Comparator<DataRow>() {
 					@Override
 					public int compare(DataRow o1, DataRow o2) {
-						return (o1.noDays > o2.noDays ? -1 : (o1.noDays < o2.noDays ? 1 : o1.name.compareTo(o2.name)));
+						return (o1.noDays > o2.noDays ? -1
+								: (o1.noDays < o2.noDays ? 1
+								: o1.name.compareToIgnoreCase(o2.name)));
 					}
 				});
 				DataRow total = new DataRow();

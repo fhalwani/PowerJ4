@@ -131,7 +131,8 @@ class NDistribute extends NBase {
 		if (fileName.length() == 0)
 			return;
 		final float[] widths = new float[headers.size() + 1];
-		String str = "Distribution - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME);
+		String str = "Distribution - " + pj.dates.formatter(timeFrom, LDates.FORMAT_DATE)
+			+ " - " + pj.dates.formatter(timeTo, LDates.FORMAT_DATE);
 		LPdf pdfLib = new LPdf();
 		HashMap<String, Font> fonts = pdfLib.getFonts();
 		Document document = new Document(PageSize._11X17.rotate(), 36, 18, 18, 18);
@@ -180,17 +181,35 @@ class NDistribute extends NBase {
 					paragraph = new Paragraph();
 					paragraph.setFont(fonts.get("Font10n"));
 					cell = new PdfPCell();
-					if (col == 0) {
+					switch (col) {
+					case 0:
 						paragraph.add(new Chunk(list.get(i).prsName));
 						paragraph.setAlignment(Element.ALIGN_LEFT);
 						cell.setHorizontalAlignment(Element.ALIGN_LEFT);
-					} else if (col < headers.size()) {
-						paragraph.add(new Chunk(
-								pj.numbers.formatDouble(2, list.get(i).dSubs.get(headers.get(col - 1).subID))));
+						break;
+					case 1:
+						if (filters[FILTER_DATA] > IToolBar.TB_SLIDES) {
+							paragraph.add(new Chunk(pj.numbers.formatDouble(3, list.get(i).fte)));
+						} else {
+							paragraph.add(new Chunk(pj.numbers.formatNumber(list.get(i).count)));
+						}
 						paragraph.setAlignment(Element.ALIGN_RIGHT);
 						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-					} else {
-						paragraph.add(new Chunk(pj.numbers.formatDouble(2, list.get(i).fte)));
+						break;
+					default:
+						if (filters[FILTER_DATA] > IToolBar.TB_SLIDES) {
+							if (list.get(i).dSubs.get(headers.get(col - 1).subID) != 0.0) {
+								paragraph.add(new Chunk(pj.numbers.formatDouble(3, list.get(i).dSubs.get(headers.get(col - 1).subID))));
+							} else {
+								paragraph.add(new Chunk(""));
+							}
+						} else {
+							if (list.get(i).iSubs.get(headers.get(col - 1).subID) != 0.0) {
+								paragraph.add(new Chunk(pj.numbers.formatNumber(list.get(i).iSubs.get(headers.get(col - 1).subID))));
+							} else {
+								paragraph.add(new Chunk(""));
+							}
+						}
 						paragraph.setAlignment(Element.ALIGN_RIGHT);
 						cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
 					}
@@ -298,10 +317,10 @@ class NDistribute extends NBase {
 			Row xlsRow = sheet.createRow(0);
 			xlsRow.setHeightInPoints(45);
 			Cell xlsCell = xlsRow.createCell(0);
-			xlsCell.setCellValue(
-					"Distribution - " + pj.dates.formatter(Calendar.getInstance(), LDates.FORMAT_DATETIME));
+			xlsCell.setCellValue("Distribution - " + pj.dates.formatter(timeFrom, LDates.FORMAT_DATE)
+					+ " - " + pj.dates.formatter(timeTo, LDates.FORMAT_DATE));
 			xlsCell.setCellStyle(styles.get("title"));
-			sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, headers.size() - 1));
+			sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, headers.size()));
 			// header row
 			xlsRow = sheet.createRow(1);
 			xlsRow.setHeightInPoints(30);
@@ -312,10 +331,14 @@ class NDistribute extends NBase {
 					xlsCell.setCellValue("Staff");
 					sheet.setDefaultColumnStyle(col, styles.get("text"));
 				} else {
-					xlsCell.setCellValue(headers.get(col).subName);
-					sheet.setDefaultColumnStyle(col, styles.get("data_double"));
+					xlsCell.setCellValue(headers.get(col -1).subName);
+					if (filters[FILTER_DATA] > IToolBar.TB_SLIDES) {
+						sheet.setDefaultColumnStyle(col, styles.get("data_double"));
+					} else {
+						sheet.setDefaultColumnStyle(col, styles.get("data_int"));
+					}
 				}
-				sheet.setColumnWidth(col, 5 * 256); // 5 characters
+				sheet.setColumnWidth(col, 8 * 256); // 8 characters
 			}
 			// data list
 			int rownum = 2;
@@ -325,12 +348,23 @@ class NDistribute extends NBase {
 				xlsRow = sheet.createRow(rownum++);
 				for (int col = 0; col <= headers.size(); col++) {
 					xlsCell = xlsRow.createCell(col);
-					if (col == 0) {
+					switch (col) {
+					case 0:
 						xlsCell.setCellValue(list.get(i).prsName);
-					} else if (col < headers.size()) {
-						xlsCell.setCellValue(list.get(i).dSubs.get(headers.get(col - 1).subID));
-					} else {
-						xlsCell.setCellValue(list.get(i).fte);
+						break;
+					case 1:
+						if (filters[FILTER_DATA] > IToolBar.TB_SLIDES) {
+							xlsCell.setCellValue(list.get(i).fte);
+						} else {
+							xlsCell.setCellValue(list.get(i).count);
+						}
+						break;
+					default:
+						if (filters[FILTER_DATA] > IToolBar.TB_SLIDES) {
+							xlsCell.setCellValue(list.get(i).dSubs.get(headers.get(col - 1).subID));
+						} else {
+							xlsCell.setCellValue(list.get(i).iSubs.get(headers.get(col - 1).subID));
+						}
 					}
 				}
 			}

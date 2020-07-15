@@ -619,12 +619,12 @@ class NDaily extends NBase {
 									+ turnaround.route + turnaround.diagn);
 							if (pending.cutoff > 0) {
 								buffer = (100 * pending.passed) / pending.cutoff;
-								if (buffer < 10000) {
-									// Else, assume the case was abandoned & avoid overflow exception
-									pending.delay = (short) buffer;
-									pendings.add(pending);
+								if (buffer > 9999) {
+									buffer = 9999;
 								}
+								pending.delay = (short) buffer;
 							}
+							pendings.add(pending);
 						}
 						if (person.prsID != finalID) {
 							person = mapPersons.get(finalID);
@@ -684,13 +684,13 @@ class NDaily extends NBase {
 				Collections.sort(lstPersons, new Comparator<OWorkflow>() {
 					@Override
 					public int compare(OWorkflow o1, OWorkflow o2) {
-						return (o1.noPending > o2.noPending ? -1 : (o1.noPending == o2.noPending ? 0 : 1));
+						return (o1.noPending > o2.noPending ? -1 : (o1.noPending < o2.noPending ? 1 : 0));
 					}
 				});
 				Collections.sort(pendings, new Comparator<OCasePending>() {
 					@Override
 					public int compare(OCasePending o1, OCasePending o2) {
-						return (o1.delay > o2.delay ? -1 : (o1.delay == o2.delay ? 0 : 1));
+						return (o1.delay > o2.delay ? -1 : (o1.delay < o2.delay ? 1 : 0));
 					}
 				});
 				while (lstPersons.size() > 25) {
@@ -719,6 +719,9 @@ class NDaily extends NBase {
 					yData[0][i] = lstPersons.get(i).noIn / 60;
 					yData[1][i] = lstPersons.get(i).noOut / 60;
 					yData[2][i] = lstPersons.get(i).noPending / 60;
+					if (yData[2][i] > 1999) {
+						yData[2][i] = 1999;
+					}
 				}
 				chartBar.setChart(xData, legend, yData, "Today's Workflow");
 				lstPersons.clear();

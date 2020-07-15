@@ -1062,7 +1062,7 @@ class NRouting extends NBase {
 			Collections.sort(summary, new Comparator<OWorkflow>() {
 				@Override
 				public int compare(OWorkflow ds1, OWorkflow ds2) {
-					return (ds1.value5 < ds2.value5 ? -1 : (ds1.value5 == ds2.value5 ? 0 : 1));
+					return (ds1.value5 < ds2.value5 ? -1 : (ds1.value5 > ds2.value5 ? 1 : 0));
 				}
 			});
 			return null;

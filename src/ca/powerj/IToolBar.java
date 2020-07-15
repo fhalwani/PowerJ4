@@ -54,11 +54,11 @@ class IToolBar extends JToolBar {
 		createPanel();
 	}
 
-	IToolBar(NBase panel, Calendar start, Calendar end, Calendar min, Calendar max, byte[] rowsView) {
+	IToolBar(NBase panel, Calendar start, Calendar end, Calendar min, Calendar max, byte[] values) {
 		super();
 		this.pnlCore = panel;
 		this.pj = panel.pj;
-		createPanel(start, end, min, max, rowsView);
+		createPanel(start, end, min, max, values);
 	}
 
 	private void createPanel() {
@@ -132,7 +132,7 @@ class IToolBar extends JToolBar {
 		}
 	}
 
-	private void createPanel(Calendar start, Calendar end, Calendar min, Calendar max, byte[] rowsView) {
+	private void createPanel(Calendar start, Calendar end, Calendar min, Calendar max, byte[] values) {
 		setAlignmentX(Component.LEFT_ALIGNMENT);
 		switch (pj.pnlID) {
 		case LConstants.ACTION_DISTRIBUTE:
@@ -145,15 +145,17 @@ class IToolBar extends JToolBar {
 		case LConstants.ACTION_FORECAST:
 			addFacility();
 			addDates(start, end, min, max);
-			if (rowsView != null) {
-				addRows(rowsView, IComboRows.PNL_LOAD);
+			if (values != null) {
+				byte[] rows = {IPanelRows.SPN_FACILITY, IPanelRows.SPN_SPECIALTY, IPanelRows.SPN_SUBSPECIAL, IPanelRows.SPN_PROCEDURE, IPanelRows.SPN_STAFF};
+				addRows(rows, values);
 			}
 			addGo();
 			break;
 		case LConstants.ACTION_SPECIMEN:
 			addDates(start, end, min, max);
-			if (rowsView != null) {
-				addRows(rowsView, IComboRows.PNL_SPEC);
+			if (values != null) {
+				byte[] rows = {IPanelRows.SPN_FACILITY, IPanelRows.SPN_SPECIALTY, IPanelRows.SPN_SUBSPECIAL, IPanelRows.SPN_PROCEDURE, IPanelRows.SPN_SPECIMEN};
+				addRows(rows, values);
 			}
 			addGo();
 			break;
@@ -166,8 +168,9 @@ class IToolBar extends JToolBar {
 		default:
 			// Workload
 			addDates(start, end, min, max);
-			if (rowsView != null) {
-				addRows(rowsView, IComboRows.PNL_LOAD);
+			if (values != null) {
+				byte[] rows = {IPanelRows.SPN_FACILITY, IPanelRows.SPN_SPECIALTY, IPanelRows.SPN_SUBSPECIAL, IPanelRows.SPN_PROCEDURE, IPanelRows.SPN_STAFF};
+				addRows(rows, values);
 			}
 			addGo();
 			break;
@@ -391,8 +394,8 @@ class IToolBar extends JToolBar {
 		add(cbo);
 	}
 
-	private void addRows(byte[] rowsView, byte parent) {
-		IComboRows cboRows = new IComboRows(rowsView, parent);
+	private void addRows(byte[] rows, byte[] values) {
+		IComboRows cboRows = new IComboRows(rows, values);
 		cboRows.setName("Rows");
 		cboRows.addItemListener(new ItemListener() {
 			@Override

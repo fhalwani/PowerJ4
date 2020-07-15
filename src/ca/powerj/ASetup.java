@@ -281,19 +281,20 @@ class ASetup {
 			case 3:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpaddspg(param1 DATETIME, param2 DATETIME)\n"
 						+ "BEGIN\n"
-						+ "SELECT b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm,\n"
-						+ "COUNT(a.caid) AS qty, SUM(a.adv1) AS adv1, SUM(a.adv2) AS adv2,\n" 
+						+ "SELECT b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc,\n"
+						+ "f.fanm, COUNT(a.caid) AS qty, SUM(a.adv1) AS adv1, SUM(a.adv2) AS adv2,\n" 
 						+ "SUM(a.adv3) AS adv3, SUM(a.adv4) AS adv4, SUM(a.adv5) AS adv5\n"
 						+ "FROM " + dbSchema + ".additionals AS a\n"
 						+ "INNER JOIN " + dbSchema + ".cases AS c ON c.caid = a.caid\n"
 						+ "INNER JOIN " + dbSchema + ".facilities AS f ON f.faid = c.faid\n"
 						+ "INNER JOIN " + dbSchema + ".specimaster AS m ON m.smid = c.smid\n"
 						+ "INNER JOIN " + dbSchema + ".specigroups AS g ON g.sgid = m.sgid\n"
+						+ "INNER JOIN " + dbSchema + ".procedures r ON r.poid = g.poid\n"
 						+ "INNER JOIN " + dbSchema + ".subspecial AS b ON b.sbid = g.sbid\n"
 						+ "INNER JOIN " + dbSchema + ".specialties AS y ON y.syid = b.syid\n"
 						+ "WHERE c.fned BETWEEN param1 AND param2\n"
-						+ "GROUP BY b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm\n" 
-						+ "ORDER BY b.syid, g.sbid, g.sgid, c.faid\n"
+						+ "GROUP BY b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc, f.fanm\n" 
+						+ "ORDER BY b.syid, g.sbid, g.poid, g.sgid, c.faid\n"
 						+ "END";
 				break;
 			case 4:
@@ -573,11 +574,12 @@ class ASetup {
 						+ "INNER JOIN " + dbSchema + ".specimaster m ON g.sgid = m.sgid\n"
 						+ "INNER JOIN " + dbSchema + ".specimens s ON m.smid = s.smid\n"
 						+ "INNER JOIN " + dbSchema + ".cases c ON c.caid = s.caid\n"
+						+ "INNER JOIN " + dbSchema + ".procedures r ON r.poid = g.poid\n"
 						+ "INNER JOIN " + dbSchema + ".subspecial b ON b.sbid = g.sbid\n"
 						+ "INNER JOIN " + dbSchema + ".specialties y ON y.syid = b.syid\n"
 						+ "INNER JOIN " + dbSchema + ".facilities f ON f.faid = c.faid\n"
 						+ "WHERE c.fned BETWEEN param1 AND param2\n"
-						+ "GROUP BY b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm\n"
+						+ "GROUP BY b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc, f.fanm\n"
 						+ "END";
 				break;
 			case 39:
@@ -687,19 +689,20 @@ class ASetup {
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpaddspg @param1 DATETIME, @param2 DATETIME AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
-						+ "SELECT b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm,\n"
-						+ "COUNT(a.caid) AS qty, SUM(a.adv1) AS adv1, SUM(a.adv2) AS adv2,\n" 
+						+ "SELECT b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc,\n"
+						+ "f.fanm, COUNT(a.caid) AS qty, SUM(a.adv1) AS adv1, SUM(a.adv2) AS adv2,\n" 
 						+ "SUM(a.adv3) AS adv3, SUM(a.adv4) AS adv4, SUM(a.adv5) AS adv5\n"
 						+ "FROM " + dbSchema + ".additionals AS a\n"
 						+ "INNER JOIN " + dbSchema + ".cases AS c ON c.caid = a.caid\n"
 						+ "INNER JOIN " + dbSchema + ".facilities AS f ON f.faid = c.faid\n"
 						+ "INNER JOIN " + dbSchema + ".specimaster AS m ON m.smid = c.smid\n"
 						+ "INNER JOIN " + dbSchema + ".specigroups AS g ON g.sgid = m.sgid\n"
+						+ "INNER JOIN " + dbSchema + ".procedures r ON r.poid = g.poid\n"
 						+ "INNER JOIN " + dbSchema + ".subspecial AS b ON b.sbid = g.sbid\n"
 						+ "INNER JOIN " + dbSchema + ".specialties AS y ON y.syid = b.syid\n"
 						+ "WHERE c.fned BETWEEN @param1 AND @param2\n"
-						+ "GROUP BY b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm\n" 
-						+ "ORDER BY b.syid, g.sbid, g.sgid, c.faid;\n"
+						+ "GROUP BY b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc, f.fanm\n" 
+						+ "ORDER BY b.syid, g.sbid, g.poid, g.sgid, c.faid;\n"
 						+ "END";
 				break;
 			case 4:
@@ -854,7 +857,8 @@ class ASetup {
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT faid, syid, sbid, poid, prid, fanm, synm, sbnm, ponm, prnm, prls, prfr, COUNT(spid) AS frsp,\n"
-						+ "SUM(CAST(frbl as INT)) AS frbl, SUM(CAST(frsl as INT)) AS frsl, SUM(CAST(frv5 as INT)) AS frv5, SUM(frv1) AS frv1, SUM(frv2) AS frv2,\n"
+						+ "SUM(CAST(frbl as INT)) AS frbl, SUM(CAST(frsl as INT)) AS frsl,\n"
+						+ "SUM(CAST(frv5 as INT)) AS frv5, SUM(frv1) AS frv1, SUM(frv2) AS frv2,\n"
 						+ "SUM(frv3) AS frv3, SUM(frv4) AS frv4\n"
 						+ "FROM udvfrozens WHERE (aced BETWEEN @param1 AND @param2)\n"
 						+ "GROUP BY faid, syid, sbid, poid, prid, fanm, synm, sbnm, ponm, prnm, prls, prfr\n"
@@ -1003,12 +1007,13 @@ class ASetup {
 						+ "INNER JOIN " + dbSchema + ".specimaster m ON g.sgid = m.sgid\n"
 						+ "INNER JOIN " + dbSchema + ".specimens s ON m.smid = s.smid\n"
 						+ "INNER JOIN " + dbSchema + ".cases c ON c.caid = s.caid\n"
+						+ "INNER JOIN " + dbSchema + ".procedures r ON r.poid = g.poid\n"
 						+ "INNER JOIN " + dbSchema + ".subspecial b ON b.sbid = g.sbid\n"
 						+ "INNER JOIN " + dbSchema + ".specialties y ON y.syid = b.syid\n"
 						+ "INNER JOIN " + dbSchema + ".facilities f ON f.faid = c.faid\n"
 						+ "WHERE c.fned BETWEEN @param1 AND @param2\n"
-						+ "GROUP BY b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm\n"
-						+ "ORDER BY y.synm, b.sbnm, g.sgdc, f.fanm\n"
+						+ "GROUP BY b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc, f.fanm\n"
+						+ "ORDER BY y.synm, b.sbnm, r.ponm, g.sgdc, f.fanm\n"
 						+ "END";
 				break;
 			case 39:

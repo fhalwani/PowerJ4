@@ -3,6 +3,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -17,6 +19,8 @@ import javax.swing.LookAndFeel;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -27,10 +31,11 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-public class ITreeTable extends JTable {
+public class ITreeTable extends JTable implements KeyListener {
 	/** A subclass of JTree. */
 	protected TreeTableCellRenderer tree;
 	private ITreeModel treeTableModel;
+	private TreePath treePath;
 
 	public ITreeTable(LBase parent, ITreeModel treeTableModel) {
 		super();
@@ -70,6 +75,20 @@ public class ITreeTable extends JTable {
 				}
 			}
 		});
+		tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
+			@Override
+			public void valueChanged(final TreeSelectionEvent e) {
+				javax.swing.SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						setPath(e.getNewLeadSelectionPath());
+					}
+				});
+			}
+		});
+		// createDefaultColumnsFromModel();
+		addKeyListener(this);
+		setFocusable(true);
 		InputMap imp2 = getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		// copied from TreeView which tried to fix #18292 by doing this
 		imp2.put(KeyStroke.getKeyStroke("control C"), "none"); // NOI18N
@@ -78,36 +97,6 @@ public class ITreeTable extends JTable {
 		imp2.put(KeyStroke.getKeyStroke("COPY"), "none"); // NOI18N
 		imp2.put(KeyStroke.getKeyStroke("PASTE"), "none"); // NOI18N
 		imp2.put(KeyStroke.getKeyStroke("CUT"), "none"); // NOI18N
-	}
-
-	/**
-	 * Expands all nodes
-	 */    
-	public void expandAll() {
-		TreePath tp = new TreePath(tree.getModel().getRoot());
-		expandAllUnder(tp);
-		tree.setSelectionPath(tp);
-	}
-
-	/**
-	 * Expands all nodes under the specified path
-	 */
-	public void expandAllUnder(TreePath tp) {
-		tree.expandPath(tp);
-		Object last = tp.getLastPathComponent();
-		for (int i = 0; i < tree.getModel().getChildCount(last); i++) {
-			Object child = tree.getModel().getChild(last, i);
-			expandAllUnder(tp.pathByAddingChild(child));
-		}
-		tree.setSelectionPath(tp);
-	}
-
-	/**
-	 * Expands selected node under the specified path
-	 */
-	public void expandPath(TreePath tp) {
-		tree.expandPath(tp);
-		tree.setSelectionPath(tp);
 	}
 
 	/**
@@ -141,19 +130,43 @@ public class ITreeTable extends JTable {
 	}
 
 	/**
-	 * Sets new TreeTableModel
+	 * Expands all nodes
 	 */
-	public void setTreeTableModel(ITreeModel treeTableModel) {
-		this.treeTableModel = treeTableModel;
-		setModel(new ITreeTableModelAdapter(treeTableModel, tree));
-		tree.setModel(treeTableModel);
+	public void expandAll() {
+		TreePath tp = new TreePath(tree.getModel().getRoot());
+		expandAllUnder(tp);
+		tree.setSelectionPath(tp);
 	}
 
 	/**
-	 * Returns the current model
+	 * Expands all nodes under the specified path
 	 */
-	public ITreeModel getTreeTableModel() {
-		return treeTableModel;
+	public void expandAllUnder(TreePath tp) {
+		tree.expandPath(tp);
+		Object last = tp.getLastPathComponent();
+		for (int i = 0; i < tree.getModel().getChildCount(last); i++) {
+			Object child = tree.getModel().getChild(last, i);
+			expandAllUnder(tp.pathByAddingChild(child));
+		}
+		tree.setSelectionPath(tp);
+	}
+
+	/**
+	 * Expands selected node under the specified path
+	 */
+	public void expandPath(TreePath tp) {
+		tree.expandPath(tp);
+		tree.setSelectionPath(tp);
+	}
+
+	/* Workaround for BasicTableUI anomaly. Make sure the UI never tries to 
+	 * paint the editor. The UI currently uses different techniques to 
+	 * paint the renderers and editors and overriding setBounds() below 
+	 * is not the right thing to do for an editor. Returning -1 for the 
+	 * editing row in this case, ensures the editor is never painted. 
+	 */
+	public int getEditingRow() {
+		return (getColumnClass(editingColumn) == ITreeModel.class) ? -1 : editingRow;  
 	}
 
 	/**
@@ -172,27 +185,60 @@ public class ITreeTable extends JTable {
 	}
 
 	/**
-	 * Overridden to message super and forward the method to the tree.
-	 * Since the tree is not actually in the component hieachy it will
-	 * never receive this unless we forward it in this manner.
+	 * Returns the tree that is being shared between the model.
 	 */
-	public void updateUI() {
-		super.updateUI();
-		if (tree != null) {
-			tree.updateUI();
-		}
-		// Use the tree's default foreground and background colors in the table 
-		LookAndFeel.installColorsAndFont(this, "Tree.background", "Tree.foreground", "Tree.font");
+	public JTree getTree() {
+		return tree;
 	}
 
-	/* Workaround for BasicTableUI anomaly. Make sure the UI never tries to 
-	 * paint the editor. The UI currently uses different techniques to 
-	 * paint the renderers and editors and overriding setBounds() below 
-	 * is not the right thing to do for an editor. Returning -1 for the 
-	 * editing row in this case, ensures the editor is never painted. 
+	/**
+	 * Returns the current model
 	 */
-	public int getEditingRow() {
-		return (getColumnClass(editingColumn) == ITreeModel.class) ? -1 : editingRow;  
+	public ITreeModel getTreeTableModel() {
+		return treeTableModel;
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		if (treePath == null) return;
+		switch (e.getKeyCode()) {
+		case KeyEvent.VK_ADD: // 107
+		case KeyEvent.VK_PLUS: // 521
+		case KeyEvent.VK_RIGHT:
+			if (e.isControlDown()) {
+				expandAll();
+			} else if (e.isAltDown()) {
+				expandAllUnder(treePath);
+			} else {
+				expandPath(treePath);
+			}
+			break;
+		case KeyEvent.VK_SUBTRACT: // 109
+		case KeyEvent.VK_MINUS: // 45
+		case KeyEvent.VK_LEFT:
+			if (e.isControlDown()) {
+				collapseAll();
+			} else if (e.isAltDown()) {
+				collapseAllUnder(treePath);
+			} else {
+				collapsePath(treePath);
+			}
+			break;
+		default:
+			// Ignore rest
+		}
+	}
+
+	@Override
+	public void keyReleased(KeyEvent arg0) {
+	}
+
+	@Override
+	public void keyTyped(KeyEvent arg0) {
+	}
+
+	private void setPath(TreePath newPath) {
+		treePath = newPath;
 	}
 
 	/**
@@ -206,10 +252,26 @@ public class ITreeTable extends JTable {
 	}
 
 	/**
-	 * Returns the tree that is being shared between the model.
+	 * Sets new TreeTableModel
 	 */
-	public JTree getTree() {
-		return tree;
+	public void setTreeTableModel(ITreeModel treeTableModel) {
+		this.treeTableModel = treeTableModel;
+		setModel(new ITreeTableModelAdapter(treeTableModel, tree));
+		tree.setModel(treeTableModel);
+	}
+
+	/**
+	 * Overridden to message super and forward the method to the tree.
+	 * Since the tree is not actually in the component hierarchy it will
+	 * never receive this unless we forward it in this manner.
+	 */
+	public void updateUI() {
+		super.updateUI();
+		if (tree != null) {
+			tree.updateUI();
+		}
+		// Use the tree's default foreground and background colors in the table 
+		LookAndFeel.installColorsAndFont(this, "Tree.background", "Tree.foreground", "Tree.font");
 	}
 
 	/**

@@ -229,14 +229,11 @@ class LBase implements Runnable {
 		boolean firstRun = true;
 		boolean firstUpdate = true;
 		Thread.currentThread().setName("PJWorker");
-		log(LConstants.ERROR_NONE, "Initializing PowerJ Database...");
 		initDBPJ();
 		if (errorID == LConstants.ERROR_NONE) {
-			log(LConstants.ERROR_NONE, "Initializing Powerpath Database...");
 			initDBAP();
 		}
 		if (errorID == LConstants.ERROR_NONE) {
-			log(LConstants.ERROR_NONE, "Initializing last update...");
 			getLastUpdate();
 		}
 		if (errorID != LConstants.ERROR_NONE) {
@@ -249,6 +246,7 @@ class LBase implements Runnable {
 					switch (jobID) {
 					case JOB_REFRESH:
 						if (firstRun) {
+							log(LConstants.ERROR_NONE, "Updating Variables...");
 							apArch = setup.getString(LSetup.VAR_AP_NAME);
 							apHost = setup.getString(LSetup.VAR_AP_SERVER);
 							apPort = setup.getString(LSetup.VAR_AP_PORT);
@@ -412,7 +410,6 @@ class LBase implements Runnable {
 	boolean stopWorker() {
 		boolean waiting = false;
 		if (!offLine) {
-			System.out.println("Stopping Daemon...");
 			stopped.set(true);
 			synchronized (this) {
 				notifyAll();
@@ -455,7 +452,6 @@ class LBase implements Runnable {
 			} catch (IOException ignore) {
 			}
 		}
-		System.out.println("Daemon stopped");
 		return true;
 	}
 }

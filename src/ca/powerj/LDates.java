@@ -19,7 +19,7 @@ class LDates {
 	private final SimpleDateFormat tinyFormat = new SimpleDateFormat("d/M", Locale.getDefault());
 	private final SimpleDateFormat dateTime = new SimpleDateFormat("d/M/yy H:mm", Locale.getDefault());
 	private final SimpleDateFormat schedFormat = new SimpleDateFormat("EEE d", Locale.getDefault());
-	private final DateFormat timeFormat = DateFormat.getTimeInstance(DateFormat.SHORT);
+	private final DateFormat timeFormat = DateFormat.getTimeInstance(DateFormat.LONG);
 	static int workHours = 0;
 	private LBase pj;
 

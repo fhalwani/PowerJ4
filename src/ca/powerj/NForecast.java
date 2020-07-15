@@ -162,9 +162,9 @@ class NForecast extends NBase {
 	}
 
 	@Override
-	void setFilter(int[] rows) {
+	void setFilter(int[] values) {
 		for (int i = 0; i < rowsView.length; i++) {
-			rowsView[i] = (byte) rows[i];
+			rowsView[i] = (byte) values[i];
 		}
 		altered = true;
 	}

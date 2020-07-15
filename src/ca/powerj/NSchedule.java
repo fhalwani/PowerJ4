@@ -325,7 +325,7 @@ class NSchedule extends NBase {
 			Collections.sort(scheduleStaff, new Comparator<OScheduleStaff>() {
 				@Override
 				public int compare(OScheduleStaff o1, OScheduleStaff o2) {
-					return o1.name.compareTo(o2.name);
+					return o1.name.compareToIgnoreCase(o2.name);
 				}
 			});
 		} catch (SQLException e) {
@@ -357,21 +357,47 @@ class NSchedule extends NBase {
 	}
 
 	private void getWeeks() {
+		int noOfFutureMondays = 0;
 		Calendar isMonday = Calendar.getInstance();
+		Calendar lastMonday = Calendar.getInstance();
+		Calendar nextMonday = Calendar.getInstance();
 		ResultSet rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SCH_SL_MON));
 		try {
+			lastMonday.setTimeInMillis(0);
+			nextMonday.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
 			while (rst.next()) {
 				isMonday.setTimeInMillis(rst.getDate("wddt").getTime());
 				if (isMonday.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY) {
 					Date date = new Date();
-					date.setTime(rst.getDate("wddt").getTime());
+					date.setTime(isMonday.getTimeInMillis());
 					dates.add(date);
+					if (lastMonday.getTimeInMillis() < isMonday.getTimeInMillis()) {
+						lastMonday.setTimeInMillis(isMonday.getTimeInMillis());
+					}
+					if (nextMonday.getTimeInMillis() < isMonday.getTimeInMillis()) {
+						nextMonday.setTimeInMillis(isMonday.getTimeInMillis());
+						noOfFutureMondays++;
+					}
 				}
+			}
+			// Show up to date schedule, even if blank 
+			while (lastMonday.getTimeInMillis() < nextMonday.getTimeInMillis()) {
+				lastMonday.add(Calendar.DAY_OF_YEAR, 7);
+				Date date = new Date();
+				date.setTime(lastMonday.getTimeInMillis());
+				dates.add(date);
+			}
+			// Always have 4 weeks in the future, to be able to add new schedule 
+			for (int i = noOfFutureMondays; i < 4; i++) {
+				lastMonday.add(Calendar.DAY_OF_YEAR, 7);
+				Date date = new Date();
+				date.setTime(lastMonday.getTimeInMillis());
+				dates.add(date);
 			}
 			Collections.sort(dates, new Comparator<Date>() {
 				@Override
 				public int compare(Date o1, Date o2) {
-					return (o1.getTime() > o2.getTime() ? -1 : (o1.getTime() == o2.getTime() ? 0 : 1));
+					return (o1.getTime() > o2.getTime() ? -1 : (o1.getTime() < o2.getTime() ? 1 : 0));
 				}
 			});
 			for (int i = dates.size() - 1; dates.size() > 52; i--) {

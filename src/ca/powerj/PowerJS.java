@@ -98,6 +98,5 @@ public class PowerJS extends LBase implements Daemon {
 
 	@Override
 	public void destroy() {
-		System.out.println("Daemon stopped");
 	}
 }

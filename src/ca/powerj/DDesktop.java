@@ -386,19 +386,20 @@ class DDesktop extends DPowerJ {
 		case STM_ADD_SL_LST:
 			return "SELECT MAX(addt) AS addt FROM " + pj.pjSchema + ".additionals WHERE adcd = ?";
 		case STM_ADD_SL_SPG:
-			return "SELECT b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm, "
-					+ "COUNT(a.caid) AS qty, SUM(a.adv1) AS adv1, SUM(a.adv2) AS adv2, "
+			return "SELECT b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc, "
+					+ "f.fanm, COUNT(a.caid) AS qty, SUM(a.adv1) AS adv1, SUM(a.adv2) AS adv2, "
 					+ "SUM(a.adv3) AS adv3, SUM(a.adv4) AS adv4, SUM(a.adv5) AS adv5 "
 					+ "FROM " + pj.pjSchema + ".additionals AS a "
 					+ "INNER JOIN " + pj.pjSchema + ".cases AS c ON c.caid = a.caid "
 					+ "INNER JOIN " + pj.pjSchema + ".facilities AS f ON f.faid = c.faid "
 					+ "INNER JOIN " + pj.pjSchema + ".specimaster AS m ON m.smid = c.smid "
 					+ "INNER JOIN " + pj.pjSchema + ".specigroups AS g ON g.sgid = m.sgid "
+					+ "INNER JOIN " + pj.pjSchema + ".procedures r ON r.poid = g.poid "
 					+ "INNER JOIN " + pj.pjSchema + ".subspecial AS b ON b.sbid = g.sbid "
 					+ "INNER JOIN " + pj.pjSchema + ".specialties AS y ON y.syid = b.syid "
 					+ "WHERE c.fned BETWEEN ? AND ? "
-					+ "GROUP BY b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm "
-					+ "ORDER BY b.syid, g.sbid, g.sgid, c.faid";
+					+ "GROUP BY b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc, f.fanm "
+					+ "ORDER BY b.syid, g.sbid, g.poid, g.sgid, c.faid";
 		case STM_ADD_SL_SUM:
 			return "SELECT faid, syid, sbid, poid, prid, fanm, synm, sbnm, ponm, prnm, prls, prfr, COUNT(caid) AS adca, "
 					+ "SUM(CAST(adv5 as INT)) AS adv5, SUM(adv1) AS adv1, SUM(adv2) AS adv2, SUM(adv3) AS adv3, SUM(adv4) AS adv4 "
@@ -487,16 +488,19 @@ class DDesktop extends DPowerJ {
 					+ "INNER JOIN " + pj.pjSchema + ".specimens s ON m.smid = s.smid INNER JOIN " + pj.pjSchema + ".cases c ON c.caid = s.caid "
 					+ "WHERE c.fned BETWEEN ? AND ? GROUP BY g.sgid";
 		case STM_SPG_SL_SUM:
-			return "SELECT b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm, "
+			return "SELECT b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc, f.fanm, "
 					+ "COUNT(s.spid) AS qty, SUM(s.spbl) AS spbl, SUM(s.spsl) AS spsl, "
 					+ "SUM(s.sphe) AS sphe, SUM(s.spss) AS spss, SUM(s.spih) AS spih, SUM(s.spv1) AS spv1, "
 					+ "SUM(s.spv2) AS spv2, SUM(s.spv3) AS spv3, SUM(s.spv4) AS spv4, SUM(s.spv5) AS spv5 "
 					+ "FROM " + pj.pjSchema + ".specigroups g INNER JOIN " + pj.pjSchema + ".specimaster m ON g.sgid = m.sgid "
-					+ "INNER JOIN " + pj.pjSchema + ".specimens s ON m.smid = s.smid INNER JOIN " + pj.pjSchema + ".cases c ON c.caid = s.caid "
-					+ "INNER JOIN " + pj.pjSchema + ".subspecial b ON b.sbid = g.sbid INNER JOIN " + pj.pjSchema + ".specialties y ON y.syid = b.syid "
+					+ "INNER JOIN " + pj.pjSchema + ".specimens s ON m.smid = s.smid "
+					+ "INNER JOIN " + pj.pjSchema + ".cases c ON c.caid = s.caid "
+					+ "INNER JOIN " + pj.pjSchema + ".procedures r ON r.poid = g.poid "
+					+ "INNER JOIN " + pj.pjSchema + ".subspecial b ON b.sbid = g.sbid "
+					+ "INNER JOIN " + pj.pjSchema + ".specialties y ON y.syid = b.syid "
 					+ "INNER JOIN " + pj.pjSchema + ".facilities f ON f.faid = c.faid WHERE c.fned BETWEEN ? AND ? "
-					+ "GROUP BY b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm "
-					+ "ORDER BY y.synm, b.sbnm, g.sgdc, f.fanm";
+					+ "GROUP BY b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc, f.fanm "
+					+ "ORDER BY b.syid, g.sbid, g.poid, g.sgid, c.faid";
 		case STM_SPM_SELECT:
 			return "SELECT * FROM " + pj.pjSchema + ".udvspecimaster ORDER BY smnm";
 		case STM_SPY_SELECT:
