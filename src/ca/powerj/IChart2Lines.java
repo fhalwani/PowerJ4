@@ -79,24 +79,24 @@ class IChart2Lines extends IChartCore {
 		sdX.getSeries().add(seCategory);
 		// Y-Series 1
 		LineSeries ls1 = (LineSeries) LineSeriesImpl.create();
-		ls1.setSeriesIdentifier("Actual");
+//		ls1.setSeriesIdentifier("Actual");
 		ls1.setDataSet(orthoValues1);
 		ls1.getLineAttributes().setColor(ColorDefinitionImpl.RED());
 		for (int i = 0; i < ls1.getMarkers().size(); i++) {
 			((Marker) ls1.getMarkers().get(i)).setType(MarkerType.TRIANGLE_LITERAL);
-			((Marker) ls1.getMarkers().get(i)).setSize(8);
+			((Marker) ls1.getMarkers().get(i)).setSize(4);
 		}
-		ls1.getLabel().setVisible(true);
+		ls1.getLabel().setVisible(false);
 		// Y-Series 2
 		LineSeries ls2 = (LineSeries) LineSeriesImpl.create();
-		ls2.setSeriesIdentifier("Forecast");
+//		ls2.setSeriesIdentifier("Forecast");
 		ls2.setDataSet(orthoValues2);
 		ls2.getLineAttributes().setColor(ColorDefinitionImpl.GREEN());
 		for (int i = 0; i < ls2.getMarkers().size(); i++) {
 			((Marker) ls2.getMarkers().get(i)).setType(MarkerType.BOX_LITERAL);
-			((Marker) ls2.getMarkers().get(i)).setSize(8);
+			((Marker) ls2.getMarkers().get(i)).setSize(4);
 		}
-		ls2.getLabel().setVisible(true);
+		ls2.getLabel().setVisible(false);
 		SeriesDefinition sdY = SeriesDefinitionImpl.create();
 		sdY.getSeriesPalette().shift(-2);
 		yAxisPrimary.getSeriesDefinitions().add(sdY);

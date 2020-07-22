@@ -2,163 +2,323 @@ package ca.powerj;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTree;
 import javax.swing.SwingWorker;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math3.fitting.PolynomialCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoints;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Chunk;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 
 class NForecast extends NBase {
-//	private final byte DATA_NAMES = 0;
-	private final byte DATA_CASES = 1;
-	private final byte DATA_SPECS = 2;
-	private final byte DATA_BLCKS = 3;
-	private final byte DATA_SLIDE = 4;
-	private final byte DATA_SL_HE = 5;
-	private final byte DATA_SL_SS = 6;
-	private final byte DATA_SL_IH = 7;
-	private final byte DATA_SYNOP = 8;
-	private final byte DATA_FROZN = 9;
-	private final byte DATA_VALU1 = 10;
-	private final byte DATA_VALU2 = 11;
-	private final byte DATA_VALU3 = 12;
-	private final byte DATA_VALU4 = 13;
-	private final byte DATA_VALU5 = 14;
-	private byte[] rowsView = new byte[4];
-	private short facID = 0;
+	private final byte DATA_YEARS = 0;
+	private final byte DATA_SPECS = 1;
+	private final byte DATA_BLCKS = 2;
+	private final byte DATA_SLIDE = 3;
+	private final byte DATA_VALU1 = 4;
+	private final byte DATA_VALU2 = 5;
+	private final byte DATA_VALU3 = 6;
+	private final byte DATA_VALU4 = 7;
+	private final byte DATA_VALU5 = 8;
+	private byte[] rowsView = new byte[5];
 	private long timeFrom = 0;
 	private long timeTo = 0;
-	private String[] coders = new String[5];
-	private TreePath treePath;
-	private ITreeTable tree;
-	private IChart2Lines chartCases, chartSpecs, chartBlocks, chartSlides, chartFrozen, chartFTE;
+	private String[] columns = {"YEAR", "SPECS", "BLKS", "SLDS", "", "", "", "", ""};
+	private ArrayList<String> tableRows = new ArrayList<String>();
+	private JTree tree;
+	private ModelData modelData;
+	private ITable table;
+	private OAnnualNode dataNode = new OAnnualNode();
+	private IChart2Lines chartSpecs, chartCoder1, chartCoder2, chartCoder3, chartCoder4, chartCoder5;
 
 	public NForecast(AClient parent) {
 		super(parent);
 		setName("Forecast");
 		pjStms = parent.dbPowerJ.prepareStatements(LConstants.ACTION_FORECAST);
-		coders[0] = pj.setup.getString(LSetup.VAR_CODER1_NAME);
-		coders[1] = pj.setup.getString(LSetup.VAR_CODER2_NAME);
-		coders[2] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
-		coders[3] = pj.setup.getString(LSetup.VAR_CODER4_NAME);
-		coders[4] = pj.setup.getString(LSetup.VAR_V5_NAME);
+		columns[4] = pj.setup.getString(LSetup.VAR_CODER1_NAME);
+		columns[5] = pj.setup.getString(LSetup.VAR_CODER2_NAME);
+		columns[6] = pj.setup.getString(LSetup.VAR_CODER3_NAME);
+		columns[7] = pj.setup.getString(LSetup.VAR_CODER4_NAME);
+		columns[8] = pj.setup.getString(LSetup.VAR_V5_NAME);
+		rowsView[0] = IPanelRows.ROW_FACILITY;
+		rowsView[1] = IPanelRows.ROW_SPECIALTY;
+		rowsView[2] = IPanelRows.ROW_SUBSPECIAL;
+		rowsView[3] = IPanelRows.ROW_PROCEDURE;
+		rowsView[4] = IPanelRows.ROW_SPECIMEN;
 		createPanel();
 		programmaticChange = false;
+		altered = true;
 	}
 
 	@Override
 	boolean close() {
+		altered = false;
 		super.close();
-		if (chartCases != null) {
-			chartCases.close();
-		}
 		if (chartSpecs != null) {
 			chartSpecs.close();
 		}
-		if (chartBlocks != null) {
-			chartBlocks.close();
+		if (chartCoder1 != null) {
+			chartCoder1.close();
 		}
-		if (chartSlides != null) {
-			chartSlides.close();
+		if (chartCoder2 != null) {
+			chartCoder2.close();
 		}
-		if (chartFrozen != null) {
-			chartFrozen.close();
+		if (chartCoder3 != null) {
+			chartCoder3.close();
 		}
-		if (chartFTE != null) {
-			chartFTE.close();
+		if (chartCoder4 != null) {
+			chartCoder4.close();
+		}
+		if (chartCoder5 != null) {
+			chartCoder5.close();
 		}
 		return true;
 	}
 
 	private void createPanel() {
-		int[] nYears = { 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022 };
-		OAnnualNode root = new OAnnualNode();
-		ModelList model = new ModelList(root, getHeaders(nYears));
-		tree = new ITreeTable(pj, model);
-		tree.tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
+		ModelGroup treeModel = new ModelGroup(dataNode);
+		tree = new JTree(treeModel);
+		tree.setFont(LConstants.APP_FONT);
+		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+		tree.addTreeSelectionListener(new TreeSelectionListener() {
 			@Override
 			public void valueChanged(final TreeSelectionEvent e) {
 				javax.swing.SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						setView(e.getNewLeadSelectionPath());
+						setSelection(e.getNewLeadSelectionPath());
 					}
 				});
 			}
 		});
 		JScrollPane scrollTree = IGUI.createJScrollPane(tree);
-		scrollTree.setMinimumSize(new Dimension(250, 800));
-		Dimension dim = new Dimension(200, 200);
-		chartCases = new IChart2Lines(dim);
+		scrollTree.setMinimumSize(new Dimension(200, 400));
+		modelData = new ModelData();
+		table = new ITable(pj, modelData);
+		table.getColumnModel().getColumn(0).setMinWidth(120);
+		JScrollPane scrollTable = IGUI.createJScrollPane(table);
+		scrollTable.setMinimumSize(new Dimension(1000, 400));
+		Dimension dim = new Dimension(400, 200);
 		chartSpecs = new IChart2Lines(dim);
-		chartBlocks = new IChart2Lines(dim);
-		chartSlides = new IChart2Lines(dim);
-		chartFrozen = new IChart2Lines(dim);
-		chartFTE = new IChart2Lines(dim);
-		JPanel pnlChartTop = new JPanel();
-		pnlChartTop.setMinimumSize(new Dimension(600, 200));
-		pnlChartTop.setLayout(new BoxLayout(pnlChartTop, BoxLayout.X_AXIS));
-		pnlChartTop.setOpaque(true);
-		pnlChartTop.add(chartCases);
-		pnlChartTop.add(chartSpecs);
-		pnlChartTop.add(chartBlocks);
-		JScrollPane scrollChartTop = IGUI.createJScrollPane(pnlChartTop);
-		scrollChartTop.setMinimumSize(new Dimension(600, 200));
-		JPanel pnlChartDown = new JPanel();
-		pnlChartDown.setMinimumSize(new Dimension(600, 200));
-		pnlChartDown.setLayout(new BoxLayout(pnlChartDown, BoxLayout.X_AXIS));
-		pnlChartDown.setOpaque(true);
-		pnlChartDown.add(chartFTE);
-		pnlChartDown.add(chartSlides);
-		pnlChartDown.add(chartFrozen);
-		JScrollPane scrollChartDown = IGUI.createJScrollPane(pnlChartDown);
-		scrollChartDown.setMinimumSize(new Dimension(600, 200));
+		chartCoder1 = new IChart2Lines(dim);
+		chartCoder2 = new IChart2Lines(dim);
+		chartCoder3 = new IChart2Lines(dim);
+		chartCoder4 = new IChart2Lines(dim);
+		chartCoder5 = new IChart2Lines(dim);
+		JPanel pnlTop = new JPanel();
+		pnlTop.setMinimumSize(new Dimension(1300, 200));
+		pnlTop.setLayout(new BoxLayout(pnlTop, BoxLayout.X_AXIS));
+		pnlTop.setOpaque(true);
+		pnlTop.add(chartSpecs);
+		pnlTop.add(chartCoder1);
+		pnlTop.add(chartCoder2);
+		JPanel pnlMiddle = new JPanel();
+		pnlMiddle.setMinimumSize(new Dimension(1300, 200));
+		pnlMiddle.setLayout(new BoxLayout(pnlMiddle, BoxLayout.X_AXIS));
+		pnlMiddle.setOpaque(true);
+		pnlMiddle.add(chartCoder3);
+		pnlMiddle.add(chartCoder4);
+		pnlMiddle.add(chartCoder5);
 		JSplitPane splitTop = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-		splitTop.setTopComponent(scrollChartTop);
-		splitTop.setBottomComponent(scrollChartDown);
+		splitTop.setTopComponent(pnlTop);
+		splitTop.setBottomComponent(pnlMiddle);
 		splitTop.setOneTouchExpandable(true);
 		splitTop.setDividerLocation(250);
-		splitTop.setMinimumSize(new Dimension(700, 500));
-		JSplitPane splitAll = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		splitTop.setMinimumSize(new Dimension(1300, 450));
+		JSplitPane splitBottom = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		splitBottom.setTopComponent(scrollTree);
+		splitBottom.setBottomComponent(scrollTable);
+		splitBottom.setOneTouchExpandable(true);
+		splitBottom.setDividerLocation(250);
+		splitBottom.setMinimumSize(new Dimension(1300, 450));
+		JSplitPane splitAll = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		splitAll.setTopComponent(splitTop);
-		splitAll.setBottomComponent(scrollTree);
+		splitAll.setBottomComponent(splitBottom);
 		splitAll.setOneTouchExpandable(true);
-		splitAll.setDividerLocation(250);
-		splitAll.setMinimumSize(new Dimension(1000, 900));
-		Calendar calMin = Calendar.getInstance();
-		Calendar calMax = pj.dates.setMidnight(null);
-		Calendar calBeg = Calendar.getInstance();
-		Calendar calEnd = Calendar.getInstance();
-		calMin.setTimeInMillis(pj.setup.getLong(LSetup.VAR_MIN_WL_DATE));
-		calMax.set(Calendar.DAY_OF_YEAR, 1);
-		calBeg.setTimeInMillis(calMin.getTimeInMillis());
-		calEnd.setTimeInMillis(calMax.getTimeInMillis());
-		timeFrom = calMin.getTimeInMillis();
-		timeTo = calMax.getTimeInMillis();
+		splitAll.setDividerLocation(500);
+		splitAll.setMinimumSize(new Dimension(1300, 900));
 		setLayout(new BorderLayout());
 		setOpaque(true);
-		add(new IToolBar(this, calBeg, calEnd, calMin, calMax, null), BorderLayout.NORTH);
+		add(new IToolBar(this, null, null, null, null, rowsView), BorderLayout.NORTH);
 		add(splitAll, BorderLayout.CENTER);
 	}
 
-	private String[] getHeaders(int[] nYears) {
-		String[] headers = new String[nYears.length];
-		for (int i = 0; i < nYears.length; i++) {
-			headers[i] = Integer.toString(nYears[i]);
+	@Override
+	void pdf() {
+		String fileName = pj.getFilePdf("forecast.pdf").trim();
+		if (fileName.length() == 0)
+			return;
+		final float[] widths = { 4, 1, 1.5f, 1.5f, 1.5f, 1, 1, 1, 1, 1 };
+		String str = "Forecast " + pj.dates.formatter(timeFrom, LDates.FORMAT_DATE)
+			+ " - " + pj.dates.formatter(timeTo, LDates.FORMAT_DATE);
+		LPdf pdfLib = new LPdf();
+		HashMap<String, Font> fonts = pdfLib.getFonts();
+		Document document = new Document(PageSize.LETTER, 36, 18, 18, 18);
+		Paragraph paragraph = new Paragraph();
+		PdfPCell cell = new PdfPCell();
+		PdfPTable table = new PdfPTable(columns.length);
+		try {
+			FileOutputStream fos = new FileOutputStream(fileName);
+			PdfWriter.getInstance(document, fos);
+			document.open();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.add(new Chunk(pj.setup.getString(LSetup.VAR_LAB_NAME)));
+			document.add(paragraph);
+			paragraph = new Paragraph();
+			paragraph.setFont(fonts.get("Font12"));
+			paragraph.setAlignment(Element.ALIGN_CENTER);
+			paragraph.add(new Chunk(str));
+			document.add(paragraph);
+			document.add(Chunk.NEWLINE);
+			table.setWidthPercentage(100);
+			table.setWidths(widths);
+			for (int col = 0; col < widths.length; col++) {
+				paragraph = new Paragraph();
+				paragraph.setFont(fonts.get("Font10b"));
+				paragraph.setAlignment(Element.ALIGN_CENTER);
+				if (col == 0) {
+					paragraph.add(new Chunk("Name"));
+				} else {
+					paragraph.add(new Chunk(columns[col -1]));
+				}
+				cell = new PdfPCell();
+				cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+				cell.setBackgroundColor(BaseColor.YELLOW);
+				cell.addElement(paragraph);
+				table.addCell(cell);
+			}
+			table.setHeaderRows(1);
+			// data rows
+			ModelGroup model = (ModelGroup) tree.getModel();
+			OAnnualNode root = (OAnnualNode) model.getRoot();
+			pdfRow(root, table, paragraph, cell, fonts.get("Font10n"), "", widths.length);
+			document.add(table);
+			document.close();
+		} catch (DocumentException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
 		}
-		return headers;
+	}
+
+	private void pdfRow(OAnnualNode parent, PdfPTable table, Paragraph paragraph, PdfPCell cell, Font font, String name, int width) {
+		for (int row = 0; row < tableRows.size(); row++) {
+			for (int col = 0; col < width; col++) {
+				paragraph = new Paragraph();
+				paragraph.setFont(font);
+				cell = new PdfPCell();
+				switch (col) {
+				case 0:
+					if (row == 0) {
+						if (name.length() == 0) {
+							paragraph.add(new Chunk(parent.name));
+							name = "/";
+						} else if (name.equals("/")) {
+							paragraph.add(new Chunk(parent.name));
+							name = parent.name;
+						} else {
+							name += "/" + parent.name;
+							paragraph.add(new Chunk(name));
+						}
+					} else {
+						paragraph.add(new Chunk(""));
+					}
+					paragraph.setAlignment(Element.ALIGN_LEFT);
+					cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+					break;
+				case 1:
+					paragraph.add(new Chunk(tableRows.get(row)));
+					paragraph.setAlignment(Element.ALIGN_RIGHT);
+					cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					break;
+				case 2:
+					paragraph.add(new Chunk(pj.numbers.formatNumber(parent.specs[row])));
+					paragraph.setAlignment(Element.ALIGN_RIGHT);
+					cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					break;
+				case 3:
+					paragraph.add(new Chunk(pj.numbers.formatNumber(parent.blocks[row])));
+					paragraph.setAlignment(Element.ALIGN_RIGHT);
+					cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					break;
+				case 4:
+					paragraph.add(new Chunk(pj.numbers.formatNumber(parent.slides[row])));
+					paragraph.setAlignment(Element.ALIGN_RIGHT);
+					cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					break;
+				case 5:
+					paragraph.add(new Chunk(pj.numbers.formatDouble(2, parent.fte1[row])));
+					paragraph.setAlignment(Element.ALIGN_RIGHT);
+					cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					break;
+				case 6:
+					paragraph.add(new Chunk(pj.numbers.formatDouble(2, parent.fte2[row])));
+					paragraph.setAlignment(Element.ALIGN_RIGHT);
+					cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					break;
+				case 7:
+					paragraph.add(new Chunk(pj.numbers.formatDouble(2, parent.fte3[row])));
+					paragraph.setAlignment(Element.ALIGN_RIGHT);
+					cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					break;
+				case 8:
+					paragraph.add(new Chunk(pj.numbers.formatDouble(2, parent.fte4[row])));
+					paragraph.setAlignment(Element.ALIGN_RIGHT);
+					cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+					break;
+				default:
+					paragraph.add(new Chunk(pj.numbers.formatDouble(2, parent.fte5[row])));
+					paragraph.setAlignment(Element.ALIGN_RIGHT);
+					cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+				}
+				cell.addElement(paragraph);
+				table.addCell(cell);
+			}
+		}
+		if (parent.children != null) {
+			for (int i = 0; i < parent.children.length; i++) {
+				OAnnualNode child = (OAnnualNode) parent.children[i];
+				pdfRow(child, table, paragraph, cell, font, name, width);
+			}
+		}
 	}
 
 	@Override
@@ -171,80 +331,203 @@ class NForecast extends NBase {
 
 	@Override
 	void setFilter(short id, short value) {
-		switch (id) {
-		case IToolBar.TB_FAC:
-			facID = value;
-			altered = true;
-			break;
-		default:
-			if (altered && timeTo > timeFrom) {
-				altered = false;
-				WorkerData worker = new WorkerData();
-				worker.execute();
+		// Go button
+		if (altered) {
+			pj.setBusy(true);
+			WorkerData worker = new WorkerData();
+			worker.execute();
+			altered = false;
+		}
+	}
+
+	private void setSelection(TreePath treePath) {
+		if (treePath != null) {
+			dataNode = (OAnnualNode) (treePath.getLastPathComponent());
+		} else {
+			dataNode = null;
+		}
+		modelData.fireTableDataChanged();
+		int yearID = 9999;
+		int count1 = tableRows.size();
+		int count2 = tableRows.size() + 3;
+		double[][] ySpecs = new double[2][count2];
+		double[][] yCoder1 = new double[2][count2];
+		double[][] yCoder2 = new double[2][count2];
+		double[][] yCoder3 = new double[2][count2];
+		double[][] yCoder4 = new double[2][count2];
+		double[][] yCoder5 = new double[2][count2];
+		String[] xTitles = new String[count2];
+		for (int i = 0; i < count2; i++) {
+			if (i < count1) {
+				ySpecs[0][i] = dataNode.specs[i];
+				ySpecs[1][i] = dataNode.specsf[i];
+				yCoder1[0][i] = dataNode.fte1[i];
+				yCoder1[1][i] = dataNode.fte1f[i];
+				yCoder2[0][i] = dataNode.fte2[i];
+				yCoder2[1][i] = dataNode.fte2f[i];
+				yCoder3[0][i] = dataNode.fte3[i];
+				yCoder3[1][i] = dataNode.fte3f[i];
+				yCoder4[0][i] = dataNode.fte4[i];
+				yCoder4[1][i] = dataNode.fte4f[i];
+				yCoder5[0][i] = dataNode.fte5[i];
+				yCoder5[1][i] = dataNode.fte5f[i];
+				xTitles[i] = tableRows.get(i);
+				int n = pj.numbers.parseInt(xTitles[i]);
+				if (yearID > n) {
+					yearID = n;
+				}
+			} else {
+				ySpecs[1][i] = dataNode.specsf[i];
+				yCoder1[1][i] = dataNode.fte1f[i];
+				yCoder2[1][i] = dataNode.fte2f[i];
+				yCoder3[1][i] = dataNode.fte3f[i];
+				yCoder4[1][i] = dataNode.fte4f[i];
+				yCoder5[1][i] = dataNode.fte5f[i];
+				xTitles[i] = Integer.toString(yearID + i);
 			}
 		}
+		chartSpecs.setChart(xTitles, ySpecs, "Specimens");
+		chartCoder1.setChart(xTitles, yCoder1, columns[4]);
+		chartCoder2.setChart(xTitles, yCoder2, columns[5]);
+		chartCoder3.setChart(xTitles, yCoder3, columns[6]);
+		chartCoder4.setChart(xTitles, yCoder4, columns[7]);
+		chartCoder5.setChart(xTitles, yCoder5, columns[8]);
 	}
 
 	@Override
-	void setFilter(short id, Calendar value) {
-		switch (id) {
-		case IToolBar.TB_FROM:
-			timeFrom = value.getTimeInMillis();
-			break;
-		default:
-			timeTo = value.getTimeInMillis();
-		}
-		altered = true;
-	}
-
-	private void setView(TreePath newPath) {
-		if (newPath == null)
+	void xls() {
+		String fileName = pj.getFileXls("forecast.xls").trim();
+		if (fileName.length() == 0)
 			return;
-		if (treePath == null || !treePath.equals(newPath)) {
-			treePath = newPath;
-			// TODO Fix this
-			// node = (OAnnualNode) treePath.getPathComponent(treePath.getPathCount() - 1);
-			// model.fireTableDataChanged();
+		try {
+			Workbook wb = new HSSFWorkbook();
+			LExcel xlsLib = new LExcel(wb);
+			HashMap<String, CellStyle> styles = xlsLib.getStyles();
+			Sheet sheet = wb.createSheet("Forecast");
+			// title row
+			Row xlsRow = sheet.createRow(0);
+			xlsRow.setHeightInPoints(45);
+			Cell xlsCell = xlsRow.createCell(0);
+			xlsCell.setCellValue("Forecast " + pj.dates.formatter(timeFrom, LDates.FORMAT_DATE)
+				+ " - " + pj.dates.formatter(timeTo, LDates.FORMAT_DATE));
+			xlsCell.setCellStyle(styles.get("title"));
+			sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, columns.length));
+			// header row
+			xlsRow = sheet.createRow(1);
+			xlsRow.setHeightInPoints(30);
+			for (int col = 0; col <= columns.length; col++) {
+				xlsCell = xlsRow.createCell(col);
+				xlsCell.setCellValue(columns[col]);
+				xlsCell.setCellStyle(styles.get("header"));
+				switch (col) {
+				case 0:
+					sheet.setColumnWidth(col, 30 * 256); // 30 characters
+					sheet.setDefaultColumnStyle(col, styles.get("text"));
+					break;
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+					sheet.setColumnWidth(col, 10 * 256); // 10 characters
+					sheet.setDefaultColumnStyle(col, styles.get("data_int"));
+					break;
+				default:
+					sheet.setColumnWidth(col, 10 * 256); // 10 characters
+					sheet.setDefaultColumnStyle(col, styles.get("data_float"));
+				}
+			}
+			// data rows
+			ModelGroup model = (ModelGroup) tree.getModel();
+			OAnnualNode root = (OAnnualNode) model.getRoot();
+			int rownum = 2;
+			xlsRow(root, sheet, xlsCell, "", rownum);
+			sheet.createFreezePane(1, 2);
+			// Write the output to a file
+			FileOutputStream out = new FileOutputStream(fileName);
+			wb.write(out);
+			out.close();
+		} catch (FileNotFoundException e) {
+			pj.log(LConstants.ERROR_FILE_NOT_FOUND, getName(), e);
+		} catch (IOException e) {
+			pj.log(LConstants.ERROR_IO, getName(), e);
+		} catch (Exception e) {
+			pj.log(LConstants.ERROR_UNEXPECTED, getName(), e);
 		}
 	}
 
-	class ModelList extends ITreeTableModel implements ITreeModel {
-
-//		private final String[] rows = { "Cases", "Specimens", "Blocks", "Slides", "H&E", "SS", "IHC", "Synoptics",
-//				"Frozens", coders[0], coders[1], coders[2], coders[3], coders[4] };
-		private String[] columns;
-
-		ModelList(Object nodeRoot, String[] headers) {
-			super(nodeRoot);
-			this.columns = new String[headers.length + 1];
-			for (int i = 1; i < this.columns.length; i++) {
-				this.columns[i] = headers[i - 1];
+	private int xlsRow(OAnnualNode parent, Sheet sheet, Cell xlsCell, String name, int rownum) {
+		for (int row = 0; row < tableRows.size(); row++) {
+			Row xlsRow = sheet.createRow(rownum++);
+			for (int col = 0; col < columns.length; col++) {
+				xlsCell = xlsRow.createCell(col);
+				switch (col) {
+				case 0:
+					if (row == 0) {
+						if (name.length() == 0) {
+							xlsCell.setCellValue(parent.name);
+							name = "/";
+						} else if (name.equals("/")) {
+							xlsCell.setCellValue(parent.name);
+							name = parent.name;
+						} else {
+							name += "/" + parent.name;
+							xlsCell.setCellValue(name);
+						}
+					}
+					break;
+				case 1:
+					xlsCell.setCellValue(tableRows.get(row));
+					break;
+				case 2:
+					xlsCell.setCellValue(parent.specs[row]);
+					break;
+				case 3:
+					xlsCell.setCellValue(parent.blocks[row]);
+					break;
+				case 4:
+					xlsCell.setCellValue(parent.slides[row]);
+					break;
+				case 5:
+					xlsCell.setCellValue(parent.fte1[row]);
+					break;
+				case 6:
+					xlsCell.setCellValue(parent.fte2[row]);
+					break;
+				case 7:
+					xlsCell.setCellValue(parent.fte3[row]);
+					break;
+				case 8:
+					xlsCell.setCellValue(parent.fte4[row]);
+					break;
+				default:
+					xlsCell.setCellValue(parent.fte5[row]);
+				}
 			}
 		}
-
-		@Override
-		public Object getChild(Object node, int element) {
-			return ((OWorknode) node).children[element];
+		if (parent.children != null) {
+			for (int i = 0; i < parent.children.length; i++) {
+				OAnnualNode child = (OAnnualNode) parent.children[i];
+				rownum = xlsRow(child, sheet, xlsCell, name, rownum);
+			}
 		}
+		return rownum;
+	}
 
-		@Override
-		public int getChildCount(Object node) {
-			Object[] children = getChildren(node);
-			return (children == null) ? 0 : children.length;
-		}
-
-		protected Object[] getChildren(Object node) {
-			return ((OWorknode) node).children;
-		}
+	private class ModelData extends ITableModel {
 
 		@Override
 		public Class<?> getColumnClass(int col) {
-			if (col == 0) {
+			switch (col) {
+			case DATA_YEARS:
 				return String.class;
-			} else if (col < 10) {
-				return Integer.class;
-			} else {
+			case DATA_VALU1:
+			case DATA_VALU2:
+			case DATA_VALU3:
+			case DATA_VALU4:
+			case DATA_VALU5:
 				return Double.class;
+			default:
+				return Integer.class;
 			}
 		}
 
@@ -259,101 +542,138 @@ class NForecast extends NBase {
 		}
 
 		@Override
-		public Object getValueAt(Object node, int col) {
-			OAnnualNode data = (OAnnualNode) node;
-			if (data.cases == null) {
-				return 0;
-			} else if (col < columns.length - 3) {
-				switch (col) {
-				case DATA_CASES:
-					return data.cases[col - 1];
-				case DATA_SPECS:
-					return data.specs[col - 1];
-				case DATA_BLCKS:
-					return data.blocks[col - 1];
-				case DATA_SLIDE:
-					return data.slides[col - 1];
-				case DATA_SL_HE:
-					return data.he[col - 1];
-				case DATA_SL_SS:
-					return data.ss[col - 1];
-				case DATA_SL_IH:
-					return data.ihc[col - 1];
-				case DATA_SYNOP:
-					return data.synopt[col - 1];
-				case DATA_FROZN:
-					return data.frozen[col - 1];
-				case DATA_VALU1:
-					return data.fte1[col - 1];
-				case DATA_VALU2:
-					return data.fte2[col - 1];
-				case DATA_VALU3:
-					return data.fte3[col - 1];
-				case DATA_VALU4:
-					return data.fte4[col - 1];
-				case DATA_VALU5:
-					return data.fte5[col - 1];
-				default:
-					return "N/A";
-				}
-			} else {
-				switch (col) {
-				case DATA_CASES:
-					return data.casesf[col - 1];
-				case DATA_SPECS:
-					return data.specsf[col - 1];
-				case DATA_BLCKS:
-					return data.blocksf[col - 1];
-				case DATA_SLIDE:
-					return data.slidesf[col - 1];
-				case DATA_SL_HE:
-					return data.hef[col - 1];
-				case DATA_SL_SS:
-					return data.ssf[col - 1];
-				case DATA_SL_IH:
-					return data.ihcf[col - 1];
-				case DATA_SYNOP:
-					return data.synoptf[col - 1];
-				case DATA_FROZN:
-					return data.frozenf[col - 1];
-				case DATA_VALU1:
-					return data.fte1f[col - 1];
-				case DATA_VALU2:
-					return data.fte2f[col - 1];
-				case DATA_VALU3:
-					return data.fte3f[col - 1];
-				case DATA_VALU4:
-					return data.fte4f[col - 1];
-				case DATA_VALU5:
-					return data.fte5f[col - 1];
-				default:
-					return "N/A";
+		public int getRowCount() {
+			return tableRows.size();
+		}
+
+		@Override
+		public Object getValueAt(int row, int col) {
+			if (dataNode != null) {
+				if (dataNode.specs != null) {
+					if (dataNode.specs.length > row) {
+						switch (col) {
+						case DATA_YEARS:
+							return tableRows.get(row);
+						case DATA_SPECS:
+							return dataNode.specs[row];
+						case DATA_BLCKS:
+							return dataNode.blocks[row];
+						case DATA_SLIDE:
+							return dataNode.slides[row];
+						case DATA_VALU1:
+							return dataNode.fte1[row];
+						case DATA_VALU2:
+							return dataNode.fte2[row];
+						case DATA_VALU3:
+							return dataNode.fte3[row];
+						case DATA_VALU4:
+							return dataNode.fte4[row];
+						default:
+							return dataNode.fte5[row];
+						}
+					}
 				}
 			}
+			return Object.class;
+		}
+	}
+
+	private class ModelGroup implements TreeModel {
+		private ArrayList<TreeModelListener> treeModelListeners = new ArrayList<TreeModelListener>();
+		private OAnnualNode root;
+
+		ModelGroup(OAnnualNode root) {
+			this.root = root;
+		}
+
+		protected void fireTreeStructureChanged(OAnnualNode oldRoot) {
+			TreeModelEvent event = new TreeModelEvent(this, new Object[] {oldRoot});
+			for (TreeModelListener tml : treeModelListeners) {
+				tml.treeStructureChanged(event);
+			}
+		}
+
+		@Override
+		public void addTreeModelListener(TreeModelListener tml) {
+			treeModelListeners.add(tml);
+		}
+
+		@Override
+		public Object getChild(Object parent, int index) {
+			OAnnualNode data = (OAnnualNode) parent;
+			return data.children[index];
+		}
+
+		@Override
+		public int getChildCount(Object parent) {
+			OAnnualNode data = (OAnnualNode) parent;
+			if (data.children == null) {
+				return 0;
+			}
+			return data.children.length;
+		}
+
+		@Override
+		public int getIndexOfChild(Object parent, Object child) {
+			OAnnualNode data = (OAnnualNode) parent;
+			for (int i = 0; i < data.children.length; i++) {
+				if (data.children[i].equals(child)) {
+					return i;
+				}
+			}
+			return -1;
+		}
+
+		@Override
+		public Object getRoot() {
+			return root;
+		}
+
+		@Override
+		public boolean isLeaf(Object node) {
+			OAnnualNode data = (OAnnualNode) node;
+			return (data.children == null || data.children.length == 0);
+		}
+
+		@Override
+		public void removeTreeModelListener(TreeModelListener tml) {
+			treeModelListeners.remove(tml);
+		}
+
+		@Override
+		public void valueForPathChanged(TreePath path, Object newValue) {
 		}
 	}
 
 	private class WorkerData extends SwingWorker<Void, Void> {
-		private short yearMax = 0;
 		private short yearMin = 9999;
-		private int[] nYears;
-		private ArrayList<OAnnual> annuals = new ArrayList<OAnnual>();
+		private short yearMax = 0;
+		private ArrayList<OAnnual> rows = new ArrayList<OAnnual>();
 
 		@Override
 		protected Void doInBackground() throws Exception {
 			setName("WorkerData");
-			getData();
-			structureData();
+			try {
+				getData();
+				structureData();
+			} catch (Exception e) {
+				pj.log(LConstants.ERROR_UNEXPECTED, getName(), e);
+			}
 			return null;
 		}
 
 		@Override
 		public void done() {
 			// Display tree results
-			OAnnualNode root = (OAnnualNode) tree.tree.getModel().getRoot();
-			ModelList model = new ModelList(root, getHeaders(nYears));
-			tree.setTreeTableModel(model);
-			setView(tree.tree.getPathForRow(0));
+			ModelGroup model = (ModelGroup) tree.getModel();
+			dataNode = (OAnnualNode) model.getRoot();
+			model.fireTreeStructureChanged(dataNode);
+			try {
+				Thread.sleep(LConstants.SLEEP_TIME);
+			} catch (InterruptedException ignore) {
+			}
+			pj.statusBar.setMessage("Forecast " + pj.dates.formatter(timeFrom, LDates.FORMAT_DATELONG) + " - "
+					+ pj.dates.formatter(timeTo, LDates.FORMAT_DATELONG));
 			pj.setBusy(false);
 		}
 
@@ -374,20 +694,13 @@ class NForecast extends NBase {
 			for (int i = 0; i < nYears.length; i++) {
 				nCount[i] = func.value(nYears[i]);
 			}
-			;
 			return nCount;
 		}
 
 		private void extrapolate(int[] oYears, int[] nYears, OAnnualNode node) {
-			node.casesf = extrapolate(oYears, nYears, node.cases);
 			node.specsf = extrapolate(oYears, nYears, node.specs);
 			node.blocksf = extrapolate(oYears, nYears, node.blocks);
 			node.slidesf = extrapolate(oYears, nYears, node.slides);
-			node.hef = extrapolate(oYears, nYears, node.he);
-			node.ssf = extrapolate(oYears, nYears, node.ss);
-			node.ihcf = extrapolate(oYears, nYears, node.ihc);
-			node.synoptf = extrapolate(oYears, nYears, node.synopt);
-			node.frozenf = extrapolate(oYears, nYears, node.frozen);
 			node.fte1f = extrapolate(oYears, nYears, node.fte1);
 			node.fte2f = extrapolate(oYears, nYears, node.fte2);
 			node.fte3f = extrapolate(oYears, nYears, node.fte3);
@@ -403,7 +716,7 @@ class NForecast extends NBase {
 			short noYears = (short) (yearMax - yearMin + 1);
 			short yearID = yearMin;
 			int[] oYears = new int[noYears];
-			nYears = new int[noYears + 3];
+			int[] nYears = new int[noYears + 3];
 			for (int i = 0; i < noYears; i++) {
 				oYears[i] = yearID;
 				nYears[i] = yearID;
@@ -417,49 +730,200 @@ class NForecast extends NBase {
 		}
 
 		private void getData() {
+			boolean exists = false;
 			short yearID = 0;
-			OAnnual annual = new OAnnual();
+			OAnnual row = new OAnnual();
 			ResultSet rst = null;
-			setName("AnnualWorker");
 			try {
-				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_YER), 1, timeFrom);
-				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_CSE_SL_YER), 2, timeTo);
-				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_CSE_SL_YER));
+				Calendar calStart = pj.dates.setMidnight(null);
+				Calendar calEnd = pj.dates.setMidnight(null);
+				calStart.setTimeInMillis(pj.setup.getLong(LSetup.VAR_MIN_WL_DATE));
+				calEnd.set(Calendar.DAY_OF_YEAR, 1);
+				timeFrom = calStart.getTimeInMillis();
+				timeTo = calEnd.getTimeInMillis();
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_SPG_SL_YER), 1, calStart.getTimeInMillis());
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_SPG_SL_YER), 2, calEnd.getTimeInMillis());
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SPG_SL_YER));
 				while (rst.next()) {
-					if (facID > 0 && facID != rst.getShort("faid")) {
-						continue;
+					exists = false;
+					for (int i = 0; i < rows.size(); i++) {
+						if (rows.get(i).facID == rst.getShort("faid") && rows.get(i).spyID == rst.getByte("syid")
+								&& rows.get(i).subID == rst.getByte("sbid") && rows.get(i).proID == rst.getByte("poid")
+								&& rows.get(i).spgID == rst.getShort("sgid")) {
+							row = rows.get(i);
+							exists = true;
+							break;
+						}
 					}
-					annual = new OAnnual();
-					annual.facID = rst.getShort("faid");
-					annual.spyID = rst.getByte("syid");
-					annual.subID = rst.getByte("sbid");
-					annual.proID = rst.getByte("poid");
-					annual.facility = rst.getString("fanm").trim();
-					annual.specialty = rst.getString("synm").trim();
-					annual.subspecial = rst.getString("sbnm").trim();
-					annual.procedure = rst.getString("ponm").trim();
-					yearID = rst.getShort("fnyear");
-					annual.cases.put(yearID, rst.getInt("caca"));
-					annual.specs.put(yearID, rst.getInt("casp"));
-					annual.blocks.put(yearID, rst.getInt("cabl"));
-					annual.slides.put(yearID, rst.getInt("casl"));
-					annual.synopt.put(yearID, rst.getInt("casy"));
-					annual.frozen.put(yearID, rst.getInt("cafs"));
-					annual.he.put(yearID, rst.getInt("cahe"));
-					annual.ss.put(yearID, rst.getInt("cass"));
-					annual.ihc.put(yearID, rst.getInt("caih"));
-					annual.fte5.put(yearID, rst.getDouble("cav1"));
-					annual.fte2.put(yearID, rst.getDouble("cav2"));
-					annual.fte3.put(yearID, rst.getDouble("cav3"));
-					annual.fte4.put(yearID, rst.getDouble("cav4"));
-					annual.fte5.put(yearID, (double) rst.getInt("cav5"));
-					annuals.add(annual);
+					if (!exists) {
+						row = new OAnnual();
+						row.facID = rst.getShort("faid");
+						row.spgID = rst.getShort("sgid");
+						row.spyID = rst.getByte("syid");
+						row.subID = rst.getByte("sbid");
+						row.proID = rst.getByte("poid");
+						row.facility = rst.getString("fanm");
+						row.specialty = rst.getString("synm");
+						row.subspecial = rst.getString("sbnm");
+						row.procedure = rst.getString("ponm");
+						row.specimen = rst.getString("sgdc");
+						rows.add(row);
+					}
+					yearID = rst.getShort("yearid");
+					row.specs.put(yearID, rst.getInt("qty"));
+					row.blocks.put(yearID, rst.getInt("spbl"));
+					row.slides.put(yearID, rst.getInt("spsl"));
+					row.fte1.put(yearID, rst.getDouble("spv1"));
+					row.fte2.put(yearID, rst.getDouble("spv2"));
+					row.fte3.put(yearID, rst.getDouble("spv3"));
+					row.fte4.put(yearID, rst.getDouble("spv4"));
+					row.fte5.put(yearID, (double) rst.getInt("spv5"));
 					if (yearMin > yearID) {
 						yearMin = yearID;
 					}
 					if (yearMax < yearID) {
 						yearMax = yearID;
 					}
+				}
+				rst.close();
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_YER), 1, calStart.getTimeInMillis());
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_YER), 2, calEnd.getTimeInMillis());
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_FRZ_SL_YER));
+				while (rst.next()) {
+					exists = false;
+					for (int i = 0; i < rows.size(); i++) {
+						if (rows.get(i).facID == rst.getShort("faid") && rows.get(i).spyID == rst.getByte("syid")
+								&& rows.get(i).subID == rst.getByte("sbid") && rows.get(i).proID == rst.getByte("poid")
+								&& rows.get(i).spgID == rst.getShort("sgid")) {
+							row = rows.get(i);
+							exists = true;
+							break;
+						}
+					}
+					if (!exists) {
+						row = new OAnnual();
+						row.facID = rst.getShort("faid");
+						row.spgID = rst.getShort("sgid");
+						row.spyID = rst.getByte("syid");
+						row.subID = rst.getByte("sbid");
+						row.proID = rst.getByte("poid");
+						row.facility = rst.getString("fanm");
+						row.specialty = rst.getString("synm");
+						row.subspecial = rst.getString("sbnm");
+						row.procedure = rst.getString("ponm");
+						row.specimen = rst.getString("sgdc");
+						rows.add(row);
+					}
+					yearID = rst.getShort("yearid");
+					if (row.specs.get(yearID) == null) {
+						row.specs.put(yearID, rst.getInt("frsp"));
+					} else {
+						row.specs.replace(yearID, (rst.getInt("frsp") + row.specs.get(yearID)));
+					}
+					if (row.blocks.get(yearID) == null) {
+						row.blocks.put(yearID, rst.getInt("frbl"));
+					} else {
+						row.blocks.replace(yearID, (rst.getInt("frbl") + row.blocks.get(yearID)));
+					}
+					if (row.slides.get(yearID) == null) {
+						row.slides.put(yearID, rst.getInt("frsl"));
+					} else {
+						row.slides.replace(yearID, (rst.getInt("frsl") + row.slides.get(yearID)));
+					}
+					if (row.fte1.get(yearID) == null) {
+						row.fte1.put(yearID, rst.getDouble("frv1"));
+					} else {
+						row.fte1.replace(yearID, (rst.getDouble("frv1") + row.fte1.get(yearID)));
+					}
+					if (row.fte2.get(yearID) == null) {
+						row.fte2.put(yearID, rst.getDouble("frv2"));
+					} else {
+						row.fte2.replace(yearID, (rst.getDouble("frv2") + row.fte2.get(yearID)));
+					}
+					if (row.fte3.get(yearID) == null) {
+						row.fte3.put(yearID, rst.getDouble("frv3"));
+					} else {
+						row.fte3.replace(yearID, (rst.getDouble("frv3") + row.fte3.get(yearID)));
+					}
+					if (row.fte4.get(yearID) == null) {
+						row.fte4.put(yearID, rst.getDouble("frv4"));
+					} else {
+						row.fte4.replace(yearID, (rst.getDouble("frv4") + row.fte4.get(yearID)));
+					}
+					if (row.fte5.get(yearID) == null) {
+						row.fte5.put(yearID, rst.getDouble("frv5"));
+					} else {
+						row.fte5.replace(yearID, (rst.getDouble("frv5") + row.fte5.get(yearID)));
+					}
+				}
+				rst.close();
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_ADD_SL_YER), 1, calStart.getTimeInMillis());
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_ADD_SL_YER), 2, calEnd.getTimeInMillis());
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ADD_SL_YER));
+				while (rst.next()) {
+					exists = false;
+					for (int i = 0; i < rows.size(); i++) {
+						if (rows.get(i).facID == rst.getShort("faid") && rows.get(i).spyID == rst.getByte("syid")
+								&& rows.get(i).subID == rst.getByte("sbid") && rows.get(i).proID == rst.getByte("poid")
+								&& rows.get(i).spgID == rst.getShort("sgid")) {
+							row = rows.get(i);
+							exists = true;
+							break;
+						}
+					}
+					if (!exists) {
+						row = new OAnnual();
+						row.facID = rst.getShort("faid");
+						row.spgID = rst.getShort("sgid");
+						row.spyID = rst.getByte("syid");
+						row.subID = rst.getByte("sbid");
+						row.proID = rst.getByte("poid");
+						row.facility = rst.getString("fanm");
+						row.specialty = rst.getString("synm");
+						row.subspecial = rst.getString("sbnm");
+						row.procedure = rst.getString("ponm");
+						row.specimen = rst.getString("sgdc");
+						rows.add(row);
+					}
+					yearID = rst.getShort("yearid");
+					if (row.specs.get(yearID) == null) {
+						row.specs.put(yearID, 0);
+					}
+					if (row.blocks.get(yearID) == null) {
+						row.blocks.put(yearID, 0);
+					}
+					if (row.slides.get(yearID) == null) {
+						row.slides.put(yearID, 0);
+					}
+					if (row.fte1.get(yearID) == null) {
+						row.fte1.put(yearID, rst.getDouble("adv1"));
+					} else {
+						row.fte1.replace(yearID, (rst.getDouble("adv1") + row.fte1.get(yearID)));
+					}
+					if (row.fte2.get(yearID) == null) {
+						row.fte2.put(yearID, rst.getDouble("adv2"));
+					} else {
+						row.fte2.replace(yearID, (rst.getDouble("adv2") + row.fte2.get(yearID)));
+					}
+					if (row.fte3.get(yearID) == null) {
+						row.fte3.put(yearID, rst.getDouble("adv3"));
+					} else {
+						row.fte3.replace(yearID, (rst.getDouble("adv3") + row.fte3.get(yearID)));
+					}
+					if (row.fte4.get(yearID) == null) {
+						row.fte4.put(yearID, rst.getDouble("adv4"));
+					} else {
+						row.fte4.replace(yearID, (rst.getDouble("adv4") + row.fte4.get(yearID)));
+					}
+					if (row.fte5.get(yearID) == null) {
+						row.fte5.put(yearID, rst.getDouble("adv5"));
+					} else {
+						row.fte5.replace(yearID, (rst.getDouble("adv5") + row.fte5.get(yearID)));
+					}
+				}
+				tableRows.clear();
+				for (short i = yearMin; i <= yearMax; i++) {
+					tableRows.add(Integer.toString(i));
 				}
 				Thread.sleep(LConstants.SLEEP_TIME);
 			} catch (InterruptedException ignore) {
@@ -491,15 +955,9 @@ class NForecast extends NBase {
 
 		private void setModel(OAnnualList item, OAnnualNode node) {
 			node.name = item.name;
-			node.cases = item.cases;
 			node.specs = item.specs;
 			node.blocks = item.blocks;
 			node.slides = item.slides;
-			node.he = item.he;
-			node.ss = item.ss;
-			node.ihc = item.ihc;
-			node.synopt = item.synopt;
-			node.frozen = item.frozen;
 			node.fte1 = item.fte1;
 			node.fte2 = item.fte2;
 			node.fte3 = item.fte3;
@@ -509,6 +967,7 @@ class NForecast extends NBase {
 			for (int i = 0; i < item.children.size(); i++) {
 				OAnnualList childItem = item.children.get(i);
 				OAnnualNode childNode = new OAnnualNode();
+				node.children[i] = childNode;
 				setModel(childItem, childNode);
 			}
 		}
@@ -537,44 +996,43 @@ class NForecast extends NBase {
 
 		private void structureData() {
 			byte noYears = (byte) (yearMax - yearMin + 1);
-			short id = -1;
+			short id = 0;
 			short ids[] = new short[rowsView.length];
 			int rowNos[] = new int[rowsView.length];
-			int size = annuals.size();
-			int noDays = pj.dates.getNoDays(timeFrom, timeTo);
-			double fte1 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER1_FTE) / 365;
-			double fte2 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER2_FTE) / 365;
-			double fte3 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER3_FTE) / 365;
-			double fte4 = 1.0 * noDays * pj.setup.getShort(LSetup.VAR_CODER4_FTE) / 365;
-			double fte5 = 1.0 * noDays * pj.setup.getInt(LSetup.VAR_V5_FTE) / 365;
+			int size = rows.size();
+			double fte1 = pj.setup.getShort(LSetup.VAR_CODER1_FTE);
+			double fte2 = pj.setup.getShort(LSetup.VAR_CODER2_FTE);
+			double fte3 = pj.setup.getShort(LSetup.VAR_CODER3_FTE);
+			double fte4 = pj.setup.getShort(LSetup.VAR_CODER4_FTE);
+			double fte5 = pj.setup.getInt(LSetup.VAR_V5_FTE);
 			String name = "";
+			OAnnualList data0 = new OAnnualList("Total", noYears, id);
+			OAnnualList data1 = new OAnnualList(name, noYears, id);
+			OAnnualList data2 = new OAnnualList(name, noYears, id);
+			OAnnualList data3 = new OAnnualList(name, noYears, id);
+			OAnnualList data4 = new OAnnualList(name, noYears, id);
+			OAnnualList data5 = new OAnnualList(name, noYears, id);
 			OAnnual row = new OAnnual();
-			OAnnualList child0 = new OAnnualList(name, noYears, id);
-			OAnnualList child1 = new OAnnualList(name, noYears, id);
-			OAnnualList child2 = new OAnnualList(name, noYears, id);
-			OAnnualList child3 = new OAnnualList(name, noYears, id);
-			OAnnualList child4 = new OAnnualList(name, noYears, id);
 			for (int i = 0; i < rowsView.length; i++) {
-				ids[i] = id;
+				ids[i] = -1;
 			}
-			if (fte5 == 0) {
-				fte5 = 1.0;
+			if (fte1 == 0.0) {
+				fte1 = 1.0;
 			}
-			if (fte2 == 0) {
+			if (fte2 == 0.0) {
 				fte2 = 1.0;
 			}
-			if (fte3 == 0) {
+			if (fte3 == 0.0) {
 				fte3 = 1.0;
 			}
-			if (fte4 == 0) {
+			if (fte4 == 0.0) {
 				fte4 = 1.0;
 			}
-			if (fte5 == 0) {
+			if (fte5 == 0.0) {
 				fte5 = 1.0;
 			}
-			child0.name = "Total";
 			for (int x = 0; x < size; x++) {
-				row = annuals.get(x);
+				row = rows.get(x);
 				// Match 1st node
 				switch (rowsView[0]) {
 				case IPanelRows.ROW_FACILITY:
@@ -593,9 +1051,12 @@ class NForecast extends NBase {
 					id = row.proID;
 					name = row.procedure;
 					break;
+				case IPanelRows.ROW_SPECIMEN:
+					id = row.spgID;
+					name = row.specimen;
+					break;
 				default:
 					id = -2;
-					name = "N/A";
 				}
 				if (ids[0] != id) {
 					ids[0] = id;
@@ -604,17 +1065,17 @@ class NForecast extends NBase {
 						ids[i] = -1;
 						rowNos[i] = -1;
 					}
-					for (int j = 0; j < child0.children.size(); j++) {
-						child1 = child0.children.get(j);
-						if (child1.id == ids[0]) {
+					for (int j = 0; j < data0.children.size(); j++) {
+						data1 = data0.children.get(j);
+						if (data1.id == ids[0]) {
 							rowNos[0] = j;
 							break;
 						}
 					}
 					if (rowNos[0] < 0) {
-						rowNos[0] = child0.children.size();
-						child1 = new OAnnualList(name, noYears, ids[0]);
-						child0.children.add(child1);
+						rowNos[0] = data0.children.size();
+						data1 = new OAnnualList(name, noYears, ids[0]);
+						data0.children.add(data1);
 					}
 				}
 				// Match 2nd node
@@ -635,6 +1096,10 @@ class NForecast extends NBase {
 					id = row.proID;
 					name = row.procedure;
 					break;
+				case IPanelRows.ROW_SPECIMEN:
+					id = row.spgID;
+					name = row.specimen;
+					break;
 				default:
 					id = -2;
 				}
@@ -645,17 +1110,17 @@ class NForecast extends NBase {
 						ids[i] = -1;
 						rowNos[i] = -1;
 					}
-					for (int i = 0; i < child1.children.size(); i++) {
-						child2 = child1.children.get(i);
-						if (child2.id == ids[1]) {
-							rowNos[1] = i;
+					for (int j = 0; j < data1.children.size(); j++) {
+						data2 = data1.children.get(j);
+						if (data2.id == ids[1]) {
+							rowNos[1] = j;
 							break;
 						}
 					}
 					if (rowNos[1] < 0) {
-						rowNos[1] = child1.children.size();
-						child2 = new OAnnualList(name, noYears, ids[1]);
-						child1.children.add(child2);
+						rowNos[1] = data1.children.size();
+						data2 = new OAnnualList(name, noYears, ids[1]);
+						data1.children.add(data2);
 					}
 				}
 				// Match 3rd node
@@ -676,27 +1141,31 @@ class NForecast extends NBase {
 					id = row.proID;
 					name = row.procedure;
 					break;
+				case IPanelRows.ROW_SPECIMEN:
+					id = row.spgID;
+					name = row.specimen;
+					break;
 				default:
 					id = -2;
 				}
 				if (ids[2] != id) {
 					ids[2] = id;
-					ids[3] = -1;
-					ids[4] = -1;
 					rowNos[2] = -1;
-					rowNos[3] = -1;
-					rowNos[4] = -1;
-					for (int i = 0; i < child2.children.size(); i++) {
-						child3 = child2.children.get(i);
-						if (child3.id == ids[2]) {
-							rowNos[2] = i;
+					for (int i = 3; i < rowsView.length; i++) {
+						ids[i] = -1;
+						rowNos[i] = -1;
+					}
+					for (int j = 0; j < data2.children.size(); j++) {
+						data3 = data2.children.get(j);
+						if (data3.id == ids[2]) {
+							rowNos[2] = j;
 							break;
 						}
 					}
 					if (rowNos[2] < 0) {
-						rowNos[2] = child2.children.size();
-						child3 = new OAnnualList(name, noYears, ids[2]);
-						child2.children.add(child3);
+						rowNos[2] = data2.children.size();
+						data3 = new OAnnualList(name, noYears, ids[2]);
+						data2.children.add(data3);
 					}
 				}
 				// Match 4th node
@@ -717,156 +1186,173 @@ class NForecast extends NBase {
 					id = row.proID;
 					name = row.procedure;
 					break;
+				case IPanelRows.ROW_SPECIMEN:
+					id = row.spgID;
+					name = row.specimen;
+					break;
 				default:
 					id = -2;
 				}
 				if (ids[3] != id) {
 					ids[3] = id;
-					ids[4] = -1;
 					rowNos[3] = -1;
-					rowNos[4] = -1;
-					for (int i = 0; i < child3.children.size(); i++) {
-						child4 = child3.children.get(i);
-						if (child4.id == ids[3]) {
-							rowNos[3] = i;
+					for (int i = 4; i < rowsView.length; i++) {
+						ids[i] = -1;
+						rowNos[i] = -1;
+					}
+					for (int j = 0; j < data3.children.size(); j++) {
+						data4 = data3.children.get(j);
+						if (data4.id == ids[3]) {
+							rowNos[3] = j;
 							break;
 						}
 					}
 					if (rowNos[3] < 0) {
-						rowNos[3] = child3.children.size();
-						child4 = new OAnnualList(name, noYears, ids[3]);
-						child3.children.add(child4);
+						rowNos[3] = data3.children.size();
+						data4 = new OAnnualList(name, noYears, ids[3]);
+						data3.children.add(data4);
+					}
+				}
+				// Match 5th node
+				switch (rowsView[4]) {
+				case IPanelRows.ROW_FACILITY:
+					id = row.facID;
+					name = row.facility;
+					break;
+				case IPanelRows.ROW_SPECIALTY:
+					id = row.spyID;
+					name = row.specialty;
+					break;
+				case IPanelRows.ROW_SUBSPECIAL:
+					id = row.subID;
+					name = row.subspecial;
+					break;
+				case IPanelRows.ROW_PROCEDURE:
+					id = row.proID;
+					name = row.procedure;
+					break;
+				case IPanelRows.ROW_SPECIMEN:
+					id = row.spgID;
+					name = row.specimen;
+					break;
+				default:
+					id = -2;
+				}
+				if (ids[4] != id) {
+					ids[4] = id;
+					rowNos[4] = -1;
+					for (int j = 0; j < data4.children.size(); j++) {
+						data5 = data4.children.get(j);
+						if (data5.id == ids[4]) {
+							rowNos[4] = j;
+							break;
+						}
+					}
+					if (rowNos[4] < 0) {
+						rowNos[4] = data4.children.size();
+						data5 = new OAnnualList(name, noYears, ids[4]);
+						data4.children.add(data5);
 					}
 				}
 				short yearID = yearMin;
-				int qty = 0;
-				double val = 0;
+				Integer qty = 0;
+				Double val = 0.0;
 				for (short y = 0; y < noYears; y++) {
-					qty = row.cases.get(yearID);
-					if (qty > 0) {
-						child0.cases[y] += qty;
-						child1.cases[y] += qty;
-						child2.cases[y] += qty;
-						child3.cases[y] += qty;
-						child4.cases[y] = qty;
-					}
 					qty = row.specs.get(yearID);
-					if (qty > 0) {
-						child0.specs[y] += qty;
-						child1.specs[y] += qty;
-						child2.specs[y] += qty;
-						child3.specs[y] += qty;
-						child4.specs[y] = qty;
+					if (qty != null && qty > 0) {
+						data0.specs[y] += qty;
+						data1.specs[y] += qty;
+						data2.specs[y] += qty;
+						data3.specs[y] += qty;
+						data4.specs[y] += qty;
+						data5.specs[y] += qty;
+					}
+					qty = row.blocks.get(yearID);
+					if (qty != null && qty > 0) {
+						data0.blocks[y] += qty;
+						data1.blocks[y] += qty;
+						data2.blocks[y] += qty;
+						data3.blocks[y] += qty;
+						data4.blocks[y] += qty;
+						data5.blocks[y] += qty;
 					}
 					qty = row.slides.get(yearID);
-					if (qty > 0) {
-						child0.slides[y] += qty;
-						child1.slides[y] += qty;
-						child2.slides[y] += qty;
-						child3.slides[y] += qty;
-						child4.slides[y] = qty;
-					}
-					qty = row.he.get(yearID);
-					if (qty > 0) {
-						child0.he[y] += qty;
-						child1.he[y] += qty;
-						child2.he[y] += qty;
-						child3.he[y] += qty;
-						child4.he[y] = qty;
-					}
-					qty = row.ss.get(yearID);
-					if (qty > 0) {
-						child0.ss[y] += qty;
-						child1.ss[y] += qty;
-						child2.ss[y] += qty;
-						child3.ss[y] += qty;
-						child4.ss[y] = qty;
-					}
-					qty = row.ihc.get(yearID);
-					if (qty > 0) {
-						child0.ihc[y] += qty;
-						child1.ihc[y] += qty;
-						child2.ihc[y] += qty;
-						child3.ihc[y] += qty;
-						child4.ihc[y] = qty;
-					}
-					qty = row.synopt.get(yearID);
-					if (qty > 0) {
-						child0.synopt[y] += qty;
-						child1.synopt[y] += qty;
-						child2.synopt[y] += qty;
-						child3.synopt[y] += qty;
-						child4.synopt[y] = qty;
-					}
-					qty = row.frozen.get(yearID);
-					if (qty > 0) {
-						child0.frozen[y] += qty;
-						child1.frozen[y] += qty;
-						child2.frozen[y] += qty;
-						child3.frozen[y] += qty;
-						child4.frozen[y] = qty;
+					if (qty != null && qty > 0) {
+						data0.slides[y] += qty;
+						data1.slides[y] += qty;
+						data2.slides[y] += qty;
+						data3.slides[y] += qty;
+						data4.slides[y] += qty;
+						data5.slides[y] += qty;
 					}
 					val = row.fte1.get(yearID);
-					if (qty > 0) {
-						child0.fte1[y] += val;
-						child1.fte1[y] += val;
-						child2.fte1[y] += val;
-						child3.fte1[y] += val;
-						child4.fte1[y] = val;
+					if (val != null && val > 0) {
+						data0.fte1[y] += val;
+						data1.fte1[y] += val;
+						data2.fte1[y] += val;
+						data3.fte1[y] += val;
+						data4.fte1[y] += val;
+						data5.fte1[y] += val;
 					}
 					val = row.fte2.get(yearID);
-					if (qty > 0) {
-						child0.fte2[y] += val;
-						child1.fte2[y] += val;
-						child2.fte2[y] += val;
-						child3.fte2[y] += val;
-						child4.fte2[y] = val;
+					if (val != null && val > 0) {
+						data0.fte2[y] += val;
+						data1.fte2[y] += val;
+						data2.fte2[y] += val;
+						data3.fte2[y] += val;
+						data4.fte2[y] += val;
+						data5.fte2[y] += val;
 					}
 					val = row.fte3.get(yearID);
-					if (qty > 0) {
-						child0.fte3[y] += val;
-						child1.fte3[y] += val;
-						child2.fte3[y] += val;
-						child3.fte3[y] += val;
-						child4.fte3[y] = val;
+					if (val != null && val > 0) {
+						data0.fte3[y] += val;
+						data1.fte3[y] += val;
+						data2.fte3[y] += val;
+						data3.fte3[y] += val;
+						data4.fte3[y] += val;
+						data5.fte3[y] += val;
 					}
 					val = row.fte4.get(yearID);
-					if (qty > 0) {
-						child0.fte4[y] += val;
-						child1.fte4[y] += val;
-						child2.fte4[y] += val;
-						child3.fte4[y] += val;
-						child4.fte4[y] = val;
+					if (val != null && val > 0) {
+						data0.fte4[y] += val;
+						data1.fte4[y] += val;
+						data2.fte4[y] += val;
+						data3.fte4[y] += val;
+						data4.fte4[y] += val;
+						data5.fte4[y] += val;
 					}
 					val = row.fte5.get(yearID);
-					if (qty > 0) {
-						child0.fte5[y] += val;
-						child1.fte5[y] += val;
-						child2.fte5[y] += val;
-						child3.fte5[y] += val;
-						child4.fte5[y] = val;
+					if (val != null && val > 0) {
+						data0.fte5[y] += val;
+						data1.fte5[y] += val;
+						data2.fte5[y] += val;
+						data3.fte5[y] += val;
+						data4.fte5[y] += val;
+						data5.fte5[y] += val;
 					}
 					yearID++;
 				}
 			}
-			for (int i = 0; i < child0.fte1.length; i++) {
-				child0.fte1[i] = child0.fte1[i] / fte1;
-				child0.fte2[i] = child0.fte2[i] / fte2;
-				child0.fte3[i] = child0.fte3[i] / fte3;
-				child0.fte4[i] = child0.fte4[i] / fte4;
-				child0.fte5[i] = child0.fte5[i] / fte5;
+			for (int i = 0; i < data0.fte1.length; i++) {
+				data0.fte1[i] = data0.fte1[i] / fte1;
+				data0.fte2[i] = data0.fte2[i] / fte2;
+				data0.fte3[i] = data0.fte3[i] / fte3;
+				data0.fte4[i] = data0.fte4[i] / fte4;
+				data0.fte5[i] = data0.fte5[i] / fte5;
 			}
 			try {
 				Thread.sleep(LConstants.SLEEP_TIME);
 			} catch (InterruptedException ignore) {
 			}
-			setTotals(child0, fte1, fte2, fte3, fte4, fte5);
+			setTotals(data0, fte1, fte2, fte3, fte4, fte5);
 			try {
 				Thread.sleep(LConstants.SLEEP_TIME);
 			} catch (InterruptedException ignore) {
 			}
-			OAnnualNode node0 = (OAnnualNode) tree.tree.getModel().getRoot();
-			setModel(child0, node0);
+			
+			ModelGroup model = (ModelGroup) tree.getModel();
+			OAnnualNode node0 = (OAnnualNode) model.getRoot();
+			setModel(data0, node0);
 			try {
 				Thread.sleep(LConstants.SLEEP_TIME);
 			} catch (InterruptedException ignore) {

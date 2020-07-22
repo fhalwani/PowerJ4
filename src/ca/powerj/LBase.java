@@ -267,16 +267,17 @@ class LBase implements Runnable {
 								if (isNewMonth()) {
 									log(LConstants.ERROR_NONE, "Starting Workdays...");
 									new LWorkdays(this);
-//									if (errorID == LConstants.ERROR_NONE) {
-//										log(LConstants.ERROR_NONE, "Starting Code5...");
-//										new LValue5(this);
-//									}
+									if (errorID == LConstants.ERROR_NONE) {
+										log(LConstants.ERROR_NONE, "Starting Code5...");
+										new LValue5(this);
+									}
 								}
 								firstRun = false;
 							}
 						}
 						if (LConstants.IS_CLIENT) {
 							if (nextUpdate - System.currentTimeMillis() < timerInterval) {
+								log(LConstants.ERROR_NONE, "Updating data...");
 								if (pnlID > 0 & pnlCore != null) {
 									pnlCore.refresh();
 								}

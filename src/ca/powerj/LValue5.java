@@ -3,12 +3,13 @@ package ca.powerj;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map.Entry;
 
 class LValue5 {
-	final String className = "Value5";
+	final String className = "Code5";
 	private Hashtable<Byte, PreparedStatement> pjStms = null;
 	LBase pj;
 	DPowerJ dbPowerJ;
@@ -18,7 +19,7 @@ class LValue5 {
 		this.pj = pj;
 		dbPowerJ = pj.dbPowerJ;
 		pj.log(LConstants.ERROR_NONE, className,
-				pj.dates.formatter(LDates.FORMAT_DATETIME) + " - Value5 Manager Started...");
+				pj.dates.formatter(LDates.FORMAT_DATETIME) + " - Code5 Manager Started...");
 		pjStms = dbPowerJ.prepareStatements(LConstants.ACTION_LVAL5);
 		update();
 		close();
@@ -33,117 +34,153 @@ class LValue5 {
 
 	private void update() {
 		byte interval = pj.setup.getByte(LSetup.VAR_V5_INTERVAL);
-		Calendar calLast = pj.dates.setMidnight(pj.setup.getLong(LSetup.VAR_V5_LAST));
-		Calendar calNext = pj.dates.setMidnight(0);
-		int noMonths = pj.dates.getNoMonths(calLast, calNext);
 		if (interval < 1) {
 			interval = 1;
 		} else if (interval > 24) {
 			interval = 24;
 		}
+		Calendar calFrom = pj.dates.setMidnight(pj.setup.getLong(LSetup.VAR_V5_LAST));
+		Calendar calTo = pj.dates.setMidnight(0);
+		int noMonths = pj.dates.getNoMonths(calFrom, calTo);
 		if (noMonths < interval) {
 			return;
 		}
-		final byte V5_ROWID = 0;
-		final byte V5_QTY = 1;
-		final byte V5_VAL1 = 2;
-		final byte V5_VAL2 = 3;
-		final byte V5_VAL3 = 4;
-		final byte V5_VAL4 = 5;
 		byte noYears = pj.setup.getByte(LSetup.VAR_V5_UPDATE);
-		boolean[] isActive = { false, false, pj.setup.getBoolean(LSetup.VAR_CODER1_ACTIVE),
-				pj.setup.getBoolean(LSetup.VAR_CODER2_ACTIVE), pj.setup.getBoolean(LSetup.VAR_CODER3_ACTIVE),
-				pj.setup.getBoolean(LSetup.VAR_CODER4_ACTIVE) };
-		int avg = 0;
-		int count = 0;
-		int value5 = 0;
-		int fte5 = pj.setup.getInt(LSetup.VAR_V5_FTE); // 4644000
-		Integer[] frozn = { 0, 0, 0, 0, 0, 0 };
-		Integer[] total = { 0, 0, 0, 0, 0, 0 };
-		ArrayList<Integer[]> specimens = new ArrayList<Integer[]>();
+		double annualCAP = pj.setup.getShort(LSetup.VAR_CODER1_FTE);
+		double annualW2Q = pj.setup.getShort(LSetup.VAR_CODER2_FTE);
+		double annualRCP = pj.setup.getShort(LSetup.VAR_CODER3_FTE);
+		double annualCPT = pj.setup.getShort(LSetup.VAR_CODER4_FTE);
+		double annualCO5 = pj.setup.getInt(LSetup.VAR_V5_FTE);
+		double totalCAP = 0;
+		double totalW2Q = 0;
+		double totalRCP = 0;
+		double totalCPT = 0;
+		double totalCO5 = 0;
+		double avgCAP = 0;
+		double avgW2Q = 0;
+		double avgRCP = 0;
+		double avgCPT = 0;
+		double avgCO5 = 0;
+		double temp = 0;
+		OSpecGroup5 specimen = new OSpecGroup5();
+		OSpecGroup5 specFsec = new OSpecGroup5();
+		HashMap<Short, OSpecGroup5> specimens = new HashMap<Short, OSpecGroup5>();
 		ResultSet rst = null;
-		if (noYears < 1) {
-			noYears = 1;
-		} else if (noYears > 3) {
-			noYears = 3;
-		}
 		try {
-			calNext.set(Calendar.DAY_OF_MONTH, 1);
-			calLast.setTimeInMillis(calNext.getTimeInMillis());
-			calLast.add(Calendar.YEAR, -noYears);
-			dbPowerJ.setTime(pjStms.get(DPowerJ.STM_SPG_SL_SU5), 1, calLast.getTimeInMillis());
-			dbPowerJ.setTime(pjStms.get(DPowerJ.STM_SPG_SL_SU5), 2, calNext.getTimeInMillis());
+			if (noYears < 1) {
+				noYears = 1;
+			} else if (noYears > 3) {
+				noYears = 3;
+			}
+			// Specimen groups
+			calTo.set(Calendar.DAY_OF_MONTH, 1);
+			calFrom.setTimeInMillis(calTo.getTimeInMillis());
+			calFrom.add(Calendar.YEAR, -noYears);
+			dbPowerJ.setTime(pjStms.get(DPowerJ.STM_SPG_SL_SU5), 1, calFrom.getTimeInMillis());
+			dbPowerJ.setTime(pjStms.get(DPowerJ.STM_SPG_SL_SU5), 2, calTo.getTimeInMillis());
 			rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_SPG_SL_SU5));
 			while (rst.next()) {
-				if (rst.getInt("QTY") > 0) {
-					Integer[] specimen = { rst.getInt("sgid"), rst.getInt("QTY"),
-							pj.numbers.doubleToInt(2, rst.getDouble("spv1") * 100),
-							pj.numbers.doubleToInt(2, rst.getDouble("spv2") * 100),
-							pj.numbers.doubleToInt(2, rst.getDouble("spv3") * 100),
-							pj.numbers.doubleToInt(2, rst.getDouble("spv4") * 100) };
-					specimens.add(specimen);
-					total[V5_VAL1] += specimen[V5_VAL1];
-					total[V5_VAL2] += specimen[V5_VAL2];
-					total[V5_VAL3] += specimen[V5_VAL3];
-					total[V5_VAL4] += specimen[V5_VAL4];
+				if (rst.getInt("qty") > 0) {
+					specimen = new OSpecGroup5();
+					specimen.grpID = rst.getShort("sgid");
+					specimen.qty = rst.getInt("QTY");
+					specimen.totalCAP = rst.getDouble("spv1");
+					specimen.totalW2Q = rst.getDouble("spv2");
+					specimen.totalRCP = rst.getDouble("spv3");
+					specimen.totalCPT = rst.getDouble("spv4");
+					specimen.name = rst.getString("sgdc");
+					specimens.put(rst.getShort("sgid"), specimen);
+					totalCAP += rst.getDouble("spv1");
+					totalW2Q += rst.getDouble("spv2");
+					totalRCP += rst.getDouble("spv3");
+					totalCPT += rst.getDouble("spv4");
 				}
 			}
 			dbPowerJ.close(rst);
-			dbPowerJ.setTime(pjStms.get(DPowerJ.STM_FRZ_SL_SU5), 1, calLast.getTimeInMillis());
-			dbPowerJ.setTime(pjStms.get(DPowerJ.STM_FRZ_SL_SU5), 2, calNext.getTimeInMillis());
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException ignore) {
+			}
+			// Additionals
+			dbPowerJ.setTime(pjStms.get(DPowerJ.STM_ADD_SL_SPG), 1, calFrom.getTimeInMillis());
+			dbPowerJ.setTime(pjStms.get(DPowerJ.STM_ADD_SL_SPG), 2, calTo.getTimeInMillis());
+			rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_ADD_SL_SPG));
+			while (rst.next()) {
+				specimen = specimens.get(rst.getShort("sgid"));
+				if (specimen != null) {
+					specimen.totalCAP += rst.getDouble("adv1");
+					specimen.totalW2Q += rst.getDouble("adv2");
+					specimen.totalRCP += rst.getDouble("adv3");
+					specimen.totalCPT += rst.getDouble("adv4");
+					totalCAP += rst.getDouble("adv1");
+					totalW2Q += rst.getDouble("adv2");
+					totalRCP += rst.getDouble("adv3");
+					totalCPT += rst.getDouble("adv4");
+				}
+			}
+			dbPowerJ.close(rst);
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException ignore) {
+			}
+			// FSEC
+			dbPowerJ.setTime(pjStms.get(DPowerJ.STM_FRZ_SL_SU5), 1, calFrom.getTimeInMillis());
+			dbPowerJ.setTime(pjStms.get(DPowerJ.STM_FRZ_SL_SU5), 2, calTo.getTimeInMillis());
 			rst = dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_FRZ_SL_SU5));
 			while (rst.next()) {
-				if (rst.getInt("QTY") > 0) {
-					frozn[V5_QTY] = rst.getInt("QTY");
-					frozn[V5_VAL1] = pj.numbers.doubleToInt(2, rst.getDouble("frv1") * 100);
-					frozn[V5_VAL2] = pj.numbers.doubleToInt(2, rst.getDouble("frv2") * 100);
-					frozn[V5_VAL3] = pj.numbers.doubleToInt(2, rst.getDouble("frv3") * 100);
-					frozn[V5_VAL4] = pj.numbers.doubleToInt(2, rst.getDouble("frv4") * 100);
-					total[V5_VAL1] += frozn[V5_VAL1];
-					total[V5_VAL2] += frozn[V5_VAL2];
-					total[V5_VAL3] += frozn[V5_VAL3];
-					total[V5_VAL4] += frozn[V5_VAL4];
+				if (rst.getInt("qty") > 0) {
+					specFsec.grpID = 9999;
+					specFsec.qty = rst.getInt("qty");
+					specFsec.totalCAP = rst.getDouble("frv1");
+					specFsec.totalW2Q = rst.getDouble("frv2");
+					specFsec.totalRCP = rst.getDouble("frv3");
+					specFsec.totalCPT = rst.getDouble("frv4");
+					specFsec.name = "FSEC";
+					totalCAP += rst.getDouble("frv1");
+					totalW2Q += rst.getDouble("frv2");
+					totalRCP += rst.getDouble("frv3");
+					totalCPT += rst.getDouble("frv4");
 				}
 			}
 			dbPowerJ.close(rst);
-			for (int i = 0; i < specimens.size(); i++) {
-				Integer[] specimen = specimens.get(i);
-				avg = 0;
-				count = 0;
-				for (byte j = V5_VAL1; j <= V5_VAL4; j++) {
-					if (total[j] > 0 && isActive[j]) {
-						avg += (specimen[j] / total[j]);
-						count++;
-					}
-				}
-				if (count > 0 && specimen[V5_QTY] > 0) {
-					avg = avg / count;
-					value5 = avg * fte5 / specimen[V5_QTY];
-					if (value5 > 0) {
-						dbPowerJ.setInt(pjStms.get(DPowerJ.STM_SPG_UPD_V5), 1, value5);
-						dbPowerJ.setInt(pjStms.get(DPowerJ.STM_SPG_UPD_V5), 2, specimen[V5_ROWID]);
-						dbPowerJ.execute(pjStms.get(DPowerJ.STM_SPG_UPD_V5));
-					}
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException ignore) {
+			}
+			totalCO5 = (((totalCAP / annualCAP) +
+					(totalW2Q / annualW2Q) +
+					(totalRCP / annualRCP) +
+					(totalCPT / annualCPT)) * annualCO5) / 4;
+			if (specFsec.qty > 0) {
+				avgCAP = specFsec.totalCAP / totalCAP;
+				avgW2Q = specFsec.totalW2Q / totalW2Q;
+				avgRCP = specFsec.totalRCP / totalRCP;
+				avgCPT = specFsec.totalCPT / totalCPT;
+				temp = avgCAP + avgW2Q + avgRCP + avgCPT;
+				avgCO5 = temp / 4;
+				temp = (avgCO5 * totalCO5) / specFsec.qty;
+				specFsec.code5 = pj.numbers.doubleToInt(1, temp);
+				if (specFsec.code5 > 0) {
+					pj.setup.setInt(LSetup.VAR_V5_FROZEN, specFsec.code5);
 				}
 			}
-			if (frozn[V5_QTY] > 0) {
-				avg = 0;
-				count = 0;
-				for (byte j = V5_VAL1; j <= V5_VAL4; j++) {
-					if (total[j] > 0 && isActive[j]) {
-						avg += (frozn[j] / total[j]);
-						count++;
-					}
-				}
-				if (count > 0 && frozn[V5_QTY] > 0) {
-					avg = avg / count;
-					value5 = avg * fte5 / frozn[V5_QTY];
-					if (value5 > 0) {
-						pj.setup.setInt(LSetup.VAR_V5_FROZEN, value5);
-					}
+			for (Entry<Short, OSpecGroup5> entry : specimens.entrySet()) {
+				specimen = entry.getValue();
+				avgCAP = specimen.totalCAP / totalCAP;
+				avgW2Q = specimen.totalW2Q / totalW2Q;
+				avgRCP = specimen.totalRCP / totalRCP;
+				avgCPT = specimen.totalCPT / totalCPT;
+				temp = avgCAP + avgW2Q + avgRCP + avgCPT;
+				avgCO5 = temp / 4;
+				temp = (avgCO5 * totalCO5) / specimen.qty;
+				specimen.code5 = pj.numbers.doubleToInt(1, temp);
+				if (specimen.code5 > 0) {
+					dbPowerJ.setInt(pjStms.get(DPowerJ.STM_SPG_UPD_V5), 1, specimen.code5);
+					dbPowerJ.setInt(pjStms.get(DPowerJ.STM_SPG_UPD_V5), 2, specimen.grpID);
+					dbPowerJ.execute(pjStms.get(DPowerJ.STM_SPG_UPD_V5));
 				}
 			}
-			pj.setup.setLong(LSetup.VAR_V5_LAST, calNext.getTimeInMillis());
+			pj.setup.setLong(LSetup.VAR_V5_LAST, calTo.getTimeInMillis());
 		} catch (SQLException e) {
 			pj.log(LConstants.ERROR_SQL, className, e);
 		} finally {

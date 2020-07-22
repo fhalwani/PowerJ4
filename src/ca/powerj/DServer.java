@@ -182,7 +182,9 @@ class DServer extends DPowerJ {
 			pstms.put(STM_SPE_SELECT, prepareCallables(setSQL(STM_SPE_SELECT)));
 			break;
 		case LConstants.ACTION_FORECAST:
-			pstms.put(STM_CSE_SL_YER, prepareCallables(setSQL(STM_CSE_SL_YER)));
+			pstms.put(STM_ADD_SL_YER, prepareCallables(setSQL(STM_ADD_SL_YER)));
+			pstms.put(STM_FRZ_SL_YER, prepareCallables(setSQL(STM_FRZ_SL_YER)));
+			pstms.put(STM_SPG_SL_YER, prepareCallables(setSQL(STM_SPG_SL_YER)));
 			break;
 		case LConstants.ACTION_HISTOLOGY:
 			pstms.put(STM_PND_SELECT, prepareCallables(setSQL(STM_PND_SELECT)));
@@ -261,7 +263,7 @@ class DServer extends DPowerJ {
 			break;
 		case LConstants.ACTION_SPECIMEN:
 			pstms.put(STM_ADD_SL_SPG, prepareCallables(setSQL(STM_ADD_SL_SPG)));
-			pstms.put(STM_FRZ_SL_SUM, prepareCallables(setSQL(STM_FRZ_SL_SUM)));
+			pstms.put(STM_FRZ_SL_SPG, prepareCallables(setSQL(STM_FRZ_SL_SPG)));
 			pstms.put(STM_SPG_SL_SUM, prepareCallables(setSQL(STM_SPG_SL_SUM)));
 			break;
 		case LConstants.ACTION_SPECMASTER:
@@ -368,10 +370,12 @@ class DServer extends DPowerJ {
 			pstms.put(STM_SPM_UPDATE, prepareStatement(setSQL(STM_SPM_UPDATE)));
 			break;
 		case LConstants.ACTION_LVAL5:
+			pstms.put(STM_ADD_SL_SPG, prepareCallables(setSQL(STM_ADD_SL_SPG)));
 			pstms.put(STM_FRZ_SL_SU5, prepareCallables(setSQL(STM_FRZ_SL_SU5)));
 			pstms.put(STM_SPG_SL_SU5, prepareCallables(setSQL(STM_SPG_SL_SU5)));
 			pstms.put(STM_SPG_UPD_V5, prepareStatement(setSQL(STM_SPG_UPD_V5)));
 			break;
+		default:
 		}
 		return pstms;
 	}
@@ -389,6 +393,8 @@ class DServer extends DPowerJ {
 			return "{call " + pj.pjSchema + ".udpaddspg(?, ?)}";
 		case STM_ADD_SL_SUM:
 			return "{call " + pj.pjSchema + ".udpaddsum(?, ?)}";
+		case STM_ADD_SL_YER:
+			return "{call " + pj.pjSchema + ".udpaddyear(?, ?)}";
 		case STM_CD1_SELECT:
 			return "{call " + pj.pjSchema + ".udpcoder1}";
 		case STM_CD2_SELECT:
@@ -407,8 +413,6 @@ class DServer extends DPowerJ {
 			return "{call " + pj.pjSchema + ".udpcsespe(?)}";
 		case STM_CSE_SL_SUM:
 			return "{call " + pj.pjSchema + ".udpcsesum(?, ?)}";
-		case STM_CSE_SL_YER:
-			return "{call " + pj.pjSchema + ".udpcseyear(?, ?)}";
 		case STM_ERR_SELECT:
 			return "{call " + pj.pjSchema + ".udperrselect}";
 		case STM_ERR_SL_CMT:
@@ -419,8 +423,12 @@ class DServer extends DPowerJ {
 			return "{call " + pj.pjSchema + ".udpfacility}";
 		case STM_FRZ_SL_SID:
 			return "{call " + pj.pjSchema + ".udpfrzsid(?)}";
+		case STM_FRZ_SL_SPG:
+			return "{call " + pj.pjSchema + ".udpfrzspg(?, ?)}";
 		case STM_FRZ_SL_SUM:
 			return "{call " + pj.pjSchema + ".udpfrzsum(?, ?)}";
+		case STM_FRZ_SL_YER:
+			return "{call " + pj.pjSchema + ".udpfrzyear(?, ?)}";
 		case STM_ORD_SELECT:
 			return "{call " + pj.pjSchema + ".udporder(?)}";
 		case STM_ORG_SELECT:
@@ -453,6 +461,8 @@ class DServer extends DPowerJ {
 			return "{call " + pj.pjSchema + ".udpspecsu5(?, ?)}";
 		case STM_SPG_SL_SUM:
 			return "{call " + pj.pjSchema + ".udpspecsum(?, ?)}";
+		case STM_SPG_SL_YER:
+			return "{call " + pj.pjSchema + ".udpspecyear(?, ?)}";
 		case STM_SPM_SELECT:
 			return "{call " + pj.pjSchema + ".udpspecmaster}";
 		case STM_SPY_SELECT:

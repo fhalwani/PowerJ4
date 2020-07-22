@@ -252,7 +252,7 @@ class ASetup {
 	private void createProcMaria() {
 		String sql = "";
 		noRows = 0;
-		for (int i = 0; i < 49; i++) {
+		for (int i = 0; i < 52; i++) {
 			switch (i) {
 			case 0:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpaccessions()\n"
@@ -309,6 +309,18 @@ class ASetup {
 						+ "END";
 				break;
 			case 5:
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpaddyear(param1 DATETIME, param2 DATETIME)\n"
+						+ "BEGIN\n"
+						+ "SELECT faid, syid, sbid, poid, sgid, fanm, synm, sbnm, ponm, sgdc, date_part('year', addt) as yearid,\n"
+						+ "COUNT(caid) AS adca, SUM(CAST(adv5 as INT)) AS adv5, SUM(adv1) AS adv1, SUM(adv2) AS adv2,\n"
+						+ "SUM(adv3) AS adv3, SUM(adv4) AS adv4\n"
+						+ "FROM " + dbSchema + ".udvadditionals\n"
+						+ "WHERE addt BETWEEN param1 AND param2\n"
+						+ "GROUP BY faid, syid, sbid, poid, sgid, fanm, synm, sbnm, ponm, sgdc, date_part('year', addt)\n"
+						+ "ORDER BY faid, syid, sbid, poid, sgid, yearid;\n"
+						+ "END";
+				break;
+			case 6:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcoder1()\n"
 						+ "BEGIN\n"
 						+ "SELECT coid, ruid, coqy, cov1, cov2, cov3, conm, codc\n"
@@ -316,43 +328,43 @@ class ASetup {
 						+ "ORDER BY conm;\n"
 						+ "END";
 				break;
-			case 6:
+			case 7:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcoder2()\n"
 						+ "BEGIN\n"
 						+ "SELECT coid, ruid, coqy, cov1, cov2, cov3, conm, codc FROM " + dbSchema + ".coder2 ORDER BY conm;\n"
 						+ "END";
 				break;
-			case 7:
+			case 8:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcoder3()\n"
 						+ "BEGIN\n"
 						+ "SELECT coid, ruid, coqy, cov1, cov2, cov3, conm, codc FROM " + dbSchema + ".coder3 ORDER BY conm;\n"
 						+ "END";
 				break;
-			case 8:
+			case 9:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcoder4()\n"
 						+ "BEGIN\n"
 						+ "SELECT coid, ruid, coqy, cov1, cov2, cov3, conm, codc FROM " + dbSchema + ".coder4 ORDER BY conm;\n"
 						+ "END";
 				break;
-			case 9:
+			case 10:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcmt(param1 INT)\n"
 						+ "BEGIN\n"
 						+ "SELECT com1, com2, com3, com4 FROM " + dbSchema + ".comments WHERE caid = param1;\n"
 						+ "END";
 				break;
-			case 10:
+			case 11:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcseid(param1 CHAR(12))\n"
 						+ "BEGIN\n"
 						+ "SELECT caid FROM " + dbSchema + ".cases WHERE cano = param1;\n"
 						+ "END";
 				break;
-			case 11:
+			case 12:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcseno(param1 INT)\n"
 						+ "BEGIN\n"
 						+ "SELECT cano FROM " + dbSchema + ".cases WHERE caid = param1;\n"
 						+ "END";
 				break;
-			case 12:
+			case 13:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcsespe(param1 INT)\n"
 						+ "BEGIN\n"
 						+ "SELECT c.smid, c.fned, c.cano, s.spid\n"
@@ -361,7 +373,7 @@ class ASetup {
 						+ "WHERE c.caid = param1;\n"
 						+ "END";
 				break;
-			case 13:
+			case 14:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcsesum(param1 DATETIME, param2 DATETIME)\n"
 						+ "BEGIN\n"
 						+ "SELECT faid, syid, sbid, poid, fnid, fanm, synm, sbnm, sbdc, ponm, fnnm, fnls, fnfr, COUNT(caid) AS caca,\n"
@@ -374,25 +386,6 @@ class ASetup {
 						+ "WHERE (fned BETWEEN param1 AND param2)\n"
 						+ "GROUP BY faid, syid, sbid, poid, fnid, fanm, synm, sbnm, sbdc, ponm, fnnm, fnls, fnfr\n"
 						+ "ORDER BY faid, syid, sbid, poid, fnid;\n"
-						+ "END";
-				break;
-			case 14:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpcseyear(param1 DATETIME, param2 DATETIME)\n"
-						+ "BEGIN\n"
-						+ "SELECT c.faid, b.syid, c.sbid, g.poid, f.fanm, y.synm, b.sbnm, r.ponm, date_part('year', c.fned) as yearID, \n"
-						+ "count(caid) as cases, sum(c.casp) as casp, sum(c.cabl) as cabl, sum(c.casl) as casl, sum(c.cahe) as cahe,\n"
-						+ "sum(c.cass) as cass, sum(c.caih) as caih, sum(c.casy) as casy, sum(c.cafs) as cafs, sum(c.cav1) as cav1,\n"
-						+ "sum(c.cav2) as cav2, sum(c.cav3) as cav3, sum(c.cav4) as cav4, sum(c.cav5) as cav5\n"
-						+ "FROM " + dbSchema + ".cases c\n"
-						+ "INNER JOIN " + dbSchema + ".facilities f ON f.faid = c.faid\n"
-						+ "INNER JOIN " + dbSchema + ".subspecial b ON b.sbid = c.sbid\n"
-						+ "INNER JOIN " + dbSchema + ".specimaster m ON m.smid = c.smid\n"
-						+ "INNER JOIN " + dbSchema + ".specigroups g ON g.sgid = m.sgid\n"
-						+ "INNER JOIN " + dbSchema + ".procedures r ON r.poid = g.poid\n"
-						+ "INNER JOIN " + dbSchema + ".specialties y ON y.syid = b.syid\n"
-						+ "WHERE c.fned BETWEEN param1 AND param1 \n"
-						+ "GROUP BY c.faid, b.syid, c.sbid, g.poid, f.fanm, y.synm, b.sbnm, r.ponm, yearID\n"
-						+ "ORDER BY c.faid, b.syid, c.sbid, g.poid, yearID\n"
 						+ "END";
 				break;
 			case 15:
@@ -425,13 +418,26 @@ class ASetup {
 						+ "END";
 				break;
 			case 20:
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpfrzspg(param1 DATETIME, param2 DATETIME)\n"
+						+ "BEGIN\n"
+						+ "SELECT faid, syid, sbid, poid, sgid, fanm, synm, sbnm, ponm, sgdc, COUNT(spid) AS frsp,\n"
+						+ "SUM(CAST(frbl as INT)) AS frbl, SUM(CAST(frsl as INT)) AS frsl,\n"
+						+ "SUM(CAST(frv5 as INT)) AS frv5, SUM(frv1) AS frv1, SUM(frv2) AS frv2,\n"
+						+ "SUM(frv3) AS frv3, SUM(frv4) AS frv4\n"
+						+ "FROM " + dbSchema + ".udvfrozens\n"
+						+ "WHERE (aced BETWEEN param1 AND param2)\n"
+						+ "GROUP BY faid, syid, sbid, poid, sgid, fanm, synm, sbnm, ponm, sgdc\n"
+						+ "ORDER BY faid, syid, sbid, poid, sgid;\n"
+						+ "END";
+				break;
+			case 21:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpFrzSu5(param1 DATETIME, param2 DATETIME)\n"
 						+ "BEGIN\n"
 						+ "SELECT COUNT(*) AS QTY, SUM(frv1) AS frv1, SUM(frv2) AS frv2,\n"
 						+ "SUM(frv3) AS frv3, SUM(frv4) AS frv4\n"
 						+ "FROM " + dbSchema + ".udvfrozens WHERE aced BETWEEN param1 AND param2;\n"
 						+ "END";
-			case 21:
+			case 22:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpfrzsum(param1 DATETIME, param2 DATETIME)\n"
 						+ "BEGIN\n"
 						+ "SELECT faid, syid, sbid, poid, prid, fanm, synm, sbnm, ponm, prnm, prls, prfr, COUNT(spid) AS frsp,\n"
@@ -444,7 +450,21 @@ class ASetup {
 						+ "ORDER BY faid, syid, sbid, poid, prid;\n"
 						+ "END";
 				break;
-			case 22:
+			case 23:
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpfrzyear(param1 DATETIME, param2 DATETIME)\n"
+						+ "BEGIN\n"
+						+ "SELECT faid, syid, sbid, poid, sgid, fanm, synm, sbnm, ponm, sgdc,\n"
+						+ "date_part('year', aced) as yearid, COUNT(spid) AS frsp,\n"
+						+ "SUM(CAST(frbl as INT)) AS frbl, SUM(CAST(frsl as INT)) AS frsl,\n"
+						+ "SUM(CAST(frv5 as INT)) AS frv5, SUM(frv1) AS frv1, SUM(frv2) AS frv2,\n"
+						+ "SUM(frv3) AS frv3, SUM(frv4) AS frv4\n"
+						+ "FROM " + dbSchema + ".udvfrozens\n"
+						+ "WHERE (aced BETWEEN param1 AND param2)\n"
+						+ "GROUP BY faid, syid, sbid, poid, sgid, fanm, synm, sbnm, ponm, sgdc, date_part('year', aced)\n"
+						+ "ORDER BY faid, syid, sbid, poid, sgid, yearid;\n"
+						+ "END";
+				break;
+			case 24:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udporder(param1 INT)\n"
 						+ "BEGIN\n"
 						+ "SELECT orqy, orv1, orv2, orv3, orv4, ognm\n"
@@ -453,25 +473,25 @@ class ASetup {
 						+ "ORDER BY ognm;\n"
 						+ "END";
 				break;
-			case 23:
+			case 25:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpordergroup()\n"
 						+ "BEGIN\n"
 						+ "SELECT * FROM " + dbSchema + ".udvordergroups ORDER BY ognm;\n"
 						+ "END";
 				break;
-			case 24:
+			case 26:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpordermaster()\n"
 						+ "BEGIN\n"
 						+ "SELECT * FROM " + dbSchema + ".udvordermaster ORDER BY omnm;\n"
 						+ "END";
 				break;
-			case 25:
+			case 27:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udppending()\n"
 						+ "BEGIN\n"
 						+ "SELECT * FROM " + dbSchema + ".udvpending ORDER BY pnid;\n"
 						+ "END";
 				break;
-			case 26:
+			case 28:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udppendingrouted(param1 DATETIME, param2 DATETIME)\n"
 						+ "BEGIN\n"
 						+ "SELECT * FROM " + dbSchema + ".udvpending\n"
@@ -479,31 +499,31 @@ class ASetup {
 						+ "ORDER BY pnid;\n"
 						+ "END";
 				break;
-			case 27:
+			case 29:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpprocedure()\n"
 						+ "BEGIN\n"
 						+ "SELECT poid, ponm, podc FROM " + dbSchema + ".procedures ORDER BY ponm;\n"
 						+ "END";
 				break;
-			case 28:
+			case 30:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpprsname()\n"
 						+ "BEGIN\n"
 						+ "SELECT * FROM " + dbSchema + ".persons ORDER BY prnm;\n"
 						+ "END";
 				break;
-			case 29:
+			case 31:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpprsid(param1 SMALLINT)\n"
 						+ "BEGIN\n"
 						+ "SELECT prvl FROM " + dbSchema + ".persons WHERE prid = param1;\n"
 						+ "END";
 				break;
-			case 30:
+			case 32:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udprule()\n"
 						+ "BEGIN\n"
 						+ "SELECT ruid, runm, rudc FROM " + dbSchema + ".rules ORDER BY ruid;\n"
 						+ "END";
 				break;
-			case 31:
+			case 33:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpschedserv(param1 DATE, param2 DATE)\n"
 						+ "BEGIN\n"
 						+ "SELECT wdid, srid, prid, prnm, srnm\n"
@@ -512,7 +532,7 @@ class ASetup {
 						+ "ORDER BY srnm, wdid;\n"
 						+ "END";
 				break;
-			case 32:
+			case 34:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpschedstaff(param1 DATE, param2 DATE)\n"
 						+ "BEGIN\n"
 						+ "SELECT wdid, srid, prid, prnm, srnm\n"
@@ -521,7 +541,7 @@ class ASetup {
 						+ "ORDER BY prnm, wdid, srnm;\n"
 						+ "END";
 				break;
-			case 33:
+			case 35:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpschedsum(param1 DATE, param2 DATE)\n"
 						+ "BEGIN\n"
 						+ "SELECT * FROM " + dbSchema + ".udvschedules\n"
@@ -529,7 +549,7 @@ class ASetup {
 						+ "ORDER BY faid, prid, wdid, srid\n"
 						+ "END";
 				break;
-			case 34:
+			case 36:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpspecimens(param1 INT)\n"
 						+ "BEGIN\n"
 						+ "SELECT spid, smid, spbl, spsl, spfr, sphe, spss, spih,\n"
@@ -539,19 +559,36 @@ class ASetup {
 						+ "ORDER BY spid;\n"
 						+ "END";
 				break;
-			case 35:
+			case 37:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpspecgroup()\n"
 						+ "BEGIN\n"
 						+ "SELECT * FROM " + dbSchema + ".udvspecigroups ORDER BY sgdc;\n"
 						+ "END";
 				break;
-			case 36:
+			case 38:
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpspecyear(param1 DATE, param2 DATE)\n"
+						+ "BEGIN\n"
+						+ "SELECT b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc, f.fanm,\n"
+						+ "date_part('year', c.fned) as yearid, COUNT(s.spid) AS qty, SUM(s.spbl) AS spbl, SUM(s.spsl) AS spsl,\n"
+						+ "SUM(s.spv1) AS spv1, SUM(s.spv2) AS spv2, SUM(s.spv3) AS spv3, SUM(s.spv4) AS spv4,\n"
+						+ "SUM(s.spv5) AS spv5 FROM " + dbSchema + ".specigroups g\n"
+						+ "INNER JOIN " + dbSchema + ".specimaster m ON g.sgid = m.sgid\n"
+						+ "INNER JOIN " + dbSchema + ".specimens s ON m.smid = s.smid\n"
+						+ "INNER JOIN " + dbSchema + ".cases c ON c.caid = s.caid\n"
+						+ "INNER JOIN " + dbSchema + ".procedures r ON r.poid = g.poid\n"
+						+ "INNER JOIN " + dbSchema + ".subspecial b ON b.sbid = g.sbid\n"
+						+ "INNER JOIN " + dbSchema + ".specialties y ON y.syid = b.syid\n"
+						+ "INNER JOIN " + dbSchema + ".facilities f ON f.faid = c.faid WHERE c.fned BETWEEN param1 AND param2 \n"
+						+ "GROUP BY b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc, f.fanm, date_part('year', c.fned)\n"
+						+ "ORDER BY b.syid, g.sbid, g.poid, g.sgid, c.faid\n"
+						+ "END";
+			case 39:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpspecmaster()\n"
 						+ "BEGIN\n"
 						+ "SELECT * FROM " + dbSchema + ".udvspecimaster ORDER BY smnm;\n"
 						+ "END";
 				break;
-			case 37:
+			case 40:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpspecsu5(param1 DATE, param2 DATE)\n"
 						+ "BEGIN\n"
 						+ "SELECT g.sgid, COUNT(s.spid) AS qty, SUM(s.spv1) AS spv1,\n"
@@ -563,7 +600,7 @@ class ASetup {
 						+ "GROUP BY g.sgid"
 						+ "END";
 				break;
-			case 38:
+			case 41:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpspecsum(param1 DATE, param2 DATE)\n"
 						+ "BEGIN\n"
 						+ "SELECT b.syid, g.sbid, g.sgid, c.faid, y.synm, b.sbnm, g.sgdc, f.fanm,\n"
@@ -582,57 +619,57 @@ class ASetup {
 						+ "GROUP BY b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc, f.fanm\n"
 						+ "END";
 				break;
-			case 39:
+			case 42:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpspecialty()\n"
 						+ "BEGIN\n"
 						+ "SELECT * FROM " + dbSchema + ".specialties ORDER BY synm;\n"
 						+ "END";
 				break;
-			case 40:
+			case 43:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpservice()\n"
 						+ "BEGIN\n"
 						+ "SELECT * FROM " + dbSchema + ".udvservices ORDER BY srnm;\n"
 						+ "END";
 				break;
-			case 41:
+			case 44:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpsetup()\n"
 						+ "BEGIN\n"
 						+ "SELECT stid, stva FROM " + dbSchema + ".setup ORDER BY stid;\n"
 						+ "END";
 				break;
-			case 42:
+			case 45:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpstpid(param1 SMALLINT)\n"
 						+ "BEGIN\n"
 						+ "SELECT stva FROM " + dbSchema + ".setup WHERE stid = param1;\n"
 						+ "END";
 				break;
-			case 43:
+			case 46:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpsubspecial()\n"
 						+ "BEGIN\n"
 						+ "SELECT * FROM " + dbSchema + ".udvsubspecial ORDER BY sbnm;\n"
 						+ "END";
 				break;
-			case 44:
+			case 47:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpturnaround()\n"
 						+ "BEGIN\n"
 						+ "SELECT taid, grss, embd, micr, rout, finl, tanm\n"
 						+ "FROM " + dbSchema + ".turnaround ORDER BY tanm;\n"
 						+ "END";
 				break;
-			case 45:
+			case 48:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpwdy(param1 DATE)\n"
 						+ "BEGIN\n"
 						+ "SELECT wdid, wdno, wdtp, wddt FROM " + dbSchema + ".workdays\n"
 						+ "WHERE wddt >= param1 ORDER BY wddt;\n"
 						+ "END";
 				break;
-			case 46:
+			case 49:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpwdydte(param1 DATE)\n"
 						+ "BEGIN\n"
 						+ "SELECT wdno FROM " + dbSchema + ".workdays WHERE wddt = param1;\n"
 						+ "END";
 				break;
-			case 47:
+			case 50:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpwdynxt(param1 DATE)\n"
 						+ "BEGIN\n"
 						+ "SELECT MIN(wddt) AS wddt FROM " + dbSchema + ".workdays\n"
@@ -662,11 +699,12 @@ class ASetup {
 	private void createProcMSSQL() {
 		String sql = "";
 		noRows = 0;
-		for (int i = 0; i < 49; i++) {
+		for (int i = 0; i < 52; i++) {
 			switch (i) {
 			case 0:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpaccessions AS \n"
-						+ "BEGIN\n" + "SET NOCOUNT ON;\n"
+						+ "BEGIN\n"
+						+ "SET NOCOUNT ON;\n"
 						+ "SELECT * FROM " + dbSchema + ".udvaccessions ORDER BY acnm;\n"
 						+ "END";
 				break;
@@ -717,53 +755,68 @@ class ASetup {
 						+ "END";
 				break;
 			case 5:
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpaddyear @param1 DATETIME, @param2 DATETIME AS \n"
+						+ "BEGIN\n"
+						+ "SET NOCOUNT ON;\n"
+						+ "SELECT faid, syid, sbid, poid, sgid, fanm, synm, sbnm, ponm, sgdc, DATEPART(YEAR, addt) as yearid,\n"
+						+ "COUNT(caid) AS adca, SUM(CAST(adv5 as INT)) AS adv5, SUM(adv1) AS adv1, SUM(adv2) AS adv2,\n"
+						+ "SUM(adv3) AS adv3, SUM(adv4) AS adv4\n"
+						+ "FROM " + dbSchema + ".udvadditionals\n"
+						+ "WHERE addt BETWEEN @param1 AND @param2\n"
+						+ "GROUP BY faid, syid, sbid, poid, sgid, fanm, synm, sbnm, ponm, sgdc, DATEPART(YEAR, addt) \n"
+						+ "ORDER BY faid, syid, sbid, poid, sgid, yearid;\n"
+						+ "END";
+				break;
+			case 6:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcoder1 AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT coid, ruid, coqy, cov1, cov2, cov3, conm, codc FROM " + dbSchema + ".coder1 ORDER BY conm;\n"
 						+ "END";
 				break;
-			case 6:
+			case 7:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcoder2 AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT coid, ruid, coqy, cov1, cov2, cov3, conm, codc FROM " + dbSchema + ".coder2 ORDER BY conm;\n"
 						+ "END";
 				break;
-			case 7:
+			case 8:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcoder3 AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT coid, ruid, coqy, cov1, cov2, cov3, conm, codc FROM " + dbSchema + ".coder3 ORDER BY conm;\n"
 						+ "END";
 				break;
-			case 8:
+			case 9:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcoder4 AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT coid, ruid, coqy, cov1, cov2, cov3, conm, codc FROM " + dbSchema + ".coder4 ORDER BY conm;\n"
 						+ "END";
 				break;
-			case 9:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpcmt @param1 INT AS \n"
-						+ "BEGIN\nSET NOCOUNT ON;\n"
-						+ "SELECT com1, com2, com3, com4 FROM " + dbSchema + ".comments WHERE caid = @param1;\nEND";
-				break;
 			case 10:
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpcmt @param1 INT AS \n"
+						+ "BEGIN\n"
+						+ "SET NOCOUNT ON;\n"
+						+ "SELECT com1, com2, com3, com4 FROM " + dbSchema + ".comments WHERE caid = @param1;\n"
+						+ "END";
+				break;
+			case 11:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcseid @param1 CHAR(12) AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT caid FROM " + dbSchema + ".cases WHERE cano = @param1;\n"
 						+ "END";
 				break;
-			case 11:
+			case 12:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcseno @param1 INT AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT cano FROM " + dbSchema + ".cases WHERE caid = @param1;\n"
 						+ "END";
 				break;
-			case 12:
+			case 13:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcsespe @param1 INT AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
@@ -772,7 +825,7 @@ class ASetup {
 						+ "WHERE c.caid = @param1;\n"
 						+ "END";
 				break;
-			case 13:
+			case 14:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpcsesum @param1 DATETIME, @param2 DATETIME AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
@@ -786,26 +839,6 @@ class ASetup {
 						+ "WHERE (fned BETWEEN @param1 AND @param2)\n"
 						+ "GROUP BY faid, syid, sbid, poid, fnid, fanm, synm, sbnm, sbdc, ponm, fnnm, fnls, fnfr\n"
 						+ "ORDER BY faid, syid, sbid, poid, fnid;\n"
-						+ "END";
-				break;
-			case 14:
-				sql = "CREATE PROCEDURE " + dbSchema + ".udpcseyear @param1 DATETIME, @param2 DATETIME AS \n"
-						+ "BEGIN\n"
-						+ "SET NOCOUNT ON;\n"
-						+ "SELECT c.faid, b.syid, c.sbid, g.poid, f.fanm, y.synm, b.sbnm, r.ponm, DATEPART(YEAR, c.fned) as yearID, \n"
-						+ "count(c.caid) as cases, sum(c.casp) as casp, sum(c.cabl) as cabl, sum(c.casl) as casl, sum(c.cahe) as cahe, \n"
-						+ "sum(c.cass) as cass, sum(c.caih) as caih, sum(c.casy) as casy, sum(c.cafs) as cafs, sum(c.cav1) as cav1, \n"
-						+ "sum(c.cav2) as cav2, sum(c.cav3) as cav3, sum(c.cav4) as cav4, sum(c.cav5) as cav5 \n"
-						+ "FROM " + dbSchema + ".cases c\n"
-						+ "INNER JOIN " + dbSchema + ".facilities f ON f.faid = c.faid\n"
-						+ "INNER JOIN " + dbSchema + ".subspecial b ON b.sbid = c.sbid\n"
-						+ "INNER JOIN " + dbSchema + ".specimaster m ON m.smid = c.smid\n"
-						+ "INNER JOIN " + dbSchema + ".specigroups g ON g.sgid = m.sgid\n"
-						+ "INNER JOIN " + dbSchema + ".procedures r ON r.poid = g.poid\n"
-						+ "INNER JOIN " + dbSchema + ".specialties y ON y.syid = b.syid\n"
-						+ "WHERE c.fned BETWEEN @param1 AND @param1 \n"
-						+ "GROUP BY c.faid, b.syid, c.sbid, g.poid, f.fanm, y.synm, b.sbnm, r.ponm, yearID \n"
-						+ "ORDER BY c.faid, b.syid, c.sbid, g.poid, yearID \n"
 						+ "END";
 				break;
 			case 15:
@@ -845,14 +878,29 @@ class ASetup {
 						+ "END";
 				break;
 			case 20:
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpfrzspg @param1 DATETIME, @param2 DATETIME AS \n"
+						+ "BEGIN\n"
+						+ "SET NOCOUNT ON;\n"
+						+ "SELECT faid, syid, sbid, poid, sgid, fanm, synm, sbnm, ponm, sgdc, COUNT(spid) AS frsp,\n"
+						+ "SUM(CAST(frbl as INT)) AS frbl, SUM(CAST(frsl as INT)) AS frsl,\n"
+						+ "SUM(CAST(frv5 as INT)) AS frv5, SUM(frv1) AS frv1, SUM(frv2) AS frv2,\n"
+						+ "SUM(frv3) AS frv3, SUM(frv4) AS frv4\n"
+						+ "FROM " + dbSchema + ".udvfrozens\n"
+						+ "WHERE (aced BETWEEN @param1 AND @param2)\n"
+						+ "GROUP BY faid, syid, sbid, poid, sgid, fanm, synm, sbnm, ponm, sgdc\n"
+						+ "ORDER BY faid, syid, sbid, poid, sgid;\n"
+						+ "END";
+				break;
+			case 21:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpFrzSu5 @param1 DATETIME, @param2 DATETIME AS \n"
 						+ "BEGIN\n"
+						+ "SET NOCOUNT ON;\n"
 						+ "SELECT COUNT(*) AS QTY, SUM(frv1) AS frv1, SUM(frv2) AS frv2,\n"
 						+ "SUM(frv3) AS frv3, SUM(frv4) AS frv4\n"
 						+ "FROM " + dbSchema + ".udvfrozens WHERE aced BETWEEN @param1 AND @param2;\n"
 						+ "END";
 				break;
-			case 21:
+			case 22:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpfrzsum @param1 DATETIME, @param2 DATETIME AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
@@ -865,34 +913,50 @@ class ASetup {
 						+ "ORDER BY faid, syid, sbid, poid, prid;\n"
 						+ "END";
 				break;
-			case 22:
+			case 23:
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpfrzyear @param1 DATETIME, @param2 DATETIME AS \n"
+						+ "BEGIN\n"
+						+ "SET NOCOUNT ON;\n"
+						+ "SELECT faid, syid, sbid, poid, sgid, fanm, synm, sbnm, ponm, sgdc,\n"
+						+ "DATEPART(YEAR, aced) as yearid, COUNT(spid) AS frsp,\n"
+						+ "SUM(CAST(frbl as INT)) AS frbl, SUM(CAST(frsl as INT)) AS frsl,\n"
+						+ "SUM(CAST(frv5 as INT)) AS frv5, SUM(frv1) AS frv1, SUM(frv2) AS frv2,\n"
+						+ "SUM(frv3) AS frv3, SUM(frv4) AS frv4\n"
+						+ "FROM " + dbSchema + ".udvfrozens\n"
+						+ "WHERE aced BETWEEN @param1 AND @param2 \n"
+						+ "GROUP BY faid, syid, sbid, poid, sgid, fanm, synm, sbnm, ponm, sgdc, DATEPART(YEAR, aced) \n"
+						+ "ORDER BY faid, syid, sbid, poid, sgid, yearid;\n"
+						+ "END";
+				break;
+			case 24:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udporder @param1 INT AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT orqy, orv1, orv2, orv3, orv4, ognm FROM " + dbSchema + ".udvorders WHERE spid = @param1 ORDER BY ognm;\n"
 						+ "END";
 				break;
-			case 23:
+			case 25:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpordergroup AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT * FROM " + dbSchema + ".udvordergroups ORDER BY ognm;\n"
 						+ "END";
 				break;
-			case 24:
+			case 26:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpordermaster AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT * FROM " + dbSchema + ".udvordermaster ORDER BY omnm;\n"
 						+ "END";
 				break;
-			case 25:
+			case 27:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udppending AS \n"
 						+ "BEGIN\n"
+						+ "SET NOCOUNT ON;\n"
 						+ "SELECT * FROM " + dbSchema + ".udvpending ORDER BY pnid;\n"
 						+ "END";
 				break;
-			case 26:
+			case 28:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udppendingrouted @param1 DATETIME, @param2 DATETIME AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
@@ -901,35 +965,35 @@ class ASetup {
 						+ "ORDER BY pnid;\n"
 						+ "END";
 				break;
-			case 27:
+			case 29:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpprocedure AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT poid, ponm, podc FROM " + dbSchema + ".procedures ORDER BY ponm;\n"
 						+ "END";
 				break;
-			case 28:
+			case 30:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpprsname AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT * FROM persons ORDER BY prnm;\n"
 						+ "END";
 				break;
-			case 29:
+			case 31:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpprsid @param1 SMALLINT AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT prvl FROM " + dbSchema + ".persons WHERE prid = @param1;\n"
 						+ "END";
 				break;
-			case 30:
+			case 32:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udprule AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT ruid, runm, rudc FROM " + dbSchema + ".rules ORDER BY ruid;\n"
 						+ "END";
 				break;
-			case 31:
+			case 33:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpschedserv @param1 DATE, @param2 DATE AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
@@ -939,7 +1003,7 @@ class ASetup {
 						+ "ORDER BY srnm, wdid;\n"
 						+ "END";
 				break;
-			case 32:
+			case 34:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpschedstaff @param1 DATE, @param2 DATE AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
@@ -949,7 +1013,7 @@ class ASetup {
 						+ "ORDER BY prnm, wdid, srnm;\n"
 						+ "END";
 				break;
-			case 33:
+			case 35:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpschedsum @param1 DATE, @param2 DATE AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
@@ -958,7 +1022,7 @@ class ASetup {
 						+ "ORDER BY faid, prid, wdid, srid\n"
 						+ "END";
 				break;
-			case 34:
+			case 36:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpspecimens @param1 INT AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
@@ -967,21 +1031,39 @@ class ASetup {
 						+ "FROM " + dbSchema + ".udvspecimens WHERE caid = @param1 ORDER BY spid;\n"
 						+ "END";
 				break;
-			case 35:
+			case 37:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpspecgroup AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT * FROM " + dbSchema + ".udvspecigroups ORDER BY sgdc;\n"
 						+ "END";
 				break;
-			case 36:
+			case 38:
+				sql = "CREATE PROCEDURE " + dbSchema + ".udpspecyear @param1 DATE, @param2 DATE \n"
+						+ "BEGIN\n"
+						+ "SET NOCOUNT ON;\n"
+						+ "SELECT b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc, f.fanm,\n"
+						+ "DATEPART(YEAR, c.fned) as yearid, COUNT(s.spid) AS qty, SUM(s.spbl) AS spbl, SUM(s.spsl) AS spsl,\n"
+						+ "SUM(s.spv1) AS spv1, SUM(s.spv2) AS spv2, SUM(s.spv3) AS spv3, SUM(s.spv4) AS spv4,\n"
+						+ "SUM(s.spv5) AS spv5 FROM " + dbSchema + ".specigroups g\n"
+						+ "INNER JOIN " + dbSchema + ".specimaster m ON g.sgid = m.sgid\n"
+						+ "INNER JOIN " + dbSchema + ".specimens s ON m.smid = s.smid\n"
+						+ "INNER JOIN " + dbSchema + ".cases c ON c.caid = s.caid\n"
+						+ "INNER JOIN " + dbSchema + ".procedures r ON r.poid = g.poid\n"
+						+ "INNER JOIN " + dbSchema + ".subspecial b ON b.sbid = g.sbid\n"
+						+ "INNER JOIN " + dbSchema + ".specialties y ON y.syid = b.syid\n"
+						+ "INNER JOIN " + dbSchema + ".facilities f ON f.faid = c.faid WHERE c.fned BETWEEN @param1 AND @param2 \n"
+						+ "GROUP BY b.syid, g.sbid, g.poid, g.sgid, c.faid, y.synm, b.sbnm, r.ponm, g.sgdc, f.fanm, DATEPART(YEAR, c.fned)\n"
+						+ "ORDER BY b.syid, g.sbid, g.poid, g.sgid, c.faid\n"
+						+ "END";
+			case 39:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpspecmaster AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT * FROM " + dbSchema + ".udvspecimaster ORDER BY smnm;\n"
 						+ "END";
 				break;
-			case 37:
+			case 40:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpspecsu5 @param1 DATE, @param2 DATE AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
@@ -995,7 +1077,7 @@ class ASetup {
 						+ "GROUP BY g.sgid\n"
 						+ "END";
 				break;
-			case 38:
+			case 41:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpspecsum @param1 DATE, @param2 DATE AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
@@ -1016,42 +1098,42 @@ class ASetup {
 						+ "ORDER BY y.synm, b.sbnm, r.ponm, g.sgdc, f.fanm\n"
 						+ "END";
 				break;
-			case 39:
+			case 42:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpspecialty AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT * FROM " + dbSchema + ".specialties ORDER BY synm;\n"
 						+ "END";
 				break;
-			case 40:
+			case 43:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpservice AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT * FROM " + dbSchema + ".udvservices ORDER BY srnm;\n"
 						+ "END";
 				break;
-			case 41:
+			case 44:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpsetup AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT stid, stva FROM " + dbSchema + ".setup ORDER BY stid;\n"
 						+ "END";
 				break;
-			case 42:
+			case 45:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpstpid @param1 SMALLINT AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT stva FROM " + dbSchema + ".setup WHERE stid = @param1;\n"
 						+ "END";
 				break;
-			case 43:
+			case 46:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpsubspecial AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT * FROM " + dbSchema + ".udvsubspecial ORDER BY sbnm;\n"
 						+ "END";
 				break;
-			case 44:
+			case 47:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpturnaround AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
@@ -1059,7 +1141,7 @@ class ASetup {
 						+ "FROM " + dbSchema + ".turnaround ORDER BY tanm;\n"
 						+ "END";
 				break;
-			case 45:
+			case 48:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpwdy @param1 DATE AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
@@ -1067,14 +1149,14 @@ class ASetup {
 						+ "WHERE wddt >= @param1 ORDER BY wddt;\n"
 						+ "END";
 				break;
-			case 46:
+			case 49:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpwdydte @param1 DATE AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
 						+ "SELECT wdno FROM " + dbSchema + ".workdays WHERE wddt = @param1;\n"
 						+ "END";
 				break;
-			case 47:
+			case 50:
 				sql = "CREATE PROCEDURE " + dbSchema + ".udpwdynxt @param1 DATE AS \n"
 						+ "BEGIN\n"
 						+ "SET NOCOUNT ON;\n"
@@ -1354,8 +1436,8 @@ class ASetup {
 				sql = "CREATE VIEW " + dbSchema + ".udvadditionals AS\n"
 						+ "SELECT a.caid, a.prid, a.adcd, a.adv5, a.adv1, a.adv2,\n"
 						+ "a.adv3, a.adv4, a.addt, p.prnm, p.prls, p.prfr, c.faid,\n"
-						+ "c.cano, f.fanm, g.poid, g.sbid, r.ponm, b.syid, b.sbnm, y.synm\n"
-						+ "FROM " + dbSchema + ".additionals AS a\n"
+						+ "c.cano, f.fanm, g.poid, g.sbid, g.sgid, r.ponm, b.syid,\n"
+						+ "b.sbnm, g.sgdc, y.synm FROM " + dbSchema + ".additionals AS a\n"
 						+ "INNER JOIN " + dbSchema + ".persons AS p ON p.prid = a.prid\n"
 						+ "INNER JOIN " + dbSchema + ".cases AS c ON c.caid = a.caid\n"
 						+ "INNER JOIN " + dbSchema + ".facilities AS f ON f.faid = c.faid\n"
@@ -1403,7 +1485,8 @@ class ASetup {
 						+ "SELECT z.spid, z.prid, z.frbl, z.frsl, z.frv5,\n"
 						+ "z.frv1, z.frv2, z.frv3, z.frv4, c.caid, c.faid,\n"
 						+ "c.aced, c.cano, p.prnm, p.prls, p.prfr, s.spdc,\n"
-						+ "m.smnm, m.smdc, f.fanm, g.poid, g.sbid, r.ponm, b.syid, b.sbnm, y.synm\n"
+						+ "m.smnm, m.smdc, f.fanm, g.poid, g.sbid, g.sgid,\n"
+						+ "g.sgdc, r.ponm, b.syid, b.sbnm, y.synm\n"
 						+ "FROM " + dbSchema + ".frozens AS z\n"
 						+ "INNER JOIN " + dbSchema + ".specimens AS s ON s.spid = z.spid\n"
 						+ "INNER JOIN " + dbSchema + ".persons AS p ON p.prid = z.prid\n"

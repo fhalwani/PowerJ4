@@ -181,7 +181,9 @@ class DDesktop extends DPowerJ {
 			pstms.put(STM_SPE_SELECT, prepareStatement(setSQL(STM_SPE_SELECT)));
 			break;
 		case LConstants.ACTION_FORECAST:
-			pstms.put(STM_CSE_SL_YER, prepareStatement(setSQL(STM_CSE_SL_YER)));
+			pstms.put(STM_ADD_SL_YER, prepareStatement(setSQL(STM_ADD_SL_YER)));
+			pstms.put(STM_FRZ_SL_YER, prepareStatement(setSQL(STM_FRZ_SL_YER)));
+			pstms.put(STM_SPG_SL_YER, prepareStatement(setSQL(STM_SPG_SL_YER)));
 			break;
 		case LConstants.ACTION_HISTOLOGY:
 			pstms.put(STM_PND_SELECT, prepareStatement(setSQL(STM_PND_SELECT)));
@@ -260,7 +262,7 @@ class DDesktop extends DPowerJ {
 			break;
 		case LConstants.ACTION_SPECIMEN:
 			pstms.put(STM_ADD_SL_SPG, prepareStatement(setSQL(STM_ADD_SL_SPG)));
-			pstms.put(STM_FRZ_SL_SUM, prepareStatement(setSQL(STM_FRZ_SL_SUM)));
+			pstms.put(STM_FRZ_SL_SPG, prepareStatement(setSQL(STM_FRZ_SL_SPG)));
 			pstms.put(STM_SPG_SL_SUM, prepareStatement(setSQL(STM_SPG_SL_SUM)));
 			break;
 		case LConstants.ACTION_SPECMASTER:
@@ -367,6 +369,7 @@ class DDesktop extends DPowerJ {
 			pstms.put(STM_SPM_UPDATE, prepareStatement(setSQL(STM_SPM_UPDATE)));
 			break;
 		case LConstants.ACTION_LVAL5:
+			pstms.put(STM_ADD_SL_SPG, prepareStatement(setSQL(STM_ADD_SL_SPG)));
 			pstms.put(STM_FRZ_SL_SU5, prepareStatement(setSQL(STM_FRZ_SL_SU5)));
 			pstms.put(STM_SPG_SL_SU5, prepareStatement(setSQL(STM_SPG_SL_SU5)));
 			pstms.put(STM_SPG_UPD_V5, prepareStatement(setSQL(STM_SPG_UPD_V5)));
@@ -443,8 +446,14 @@ class DDesktop extends DPowerJ {
 		case STM_FRZ_SL_SID:
 			return "SELECT prid, frbl, frsl, frv5, frv1, frv2, frv3, frv4, prnm, prls, "
 					+ "prfr, spdc, smnm FROM " + pj.pjSchema + ".udvfrozens WHERE spid = ?";
+		case STM_FRZ_SL_SPG:
+			return "SELECT faid, syid, sbid, poid, sgid, fanm, synm, sbnm, ponm, sgdc, COUNT(spid) AS frsp, "
+			+ "SUM(CAST(frbl as INT)) AS frbl, SUM(CAST(frsl as INT)) AS frsl, SUM(CAST(frv5 as INT)) AS frv5, SUM(frv1) AS frv1, SUM(frv2) AS frv2, "
+			+ "SUM(frv3) AS frv3, SUM(frv4) AS frv4 FROM " + pj.pjSchema + ".udvfrozens WHERE (aced BETWEEN ? AND ?) "
+			+ "GROUP BY faid, syid, sbid, poid, sgid, fanm, synm, sbnm, ponm, sgdc "
+			+ "ORDER BY faid, syid, sbid, poid, sgid";
 		case STM_FRZ_SL_SU5:
-			return "SELECT COUNT(*) AS QTY, SUM(frv1) AS frv1, SUM(frv2) AS frv2, "
+			return "SELECT COUNT(*) AS qty, SUM(frv1) AS frv1, SUM(frv2) AS frv2, "
 					+ "SUM(frv3) AS frv3, SUM(frv4) AS frv4 FROM " + pj.pjSchema + ".udvfrozens WHERE aced BETWEEN ? AND ?";
 		case STM_FRZ_SL_SUM:
 			return "SELECT faid, syid, sbid, poid, prid, fanm, synm, sbnm, ponm, prnm, prls, prfr, COUNT(spid) AS frsp, "

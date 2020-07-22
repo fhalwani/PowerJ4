@@ -114,12 +114,14 @@ class NSpecimen extends NBase {
 		tree.getTree().getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
 			@Override
 			public void valueChanged(final TreeSelectionEvent e) {
-				javax.swing.SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						setCharts(e.getNewLeadSelectionPath());
-					}
-				});
+				if (!tree.isBusy()) {
+					javax.swing.SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							setCharts(e.getNewLeadSelectionPath());
+						}
+					});
+				}
 			}
 		});
 		JScrollPane scrollTree = IGUI.createJScrollPane(tree);
@@ -161,14 +163,7 @@ class NSpecimen extends NBase {
 		Calendar calEnd = pj.dates.setMidnight(null);
 		Calendar calMin = Calendar.getInstance();
 		Calendar calMax = Calendar.getInstance();
-		// TODO calStart.add(Calendar.YEAR, -1);
-		calStart.set(Calendar.YEAR, 2018);
-		calStart.set(Calendar.MONTH, Calendar.JANUARY);
-		calStart.set(Calendar.DAY_OF_YEAR, 1);
-		calEnd.set(Calendar.YEAR, 2019);
-		calEnd.set(Calendar.MONTH, Calendar.JANUARY);
-		calEnd.set(Calendar.DAY_OF_YEAR, 1);
-		// End of TODO calStart.add(Calendar.YEAR, -1);
+		calStart.add(Calendar.YEAR, -1);
 		timeFrom = calStart.getTimeInMillis();
 		timeTo = calEnd.getTimeInMillis();
 		calMax.setTimeInMillis(timeTo);
@@ -309,7 +304,6 @@ class NSpecimen extends NBase {
 			}
 			cell.addElement(paragraph);
 			table.addCell(cell);
-
 		}
 		if (parent.children != null) {
 			for (int i = 0; i < parent.children.length; i++) {
@@ -320,10 +314,7 @@ class NSpecimen extends NBase {
 	}
 
 	private void setCharts(TreePath newPath) {
-		
-		if (newPath == null)
-			return;
-		if (treePath == null || !treePath.equals(newPath)) {
+		if (newPath != null && (treePath == null || !treePath.equals(newPath))) {
 			int count = 1;
 			double[] yCases = new double[count];
 			double[] yCoder1 = new double[count];
@@ -663,15 +654,15 @@ class NSpecimen extends NBase {
 				}
 				rst.close();
 				// Frozen Section
-				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_SUM), 1, timeFrom);
-				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_SUM), 2, timeTo);
-				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_FRZ_SL_SUM));
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_SPG), 1, timeFrom);
+				pj.dbPowerJ.setDate(pjStms.get(DPowerJ.STM_FRZ_SL_SPG), 2, timeTo);
+				rst = pj.dbPowerJ.getResultSet(pjStms.get(DPowerJ.STM_FRZ_SL_SPG));
 				while (rst.next()) {
 					exists = false;
 					for (int i = 0; i < rows.size(); i++) {
 						if (rows.get(i).facID == rst.getShort("faid") && rows.get(i).spyID == rst.getByte("syid")
 								&& rows.get(i).subID == rst.getByte("sbid") && rows.get(i).proID == rst.getByte("poid")
-								&& rows.get(i).spgID == 9999) {
+								&& rows.get(i).spgID == rst.getShort("sgid")) {
 							row = rows.get(i);
 							exists = true;
 							break;
@@ -682,13 +673,13 @@ class NSpecimen extends NBase {
 						row.spyID = rst.getByte("syid");
 						row.subID = rst.getByte("sbid");
 						row.proID = rst.getByte("poid");
-						row.spgID = 9999;
+						row.spgID = rst.getShort("sgid");
 						row.facID = rst.getShort("faid");
 						row.facility = rst.getString("fanm");
 						row.specialty = rst.getString("synm");
 						row.subspecial = rst.getString("sbnm");
 						row.procedure = rst.getString("ponm");
-						row.specimen = "Frozen Section";
+						row.specimen = rst.getString("sgdc");
 						rows.add(row);
 					}
 					row.noSpecs = rst.getInt("frsp");
@@ -745,113 +736,24 @@ class NSpecimen extends NBase {
 			}
 		}
 
-		private void setModel(OSpeclist root) {
-			OSpecnode node0 = (OSpecnode) tree.getTreeTableModel().getRoot();
-			OSpecnode node1 = new OSpecnode("node1");
-			OSpecnode node2 = new OSpecnode("node2");
-			OSpecnode node3 = new OSpecnode("node3");
-			OSpecnode node4 = new OSpecnode("node4");
-			OSpecnode node5 = new OSpecnode("node5");
-			OSpeclist data1 = new OSpeclist();
-			OSpeclist data2 = new OSpeclist();
-			OSpeclist data3 = new OSpeclist();
-			OSpeclist data4 = new OSpeclist();
-			OSpeclist data5 = new OSpeclist();
-			node0.noSpecs = root.noSpecs;
-			node0.noBlocks = root.noBlocks;
-			node0.noSlides = root.noSlides;
-			node0.noHE = root.noHE;
-			node0.noSS = root.noSS;
-			node0.noIHC = root.noIHC;
-			node0.fte1 = root.fte1;
-			node0.fte2 = root.fte2;
-			node0.fte3 = root.fte3;
-			node0.fte4 = root.fte4;
-			node0.fte5 = root.fte5;
-			node0.children = new OSpecnode[root.children.size()];
-			for (int i = 0; i < root.children.size(); i++) {
-				data1 = root.children.get(i);
-				node1 = new OSpecnode(data1.name);
-				node1.noSpecs = data1.noSpecs;
-				node1.noBlocks = data1.noBlocks;
-				node1.noSlides = data1.noSlides;
-				node1.noHE = data1.noHE;
-				node1.noSS = data1.noSS;
-				node1.noIHC = data1.noIHC;
-				node1.fte1 = data1.fte1;
-				node1.fte2 = data1.fte2;
-				node1.fte3 = data1.fte3;
-				node1.fte4 = data1.fte4;
-				node1.fte5 = data1.fte5;
-				node1.children = new OSpecnode[data1.children.size()];
-				for (int j = 0; j < data1.children.size(); j++) {
-					data2 = data1.children.get(j);
-					node2 = new OSpecnode(data2.name);
-					node2.noSpecs = data2.noSpecs;
-					node2.noBlocks = data2.noBlocks;
-					node2.noSlides = data2.noSlides;
-					node2.noHE = data2.noHE;
-					node2.noSS = data2.noSS;
-					node2.noIHC = data2.noIHC;
-					node2.fte1 = data2.fte1;
-					node2.fte2 = data2.fte2;
-					node2.fte3 = data2.fte3;
-					node2.fte4 = data2.fte4;
-					node2.fte5 = data2.fte5;
-					node2.children = new OSpecnode[data2.children.size()];
-					for (int k = 0; k < data2.children.size(); k++) {
-						data3 = data2.children.get(k);
-						node3 = new OSpecnode(data3.name);
-						node3.noSpecs = data3.noSpecs;
-						node3.noBlocks = data3.noBlocks;
-						node3.noSlides = data3.noSlides;
-						node3.noHE = data3.noHE;
-						node3.noSS = data3.noSS;
-						node3.noIHC = data3.noIHC;
-						node3.fte1 = data3.fte1;
-						node3.fte2 = data3.fte2;
-						node3.fte3 = data3.fte3;
-						node3.fte4 = data3.fte4;
-						node3.fte5 = data3.fte5;
-						node3.children = new OSpecnode[data3.children.size()];
-						for (int l = 0; l < data3.children.size(); l++) {
-							data4 = data3.children.get(l);
-							node4 = new OSpecnode(data4.name);
-							node4.noSpecs = data4.noSpecs;
-							node4.noBlocks = data4.noBlocks;
-							node4.noSlides = data4.noSlides;
-							node4.noHE = data4.noHE;
-							node4.noSS = data4.noSS;
-							node4.noIHC = data4.noIHC;
-							node4.fte1 = data4.fte1;
-							node4.fte2 = data4.fte2;
-							node4.fte3 = data4.fte3;
-							node4.fte4 = data4.fte4;
-							node4.fte5 = data4.fte5;
-							node4.children = new OSpecnode[data4.children.size()];
-							for (int m = 0; m < data4.children.size(); m++) {
-								data5 = data4.children.get(m);
-								node5 = new OSpecnode(data5.name);
-								node5.noSpecs = data5.noSpecs;
-								node5.noBlocks = data5.noBlocks;
-								node5.noSlides = data5.noSlides;
-								node5.noHE = data5.noHE;
-								node5.noSS = data5.noSS;
-								node5.noIHC = data5.noIHC;
-								node5.fte1 = data5.fte1;
-								node5.fte2 = data5.fte2;
-								node5.fte3 = data5.fte3;
-								node5.fte4 = data5.fte4;
-								node5.fte5 = data5.fte5;
-								node4.children[m] = node5;
-							}
-							node3.children[l] = node4;
-						}
-						node2.children[k] = node3;
-					}
-					node1.children[j] = node2;
-				}
-				node0.children[i] = node1;
+		private void setModel(OSpeclist item, OSpecnode node) {
+			node.noSpecs = item.noSpecs;
+			node.noBlocks = item.noBlocks;
+			node.noSlides = item.noSlides;
+			node.noHE = item.noHE;
+			node.noSS = item.noSS;
+			node.noIHC = item.noIHC;
+			node.fte1 = item.fte1;
+			node.fte2 = item.fte2;
+			node.fte3 = item.fte3;
+			node.fte4 = item.fte4;
+			node.fte5 = item.fte5;
+			node.children = new OSpecnode[item.children.size()];
+			for (int i = 0; i < item.children.size(); i++) {
+				OSpeclist childItem = item.children.get(i);
+				OSpecnode childNode = new OSpecnode(childItem.name);
+				node.children[i] = childNode;
+				setModel(childItem, childNode);
 			}
 		}
 
@@ -1257,7 +1159,8 @@ class NSpecimen extends NBase {
 					Thread.sleep(LConstants.SLEEP_TIME);
 				} catch (InterruptedException ignore) {
 				}
-				setModel(data0);
+				OSpecnode node0 = (OSpecnode) tree.getTreeTableModel().getRoot();
+				setModel(data0, node0);
 				try {
 					Thread.sleep(LConstants.SLEEP_TIME);
 				} catch (InterruptedException ignore) {

@@ -143,10 +143,8 @@ class IToolBar extends JToolBar {
 			addGo();
 			break;
 		case LConstants.ACTION_FORECAST:
-			addFacility();
-			addDates(start, end, min, max);
 			if (values != null) {
-				byte[] rows = {IPanelRows.SPN_FACILITY, IPanelRows.SPN_SPECIALTY, IPanelRows.SPN_SUBSPECIAL, IPanelRows.SPN_PROCEDURE, IPanelRows.SPN_STAFF};
+				byte[] rows = {IPanelRows.SPN_FACILITY, IPanelRows.SPN_SPECIALTY, IPanelRows.SPN_SUBSPECIAL, IPanelRows.SPN_PROCEDURE, IPanelRows.SPN_SPECIMEN};
 				addRows(rows, values);
 			}
 			addGo();

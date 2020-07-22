@@ -120,12 +120,14 @@ class NWorkload extends NBase {
 		tree.getTree().getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
 			@Override
 			public void valueChanged(final TreeSelectionEvent e) {
-				javax.swing.SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						setCharts(e.getNewLeadSelectionPath());
-					}
-				});
+				if (!tree.isBusy()) {
+					javax.swing.SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							setCharts(e.getNewLeadSelectionPath());
+						}
+					});
+				}
 			}
 		});
 		JScrollPane scrollTree = IGUI.createJScrollPane(tree);
@@ -309,9 +311,7 @@ class NWorkload extends NBase {
 	}
 
 	private void setCharts(TreePath newPath) {
-		if (newPath == null)
-			return;
-		if (treePath == null || !treePath.equals(newPath)) {
+		if (newPath != null && (treePath == null || !treePath.equals(newPath))) {
 			int count = 1;
 			double[] yCases = new double[count];
 			double[] yCoder1 = new double[count];
@@ -500,7 +500,7 @@ class NWorkload extends NBase {
 		return rownum;
 	}
 
-	class ModelWorkload extends ITreeTableModel implements ITreeModel {
+	private class ModelWorkload extends ITreeTableModel implements ITreeModel {
 
 		public ModelWorkload(Object nodeRoot) {
 			super(nodeRoot);
@@ -719,101 +719,22 @@ class NWorkload extends NBase {
 			}
 		}
 
-		private void setModel(OWorklist root) {
-			OWorknode node0 = (OWorknode) tree.getTreeTableModel().getRoot();
-			OWorknode node1 = new OWorknode("node1");
-			OWorknode node2 = new OWorknode("node2");
-			OWorknode node3 = new OWorknode("node3");
-			OWorknode node4 = new OWorknode("node4");
-			OWorknode node5 = new OWorknode("node5");
-			OWorklist data1 = new OWorklist();
-			OWorklist data2 = new OWorklist();
-			OWorklist data3 = new OWorklist();
-			OWorklist data4 = new OWorklist();
-			OWorklist data5 = new OWorklist();
-			node0.noCases = root.noCases;
-			node0.noSpecs = root.noSpecs;
-			node0.noBlocks = root.noBlocks;
-			node0.noSlides = root.noSlides;
-			node0.fte1 = root.fte1;
-			node0.fte2 = root.fte2;
-			node0.fte3 = root.fte3;
-			node0.fte4 = root.fte4;
-			node0.fte5 = root.fte5;
-			node0.children = new OWorknode[root.children.size()];
-			for (int i = 0; i < root.children.size(); i++) {
-				data1 = root.children.get(i);
-				node1 = new OWorknode(data1.name);
-				node1.noCases = data1.noCases;
-				node1.noSpecs = data1.noSpecs;
-				node1.noBlocks = data1.noBlocks;
-				node1.noSlides = data1.noSlides;
-				node1.fte1 = data1.fte1;
-				node1.fte2 = data1.fte2;
-				node1.fte3 = data1.fte3;
-				node1.fte4 = data1.fte4;
-				node1.fte5 = data1.fte5;
-				node1.children = new OWorknode[data1.children.size()];
-				for (int j = 0; j < data1.children.size(); j++) {
-					data2 = data1.children.get(j);
-					node2 = new OWorknode(data2.name);
-					node2.noCases = data2.noCases;
-					node2.noSpecs = data2.noSpecs;
-					node2.noBlocks = data2.noBlocks;
-					node2.noSlides = data2.noSlides;
-					node2.fte1 = data2.fte1;
-					node2.fte2 = data2.fte2;
-					node2.fte3 = data2.fte3;
-					node2.fte4 = data2.fte4;
-					node2.fte5 = data2.fte5;
-					node2.children = new OWorknode[data2.children.size()];
-					for (int k = 0; k < data2.children.size(); k++) {
-						data3 = data2.children.get(k);
-						node3 = new OWorknode(data3.name);
-						node3.noCases = data3.noCases;
-						node3.noSpecs = data3.noSpecs;
-						node3.noBlocks = data3.noBlocks;
-						node3.noSlides = data3.noSlides;
-						node3.fte1 = data3.fte1;
-						node3.fte2 = data3.fte2;
-						node3.fte3 = data3.fte3;
-						node3.fte4 = data3.fte4;
-						node3.fte5 = data3.fte5;
-						node3.children = new OWorknode[data3.children.size()];
-						for (int l = 0; l < data3.children.size(); l++) {
-							data4 = data3.children.get(l);
-							node4 = new OWorknode(data4.name);
-							node4.noCases = data4.noCases;
-							node4.noSpecs = data4.noSpecs;
-							node4.noBlocks = data4.noBlocks;
-							node4.noSlides = data4.noSlides;
-							node4.fte1 = data4.fte1;
-							node4.fte2 = data4.fte2;
-							node4.fte3 = data4.fte3;
-							node4.fte4 = data4.fte4;
-							node4.fte5 = data4.fte5;
-							node4.children = new OWorknode[data4.children.size()];
-							for (int m = 0; m < data4.children.size(); m++) {
-								data5 = data4.children.get(m);
-								node5 = new OWorknode(data5.name);
-								node5.noCases = data5.noCases;
-								node5.noSpecs = data5.noSpecs;
-								node5.noBlocks = data5.noBlocks;
-								node5.noSlides = data5.noSlides;
-								node5.fte1 = data5.fte1;
-								node5.fte2 = data5.fte2;
-								node5.fte3 = data5.fte3;
-								node5.fte4 = data5.fte4;
-								node5.fte5 = data5.fte5;
-								node4.children[m] = node5;
-							}
-							node3.children[l] = node4;
-						}
-						node2.children[k] = node3;
-					}
-					node1.children[j] = node2;
-				}
-				node0.children[i] = node1;
+		private void setModel(OWorklist item, OWorknode node) {
+			node.noCases = item.noCases;
+			node.noSpecs = item.noSpecs;
+			node.noBlocks = item.noBlocks;
+			node.noSlides = item.noSlides;
+			node.fte1 = item.fte1;
+			node.fte2 = item.fte2;
+			node.fte3 = item.fte3;
+			node.fte4 = item.fte4;
+			node.fte5 = item.fte5;
+			node.children = new OWorknode[item.children.size()];
+			for (int i = 0; i < item.children.size(); i++) {
+				OWorklist childItem = item.children.get(i);
+				OWorknode childNode = new OWorknode(childItem.name);
+				node.children[i] = childNode;
+				setModel(childItem, childNode);
 			}
 		}
 
@@ -1218,7 +1139,8 @@ class NWorkload extends NBase {
 					Thread.sleep(LConstants.SLEEP_TIME);
 				} catch (InterruptedException ignore) {
 				}
-				setModel(data0);
+				OWorknode node0 = (OWorknode) tree.getTreeTableModel().getRoot();
+				setModel(data0, node0);
 				try {
 					Thread.sleep(LConstants.SLEEP_TIME);
 				} catch (InterruptedException ignore) {
