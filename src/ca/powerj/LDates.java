@@ -83,13 +83,10 @@ class LDates {
 	}
 
 	int getBusinessDays(long start, long end) {
-		int n = 0;
-		if (getNoDays(start, end) != 0) {
-			pj.dbPowerJ.setDate(pj.pjStms.get(DPowerJ.STM_WDY_SL_DTE), 1, end);
-			n = pj.dbPowerJ.getInt(pj.pjStms.get(DPowerJ.STM_WDY_SL_DTE));
-			pj.dbPowerJ.setDate(pj.pjStms.get(DPowerJ.STM_WDY_SL_DTE), 1, start);
-			n -= pj.dbPowerJ.getInt(pj.pjStms.get(DPowerJ.STM_WDY_SL_DTE));
-		}
+		pj.dbPowerJ.setDate(pj.pjStms.get(DPowerJ.STM_WDY_SL_DTE), 1, end);
+		int n = pj.dbPowerJ.getInt(pj.pjStms.get(DPowerJ.STM_WDY_SL_DTE));
+		pj.dbPowerJ.setDate(pj.pjStms.get(DPowerJ.STM_WDY_SL_DTE), 1, start);
+		n -= pj.dbPowerJ.getInt(pj.pjStms.get(DPowerJ.STM_WDY_SL_DTE));
 		return n;
 	}
 
@@ -107,25 +104,36 @@ class LDates {
 		int hours = workHours * getBusinessDays(calStart, calEnd);
 		hours += (calEnd.get(Calendar.HOUR_OF_DAY) - calStart.get(Calendar.HOUR_OF_DAY));
 		if (hours < 0) {
-			hours = 0;
-		}
-		if (hours > Short.MAX_VALUE) {
+			hours += workHours;
+		} else if (hours > Short.MAX_VALUE) {
 			hours = Short.MAX_VALUE;
 		}
 		return (short) hours;
 	}
 
 	int getNoDays(Calendar calStart, Calendar calEnd) {
-		return getNoDays(calStart.getTimeInMillis(), calEnd.getTimeInMillis());
+		if (calEnd.get(Calendar.YEAR) - calStart.get(Calendar.YEAR) > 0
+				&& calEnd.get(Calendar.DAY_OF_YEAR) > 1) {
+			return getNoDays(calStart.getTimeInMillis(), calEnd.getTimeInMillis());
+		}
+		return (calEnd.get(Calendar.DAY_OF_YEAR) - calStart.get(Calendar.DAY_OF_YEAR));
 	}
 
 	int getNoDays(long start, long end) {
 		int i = 0;
-		long noDays = (end - start) / ONE_DAY;
-		if (noDays > Integer.MAX_VALUE) {
-			i = Integer.MAX_VALUE;
+		if (end - start > ONE_DAY) {
+			long noDays = (end - start) / ONE_DAY;
+			if (noDays > Integer.MAX_VALUE) {
+				i = Integer.MAX_VALUE;
+			} else {
+				i = (int) noDays;
+			}
 		} else {
-			i = (int) noDays;
+			Calendar calStart = Calendar.getInstance();
+			Calendar calEnd = Calendar.getInstance();
+			calStart.setTimeInMillis(start);
+			calEnd.setTimeInMillis(end);
+			i = getNoDays(calStart, calEnd);
 		}
 		return i;
 	}

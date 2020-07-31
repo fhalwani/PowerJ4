@@ -194,7 +194,7 @@ class NForecast extends NBase {
 		Document document = new Document(PageSize.LETTER, 36, 18, 18, 18);
 		Paragraph paragraph = new Paragraph();
 		PdfPCell cell = new PdfPCell();
-		PdfPTable table = new PdfPTable(columns.length);
+		PdfPTable table = new PdfPTable(widths.length);
 		try {
 			FileOutputStream fos = new FileOutputStream(fileName);
 			PdfWriter.getInstance(document, fos);
@@ -417,8 +417,12 @@ class NForecast extends NBase {
 			xlsRow.setHeightInPoints(30);
 			for (int col = 0; col <= columns.length; col++) {
 				xlsCell = xlsRow.createCell(col);
-				xlsCell.setCellValue(columns[col]);
 				xlsCell.setCellStyle(styles.get("header"));
+				if (col == 0) {
+					xlsCell.setCellValue("Name");
+				} else {
+					xlsCell.setCellValue(columns[col-1]);
+				}
 				switch (col) {
 				case 0:
 					sheet.setColumnWidth(col, 30 * 256); // 30 characters
@@ -458,7 +462,7 @@ class NForecast extends NBase {
 	private int xlsRow(OAnnualNode parent, Sheet sheet, Cell xlsCell, String name, int rownum) {
 		for (int row = 0; row < tableRows.size(); row++) {
 			Row xlsRow = sheet.createRow(rownum++);
-			for (int col = 0; col < columns.length; col++) {
+			for (int col = 0; col < 10; col++) {
 				xlsCell = xlsRow.createCell(col);
 				switch (col) {
 				case 0:

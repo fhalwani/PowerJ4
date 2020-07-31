@@ -613,10 +613,14 @@ class NDaily extends NBase {
 							pending.finalFull = rst.getString("fnfr").trim() + " " + rst.getString("fnls").trim();
 							pending.accessed.setTimeInMillis(rst.getTimestamp("aced").getTime());
 							pending.routed.setTimeInMillis(rst.getTimestamp("roed").getTime());
-							pending.passed = pj.dates.getBusinessHours(pending.accessed, endFinal);
 							turnaround = turnarounds.get(pending.turID);
 							pending.cutoff = (short) (turnaround.gross + turnaround.embed + turnaround.micro
 									+ turnaround.route + turnaround.diagn);
+							buffer = pj.dates.getBusinessHours(pending.accessed, endFinal);
+							if (buffer > 9999) {
+								buffer = 9999;
+							}
+							pending.passed = (short) buffer;
 							if (pending.cutoff > 0) {
 								buffer = (100 * pending.passed) / pending.cutoff;
 								if (buffer > 9999) {

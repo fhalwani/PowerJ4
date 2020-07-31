@@ -630,7 +630,11 @@ class NBacklog extends NBase {
 					if (pending.statusID == OCaseStatus.ID_FINAL) {
 						pending.passed = pending.finalTAT;
 					} else {
-						pending.passed = pj.dates.getBusinessHours(pending.accessed, calToday);
+						buffer = pj.dates.getBusinessHours(pending.accessed, calToday);
+						if (buffer > 9999) {
+							buffer = 9999;
+						}
+						pending.passed = (short) buffer;
 					}
 					if (pending.cutoff > 0) {
 						buffer = (100 * pending.passed) / pending.cutoff;
@@ -651,6 +655,8 @@ class NBacklog extends NBase {
 			} catch (InterruptedException e) {
 			} catch (SQLException e) {
 				pj.log(LConstants.ERROR_SQL, getName(), e);
+			} catch (Exception e) {
+				pj.log(LConstants.ERROR_UNEXPECTED, getName(), e);
 			} finally {
 				pj.dbPowerJ.close(rst);
 			}
