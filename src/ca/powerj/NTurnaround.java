@@ -215,7 +215,7 @@ class NTurnaround extends NBase {
 			maxCurrent = 72;
 		}
 		while (maxCurrent < yCurrent[0]) {
-			maxCurrent += 24;
+			maxCurrent += 12;
 		}
 		if (yYears.length > 0) {
 			chartBar.setChart(aYears, yYears, "Annual");
