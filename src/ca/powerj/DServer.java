@@ -425,6 +425,8 @@ class DServer extends DPowerJ {
 			return "{call " + pj.pjSchema + ".udpfrzsid(?)}";
 		case STM_FRZ_SL_SPG:
 			return "{call " + pj.pjSchema + ".udpfrzspg(?, ?)}";
+		case STM_FRZ_SL_SU5:
+			return "{call " + pj.pjSchema + ".udpfrzsu5(?, ?)}";
 		case STM_FRZ_SL_SUM:
 			return "{call " + pj.pjSchema + ".udpfrzsum(?, ?)}";
 		case STM_FRZ_SL_YER:

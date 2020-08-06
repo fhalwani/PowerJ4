@@ -604,8 +604,8 @@ class NBacklog extends NBase {
 					pending.microed.setTimeInMillis(0);
 					pending.routed.setTimeInMillis(0);
 					pending.finaled.setTimeInMillis(0);
-					pending.cutoff = turnaround.gross;
 					turnaround = turnarounds.get(pending.turID);
+					pending.cutoff = turnaround.gross;
 					if (pending.statusID > OCaseStatus.ID_ACCES) {
 						pending.grossed.setTimeInMillis(rst.getTimestamp("gred").getTime());
 						pending.cutoff += turnaround.embed;
