@@ -15,9 +15,7 @@ class IComboBox extends JComboBox<OItem> {
 		setMaximumSize(dim);
 		setFont(LConstants.APP_FONT);
 		// has to be editable
-		// setEditable(true);
-		// change the editor's document
-		// new IComboMatch(this);
+		setEditable(true);
 	}
 
 	short getIndex() {
@@ -72,5 +70,22 @@ class IComboBox extends JComboBox<OItem> {
 
 	void setModel(Object[] items) {
 		setModel(new DefaultComboBoxModel(items));
+		// change the editor's document
+		new IComboMatch(this);
+	}
+
+	void setSelectedText(String name) {
+		setSelectedIndex(-1);
+		ComboBoxModel model = getModel();
+		for (int i = 0; i < getItemCount(); i++) {
+			Object o = model.getElementAt(i);
+			if (o != null) {
+				OItem item = (OItem) o;
+				if (item.name == name) {
+					setSelectedItem(o);
+					break;
+				}
+			}
+		}
 	}
 }

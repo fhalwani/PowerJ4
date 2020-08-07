@@ -15,15 +15,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-
-import javax.swing.DefaultCellEditor;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -31,7 +28,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
-
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
@@ -130,7 +126,7 @@ class NSchedule extends NBase {
 			}
 		};
 		tblSchedule.addFocusListener(this);
-		tblSchedule.setDefaultEditor(OItem.class, new DefaultCellEditor(cboPersons));
+		tblSchedule.setDefaultEditor(OItem.class, new IComboTableEditor(cboPersons));
 		JScrollPane scrollSchedule = IGUI.createJScrollPane(tblSchedule);
 		scrollSchedule.setMinimumSize(new Dimension(800, 900));
 		JSplitPane pnlSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -736,7 +732,8 @@ class NSchedule extends NBase {
 		@Override
 		public void setValueAt(Object value, int row, int col) {
 			if (byService && col > 0 && pj.userAccess[LConstants.ACCESS_STP_SC]
-					&& scheduleServices.get(row).get(col - 1).isOn) {
+					&& scheduleServices.get(row).get(col - 1).isOn
+					&& value instanceof OItem) {
 				altered = true;
 				scheduleServices.get(row).get(col - 1).person = (OItem) value;
 				save(scheduleServices.get(row).get(col - 1));

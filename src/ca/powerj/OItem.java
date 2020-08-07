@@ -12,22 +12,24 @@ class OItem {
 		id = i;
 		name = detail;
 	}
-	public String toString() {
-		return name;
-	}
 
-	public int compareTo(OItem o) {
-		if (o == null) {
-			return 1;
+	public int compareTo(Object o) {
+		if (o instanceof OItem) {
+			OItem item = (OItem)o;
+			return name.compareTo(item.name);
 		}
-		return name.compareTo(o.name);
+		return 1;
 	}
 
 	public boolean equals(Object o) {
-		OItem item = (OItem)o;
-		if (item == null) {
-			return false;
+		if (o instanceof OItem) {
+			OItem item = (OItem)o;
+			return (id == item.id);
 		}
-		return (id == item.id);
+		return false;
+	}
+
+	public String toString() {
+		return name;
 	}
 }

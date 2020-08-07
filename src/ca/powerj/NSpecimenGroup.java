@@ -20,9 +20,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-
 import javax.swing.BorderFactory;
-import javax.swing.DefaultCellEditor;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -37,7 +35,6 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
-
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -45,7 +42,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
-
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
@@ -272,16 +268,16 @@ class NSpecimenGroup extends NBase {
 			column.setMinWidth(100);
 			switch (i) {
 			case 1:
-				column.setCellEditor(new DefaultCellEditor(cboCoder1));
+				column.setCellEditor(new IComboTableEditor(cboCoder1));
 				break;
 			case 2:
-				column.setCellEditor(new DefaultCellEditor(cboCoder2));
+				column.setCellEditor(new IComboTableEditor(cboCoder2));
 				break;
 			case 3:
-				column.setCellEditor(new DefaultCellEditor(cboCoder3));
+				column.setCellEditor(new IComboTableEditor(cboCoder3));
 				break;
 			default:
-				column.setCellEditor(new DefaultCellEditor(cboCoder4));
+				column.setCellEditor(new IComboTableEditor(cboCoder4));
 			}
 		}
 		JScrollPane scrollCodes = IGUI.createJScrollPane(tblCodes);
@@ -922,8 +918,10 @@ class NSpecimenGroup extends NBase {
 
 		@Override
 		public void setValueAt(Object value, int row, int col) {
-			specimen.codes[row][col - 1] = (OItem) value;
-			altered = true;
+			if (value instanceof OItem) {
+				specimen.codes[row][col - 1] = (OItem) value;
+				altered = true;
+			}
 		}
 	}
 }

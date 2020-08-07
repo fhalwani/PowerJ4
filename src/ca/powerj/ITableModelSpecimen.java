@@ -120,10 +120,12 @@ class ITableModelSpecimen extends ITableModel {
 
 	@Override
 	public void setValueAt(Object value, int row, int col) {
-		OItem item = (OItem) value;
-		specimens.get(row).master.id = item.id;
-		specimens.get(row).master.name = item.name;
-		fireTableCellUpdated(row, col);
+		if (value instanceof OItem) {
+			OItem item = (OItem) value;
+			specimens.get(row).master.id = item.id;
+			specimens.get(row).master.name = item.name;
+			fireTableCellUpdated(row, col);
+		}
 	}
 
 	private class DataSpecimen {

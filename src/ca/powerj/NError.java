@@ -13,8 +13,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Hashtable;
-
-import javax.swing.DefaultCellEditor;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
@@ -24,7 +22,6 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
-
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -32,7 +29,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
-
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
@@ -123,7 +119,7 @@ class NError extends NBase {
 		cboMaster.setName("SpecMaster");
 		cboMaster.setModel(pj.dbPowerJ.getSpecimenMaster(false, pjStms.get(DPowerJ.STM_SPM_SELECT)));
 		TableColumn column = tblSpec.getColumnModel().getColumn(ITableModelSpecimen.SPEC_CODE);
-		column.setCellEditor(new DefaultCellEditor(cboMaster));
+		column.setCellEditor(new IComboTableEditor(cboMaster));
 		JScrollPane scrollSpec = IGUI.createJScrollPane(tblSpec);
 		scrollSpec.setMinimumSize(new Dimension(600, 200));
 		modelEvent = new ITableModelEvent(pj);

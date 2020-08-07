@@ -6,10 +6,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.sql.PreparedStatement;
 import java.util.Hashtable;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.DefaultCellEditor;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -99,7 +97,7 @@ class NEdit extends NBase {
 		cboMaster.setName("SpecMaster");
 		cboMaster.setModel(pj.dbPowerJ.getSpecimenMaster(false, pjStms.get(DPowerJ.STM_SPM_SELECT)));
 		TableColumn column = tblSpec.getColumnModel().getColumn(ITableModelSpecimen.SPEC_CODE);
-		column.setCellEditor(new DefaultCellEditor(cboMaster));
+		column.setCellEditor(new IComboTableEditor(cboMaster));
 		JScrollPane scrollSpec = IGUI.createJScrollPane(tblSpec);
 		scrollSpec.setMinimumSize(new Dimension(600, 200));
 		modelEvent = new ITableModelEvent(pj);
