@@ -42,43 +42,31 @@ public class LibWorkdays {
 		int month = 0;
 		int year = 0;
 		int day = 0;
-		int a = 0;
-		int b = 0;
-		int c = 0;
-		int d = 0;
-		int e = 0;
-		int f = 0;
-		int g = 0;
-		int h = 0;
-		int i = 0;
-		int k = 0;
-		int l = 0;
-		int m = 0;
-		Calendar easterMonday = Calendar.getInstance();
+		Calendar easterFriday = Calendar.getInstance();
 		while (calDate.getTimeInMillis() < maxDate) {
 			if (year < calDate.get(Calendar.YEAR)) {
 				year = calDate.get(Calendar.YEAR);
+				int a = year % 19;
+				int b = year / 100;
+				int c = year % 100;
+				int d = b / 4;
+				int e = b % 4;
+				int f = (b + 8) / 25;
+				int g = (b - f + 1) / 3;
+				int h = (19 * a + b - d - g + 15) % 30;
+				int i = c / 4;
+				int k = c % 4;
+				int l = (32 + 2 * e + 2 * i - h - k) % 7;
+				int m = (a + 11 * h + 22 * l) / 451;
+				month = ((h + l - 7 * m + 114) / 31) - 1;
+				day = ((h + l - 7 * m + 114) % 31) + 1;
+				easterFriday.set(Calendar.YEAR, year);
+				easterFriday.set(Calendar.MONTH, month);
+				easterFriday.set(Calendar.DAY_OF_MONTH, day);
+				easterFriday.add(Calendar.DAY_OF_YEAR, -2);
 				for (int n = 0; n < 12; n++) {
 					blnMatched[n] = false;
 				}
-				a = year % 19;
-				b = year / 100;
-				c = year % 100;
-				d = b / 4;
-				e = b % 4;
-				f = (b + 8) / 25;
-				g = (b - f + 1) / 3;
-				h = (19 * a + b - d - g + 15) % 30;
-				i = c / 4;
-				k = c % 4;
-				l = (32 + 2 * e + 2 * i - h - k) % 7;
-				m = (a + 11 * h + 22 * l) / 451;
-				month = ((h + l - 7 * m + 114) / 31) - 1;
-				day = ((h + l - 7 * m + 114) % 31) + 1;
-				easterMonday.set(Calendar.YEAR, year);
-				easterMonday.set(Calendar.MONTH, month);
-				easterMonday.set(Calendar.DAY_OF_MONTH, day);
-				easterMonday.add(Calendar.DAY_OF_YEAR, -2);
 			}
 			dayType = DATE_WEEKDAY;
 			switch (calDate.get(Calendar.DAY_OF_WEEK)) {
@@ -124,14 +112,14 @@ public class LibWorkdays {
 				case Calendar.APRIL:
 					if (!blnMatched[DATE_GOOD]) {
 						if (calDate.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
-							if (calDate.get(Calendar.DAY_OF_YEAR) == easterMonday.get(Calendar.DAY_OF_YEAR)) {
+							if (calDate.get(Calendar.DAY_OF_YEAR) == easterFriday.get(Calendar.DAY_OF_YEAR)) {
 								dayType = DATE_HOLIDAY;
 								blnMatched[DATE_GOOD] = true;
 							}
 						}
 					} else if (!blnMatched[DATE_EASTER]) {
 						if (calDate.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY) {
-							if (calDate.get(Calendar.DAY_OF_YEAR) == (easterMonday.get(Calendar.DAY_OF_YEAR) + 3)) {
+							if (calDate.get(Calendar.DAY_OF_YEAR) == (easterFriday.get(Calendar.DAY_OF_YEAR) + 3)) {
 								dayType = DATE_HOLIDAY;
 								blnMatched[DATE_EASTER] = true;
 							}
